@@ -247,6 +247,125 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
     </div>
   );
 
+  const courseStats = [
+    { label: 'Total Courses', value: '18', icon: '📚', color: '#e0f2fe' },
+    { label: 'Total Enrollments', value: '1,245', icon: '👥', color: '#f0fdf4' },
+    { label: 'Total Hours', value: '850', icon: '⏱️', color: '#fff7ed' },
+    { label: 'Draft Courses', value: '4', icon: '📝', color: '#fef2f2' },
+  ];
+
+  const adminCourseData = [
+    { 
+      id: 1, 
+      title: 'Indian Polity & Governance', 
+      author: 'Dr. Rajesh Kumar', 
+      students: 245, 
+      modules: 24, 
+      hours: 120, 
+      status: 'Published',
+      image: 'course_polity_thumb_1775669670972.png'
+    },
+    { 
+      id: 2, 
+      title: 'Modern Indian History', 
+      author: 'Prof. Meera Singh', 
+      students: 198, 
+      modules: 20, 
+      hours: 100, 
+      status: 'Published',
+      image: 'course_history_thumb_1775669750158.png'
+    },
+    { 
+      id: 3, 
+      title: 'Indian Economy', 
+      author: 'Dr. Amit Sharma', 
+      students: 312, 
+      modules: 28, 
+      hours: 150, 
+      status: 'Draft',
+      image: 'course_economy_thumb_1775669777507.png'
+    }
+  ];
+
+  const renderCourses = () => (
+    <div className="course-management-page">
+      <div className="admin-stats-grid">
+        {courseStats.map((stat) => (
+          <div key={stat.label} className="adm-stat-card">
+            <div className="adm-stat-top">
+              <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
+                {stat.icon}
+              </div>
+            </div>
+            <div className="adm-stat-info">
+              <div className="adm-stat-value">{stat.value}</div>
+              <div className="adm-stat-label">{stat.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="admin-management-section">
+        <div className="table-header-row">
+          <h2>All Courses</h2>
+        </div>
+
+        <div className="admin-courses-grid">
+          {adminCourseData.map((course) => (
+            <div key={course.id} className="admin-course-card">
+              <div className="course-preview-img">
+                {/* Use the dynamically generated path if possible, or a local path */}
+                <img src={require(`../images/${course.image}`).default || course.image} alt={course.title} />
+                <span className={`status-badge ${course.status.toLowerCase()}`}>
+                  {course.status}
+                </span>
+              </div>
+              <div className="course-card-body">
+                <h3>{course.title}</h3>
+                <p className="author">by {course.author}</p>
+                <div className="course-mini-stats">
+                  <div className="mini-item">
+                    <span className="val">{course.students}</span>
+                    <span className="lbl">Students</span>
+                  </div>
+                  <div className="mini-item">
+                    <span className="val">{course.modules}</span>
+                    <span className="lbl">Modules</span>
+                  </div>
+                  <div className="mini-item">
+                    <span className="val">{course.hours}</span>
+                    <span className="lbl">Hours</span>
+                  </div>
+                </div>
+                <div className="course-card-actions">
+                  <button className="edit-course-btn">
+                     <span>✎</span> Edit
+                  </button>
+                  <button className="delete-course-btn">
+                     <span>🗑️</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeMenu) {
+      case 'Dashboard':
+        return renderDashboard();
+      case 'Students':
+        return renderStudents();
+      case 'Courses':
+        return renderCourses();
+      default:
+        return renderDashboard();
+    }
+  };
+
   return (
     <div className="admin-layout">
       {/* Sidebar */}
@@ -299,7 +418,7 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
         </header>
 
         <section className="admin-content-inner">
-          {activeMenu === 'Dashboard' ? renderDashboard() : renderStudents()}
+          {renderContent()}
         </section>
       </main>
     </div>
