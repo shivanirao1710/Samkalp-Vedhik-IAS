@@ -36,13 +36,8 @@ const AuthLayout = ({ children, title, subtitle }) => {
           <p className="subtitle">{subtitle}</p>
           {children}
         </div>
-        
-        <div className="footer-nav">
-          <a href="#">Terms of Service</a>
-          <span>&middot;</span>
-          <a href="#">Privacy Policy</a>
-        </div>
       </div>
+
     </div>
   );
 };

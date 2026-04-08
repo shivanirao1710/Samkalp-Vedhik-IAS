@@ -98,21 +98,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem;
+  padding: 2rem;
   background-color: white;
-  height: 100vh;
+  min-height: 100vh;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 
 .auth-card {
   width: 100%;
   max-width: 450px;
-  padding: 2.5rem;
+  padding: 3rem 2.5rem;
   border-radius: 20px;
   background: var(--glass-bg);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   border: 1px solid #f1f5f9;
+  margin: auto;
 }
 
 .auth-card h2 {
