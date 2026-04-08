@@ -115,6 +115,8 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
@@ -154,17 +156,37 @@ const Dashboard = ({ user, onLogout }) => {
             <input type="text" placeholder="Search courses, tests, topics..." />
           </div>
 
-          <div className="user-profile">
-            <span style={{ fontSize: '1.2rem', cursor: 'pointer' }}>🔔</span>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>{user.name || user.email.split('@')[0]}</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Student</div>
+          <div className="profile-wrapper">
+            <div className="user-profile" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+              <span className="notification-bell">🔔</span>
+              <div className="user-info-text">
+                <div className="user-name">{user.name || user.email.split('@')[0]}</div>
+                <div className="user-role">Student</div>
+              </div>
+
+              <div className="avatar">
+                {(user.name || user.email).substring(0, 2).toUpperCase()}
+              </div>
             </div>
 
-            <div className="avatar">
-              {(user.name || user.email).substring(0, 2).toUpperCase()}
-            </div>
-
+            {isProfileOpen && (
+              <div className="profile-dropdown">
+                <button className="dropdown-item">
+                  <span className="icon">👤</span> My Profile
+                </button>
+                <button className="dropdown-item">
+                  <span className="icon">⚙️</span> Settings
+                </button>
+                <div className="dropdown-divider"></div>
+                <button className="dropdown-item admin-link">
+                  <span className="icon">🛡️</span> Admin Panel
+                </button>
+                <div className="dropdown-divider"></div>
+                <button className="dropdown-item logout-link" onClick={onLogout}>
+                  <span className="icon">↪</span> Logout
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
