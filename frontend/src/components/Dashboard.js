@@ -3,12 +3,14 @@ import '../styles/Dashboard.css';
 import Courses from './Courses';
 import Tests from './Tests';
 import PsychometricTest from './PsychometricTest';
+import AdminPanel from './AdminPanel';
 import logo from '../images/logo.png';
 
 
 
 const Dashboard = ({ user, onLogout }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
+  const [isAdminView, setIsAdminView] = useState(false);
 
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
@@ -117,6 +119,16 @@ const Dashboard = ({ user, onLogout }) => {
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  if (isAdminView) {
+    return (
+      <AdminPanel 
+        user={user} 
+        onLogout={onLogout} 
+        onBackToStudent={() => setIsAdminView(false)} 
+      />
+    );
+  }
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
@@ -178,7 +190,13 @@ const Dashboard = ({ user, onLogout }) => {
                   <span className="icon">⚙️</span> Settings
                 </button>
                 <div className="dropdown-divider"></div>
-                <button className="dropdown-item admin-link">
+                <button 
+                  className="dropdown-item admin-link" 
+                  onClick={() => {
+                    setIsAdminView(true);
+                    setIsProfileOpen(false);
+                  }}
+                >
                   <span className="icon">🛡️</span> Admin Panel
                 </button>
                 <div className="dropdown-divider"></div>
