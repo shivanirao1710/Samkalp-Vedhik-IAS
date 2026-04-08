@@ -1,12 +1,16 @@
 :root {
-  --primary: #ff6b00;
-  --primary-hover: #e56000;
-  --bg-gradient: linear-gradient(135deg, #ff8c00 0%, #ff6b00 100%);
-  --text-main: #1a1a1a;
+  --primary: #F2921D;           /* Orange */
+  --primary-hover: #D93425;     /* Dark Orange/Red */
+  --accent-red: #F23054;        /* Pinkish Red */
+  --accent-yellow: #F2EB80;     /* Yellow */
+  --black: #0D0D0D;             /* Black */
+  --bg-gradient: linear-gradient(135deg, #F2921D 0%, #D93425 100%);
+  --text-main: #0D0D0D;
   --text-muted: #666666;
   --border-color: #e2e8f0;
   --glass-bg: rgba(255, 255, 255, 0.95);
 }
+
 
 * {
   box-sizing: border-box;

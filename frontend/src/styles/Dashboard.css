@@ -144,7 +144,8 @@
 }
 
 .hero-banner {
-  background: linear-gradient(90deg, #3b82f6 0%, #14b8a6 100%);
+  background: var(--bg-gradient);
+
   border-radius: 20px;
   padding: 2.5rem;
   color: white;
@@ -236,7 +237,8 @@
 
 .progress-inner {
   height: 100%;
-  background: #14b8a6;
+  background: var(--primary);
+
   border-radius: 4px;
 }
 

@@ -109,14 +109,16 @@ const Dashboard = ({ user, onLogout }) => {
             <div className="course-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h4 style={{ fontWeight: '700' }}>Indian Polity & Governance</h4>
-                <span style={{ fontSize: '0.85rem', color: '#3b82f6', fontWeight: '600' }}>65%</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>65%</span>
+
               </div>
               <div className="progress-bar">
                 <div className="progress-inner" style={{ width: '65%' }}></div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
                 <span>4 modules</span>
-                <a href="#" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: '600' }}>Continue →</a>
+                <a href="#" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600' }}>Continue →</a>
+
               </div>
             </div>
           </section>

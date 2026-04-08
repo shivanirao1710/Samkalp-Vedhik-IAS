@@ -33,7 +33,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
       {/* Sidebar - Reusing common layout but customized */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-icon" style={{ background: '#0090ff' }}>AI</div>
+          <div className="logo-icon" style={{ background: 'var(--primary)' }}>AI</div>
+
           <div>
             <h1 style={{ fontSize: '1rem', marginBottom: '0' }}>Samkalp Vedhik</h1>
             <p style={{ fontSize: '0.7rem', color: '#64748b' }}>IAS Academy</p>
@@ -71,7 +72,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
           <div className="user-profile">
             <span style={{ fontSize: '1.2rem', cursor: 'pointer', position: 'relative' }}>
               🔔
-              <span style={{ position: 'absolute', top: -4, right: -4, width: 8, height: 8, background: '#f26522', borderRadius: '50%' }}></span>
+              <span style={{ position: 'absolute', top: -4, right: -4, width: 8, height: 8, background: 'var(--accent-red)', borderRadius: '50%' }}></span>
+
             </span>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>{user.name || 'Admin User'}</div>

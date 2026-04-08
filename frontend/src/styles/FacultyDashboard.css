@@ -63,8 +63,9 @@
   justify-content: center;
   font-size: 1.25rem;
   background: #f1f5f9;
-  color: #3b82f6;
+  color: var(--primary);
 }
+
 
 .admin-stat-change {
   font-size: 0.85rem;
@@ -92,7 +93,8 @@
 }
 
 .action-card {
-  background: #f26522;
+  background: var(--primary);
+
   color: white;
   padding: 1.25rem;
   border-radius: 12px;
@@ -107,8 +109,9 @@
 
 .action-card:hover {
   transform: translateY(-2px);
-  background: #e55a1d;
+  background: var(--primary-hover);
 }
+
 
 .action-icon {
   width: 40px;
@@ -161,8 +164,9 @@
 }
 
 .tab.active {
-  color: #3b82f6;
+  color: var(--primary);
 }
+
 
 .tab.active::after {
   content: '';
@@ -171,8 +175,9 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: #3b82f6;
+  background: var(--primary);
 }
+
 
 .data-table-container {
   padding: 1.5rem;
@@ -241,7 +246,8 @@
 
 /* User Profile Shield Icon */
 .admin-badge {
-  background: #f26522;
+  background: var(--primary);
+
   color: white;
   width: 28px;
   height: 28px;
