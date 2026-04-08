@@ -69,19 +69,22 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="user-profile">
             <span style={{ fontSize: '1.2rem', cursor: 'pointer' }}>🔔</span>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>{user.email.split('@')[0]}</div>
+              <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>{user.name || user.email.split('@')[0]}</div>
               <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Student</div>
             </div>
+
             <div className="avatar">
-              {user.email.substring(0, 2).toUpperCase()}
+              {(user.name || user.email).substring(0, 2).toUpperCase()}
             </div>
+
           </div>
         </header>
 
         <section className="hero-banner">
-          <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.email.split('@')[0]}! 👋</h2>
+          <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
           <p style={{ opacity: 0.9 }}>You're on track with your learning goals. Keep up the great work!</p>
         </section>
+
 
         <div className="stats-grid">
           {stats.map((stat) => (

@@ -4,6 +4,7 @@ import '../styles/Auth.css';
 
 const RegisterForm = ({ onSwitch, onRegister }) => {
   const [role, setRole] = useState('student');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,7 +25,7 @@ const RegisterForm = ({ onSwitch, onRegister }) => {
       const response = await fetch('http://localhost:8000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, name, password, role }),
       });
       
       const data = await response.json();
@@ -60,6 +61,20 @@ const RegisterForm = ({ onSwitch, onRegister }) => {
       </div>
 
       <div className="form-group">
+        <label>Full Name</label>
+        <div className="input-wrapper">
+          <span className="input-icon">👤</span>
+          <input 
+            type="text" 
+            placeholder="Shivanirao Rao" 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
         <label>Email Address</label>
         <div className="input-wrapper">
           <span className="input-icon">✉️</span>
@@ -72,6 +87,7 @@ const RegisterForm = ({ onSwitch, onRegister }) => {
           />
         </div>
       </div>
+
 
       <div className="form-group">
         <label>Password</label>
