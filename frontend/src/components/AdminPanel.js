@@ -642,6 +642,346 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
     </div>
   );
 
+  const liveClassStats = [
+    { label: 'Upcoming Classes', value: '12', icon: '📅', color: '#e0f2fe' },
+    { label: 'Total Registrations', value: '512', icon: '👥', color: '#f0fdf4' },
+    { label: 'Classes Completed', value: '48', icon: '📹', color: '#fff7ed' },
+    { label: 'Total Hours', value: '96', icon: '⏱️', color: '#f5f3ff' },
+  ];
+
+  const adminLiveClassData = [
+    { id: 1, title: 'Indian Polity - Fundamental Rights', instructor: 'Dr. Rajesh Kumar', date: '2025-04-15', time: '10:00 AM', duration: '2 hours', registered: 145, capacity: 200, status: 'Upcoming' },
+    { id: 2, title: 'Current Affairs Discussion - April Week 2', instructor: 'Prof. Meera Singh', date: '2025-04-16', time: '4:00 PM', duration: '1.5 hours', registered: 189, capacity: 200, status: 'Upcoming' },
+    { id: 3, title: 'Map Reading Techniques - Special Session', instructor: 'Dr. Amit Sharma', date: '2025-04-14', time: '2:30 PM', duration: '1 hour', registered: 45, capacity: 50, status: 'Upcoming' },
+  ];
+
+  const [isClassModalOpen, setIsClassModalOpen] = useState(false);
+  const [classFormData, setClassFormData] = useState({
+    title: '',
+    instructor: '',
+    date: '',
+    time: '',
+    duration: '',
+    capacity: '200'
+  });
+
+  const handleClassSubmit = (e) => {
+    e.preventDefault();
+    console.log('Scheduling class:', classFormData);
+    setIsClassModalOpen(false);
+  };
+
+  const renderScheduleClassModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content">
+        <div className="adm-modal-header">
+          <h2>Schedule New Class</h2>
+          <button className="close-modal" onClick={() => setIsClassModalOpen(false)}>×</button>
+        </div>
+        <form onSubmit={handleClassSubmit} className="adm-modal-form">
+          <div className="form-group">
+            <label>Class Title</label>
+            <input 
+              type="text" 
+              placeholder="e.g. Economy Masterclass" 
+              value={classFormData.title}
+              onChange={(e) => setClassFormData({...classFormData, title: e.target.value})}
+              required 
+            />
+          </div>
+          <div className="form-group">
+            <label>Instructor</label>
+            <input 
+              type="text" 
+              placeholder="Instructor Name" 
+              value={classFormData.instructor}
+              onChange={(e) => setClassFormData({...classFormData, instructor: e.target.value})}
+              required 
+            />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Date</label>
+              <input 
+                type="date" 
+                value={classFormData.date}
+                onChange={(e) => setClassFormData({...classFormData, date: e.target.value})}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>Time</label>
+              <input 
+                type="time" 
+                value={classFormData.time}
+                onChange={(e) => setClassFormData({...classFormData, time: e.target.value})}
+                required 
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Duration (Hours)</label>
+              <input 
+                type="text" 
+                placeholder="2 hours" 
+                value={classFormData.duration}
+                onChange={(e) => setClassFormData({...classFormData, duration: e.target.value})}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>Capacity</label>
+              <input 
+                type="number" 
+                value={classFormData.capacity}
+                onChange={(e) => setClassFormData({...classFormData, capacity: e.target.value})}
+                required 
+              />
+            </div>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={() => setIsClassModalOpen(false)}>Cancel</button>
+            <button type="submit" className="submit-btn" style={{ background: '#F2921D' }}>Schedule Class</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  const renderLiveClasses = () => (
+    <div className="live-classes-management">
+      <div className="view-page-header">
+        <div>
+          <h1>Live Classes</h1>
+          <p>Schedule and manage live sessions</p>
+        </div>
+        <button className="create-course-main-btn" onClick={() => setIsClassModalOpen(true)}>
+          <span>+</span> Schedule New Class
+        </button>
+      </div>
+
+      <div className="admin-stats-grid">
+        {liveClassStats.map((stat) => (
+          <div key={stat.label} className="adm-stat-card">
+            <div className="adm-stat-top">
+              <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
+                {stat.icon}
+              </div>
+            </div>
+            <div className="adm-stat-info">
+              <div className="adm-stat-value">{stat.value}</div>
+              <div className="adm-stat-label">{stat.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="admin-management-section">
+        <div className="table-header-row">
+          <h2>All Live Classes</h2>
+        </div>
+
+        <table className="adm-table live-table">
+          <thead>
+            <tr>
+              <th>CLASS TITLE</th>
+              <th>INSTRUCTOR</th>
+              <th>DATE & TIME</th>
+              <th>DURATION</th>
+              <th>REGISTRATIONS</th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {adminLiveClassData.map((live) => (
+              <tr key={live.id}>
+                <td style={{ fontWeight: '700', color: '#1e293b' }}>{live.title}</td>
+                <td>{live.instructor}</td>
+                <td>
+                  <div style={{ fontWeight: '700' }}>{live.date}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{live.time}</div>
+                </td>
+                <td>{live.duration}</td>
+                <td>
+                  <div className="adm-reg-progress">
+                    <div className="adm-reg-bar">
+                       <div className="adm-reg-fill" style={{ width: `${(live.registered / live.capacity) * 100}%` }}></div>
+                    </div>
+                    <span>{live.registered}/{live.capacity}</span>
+                  </div>
+                </td>
+                <td>
+                  <span className="status-pill upcoming">Upcoming</span>
+                </td>
+                <td>
+                  <div className="adm-actions-cell">
+                    <button className="icon-btn edit">✎</button>
+                    <button className="icon-btn copy" style={{ color: '#10b981', background: '#ecfdf5' }}>📹</button>
+                    <button className="icon-btn delete">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {isClassModalOpen && renderScheduleClassModal()}
+    </div>
+  );
+
+  const reportStats = [
+    { label: 'Active Students', value: '245', icon: '👤', color: '#e0f2fe' },
+    { label: 'Avg Performance', value: '76.5%', icon: '📈', color: '#f0fdf4' },
+    { label: 'Tests Completed', value: '1,248', icon: '📄', color: '#fff7ed' },
+    { label: 'Interviews Done', value: '142', icon: '📹', color: '#f5f3ff' },
+  ];
+
+  const subjectPerformance = [
+    { subject: 'Polity', score: 78 },
+    { subject: 'History', score: 72 },
+    { subject: 'Geography', score: 65 },
+    { subject: 'Economy', score: 75 },
+    { subject: 'Current Affairs', score: 82 },
+  ];
+
+  const performanceTrend = [
+    { month: 'Jan', score: 68 },
+    { month: 'Feb', score: 72 },
+    { month: 'Mar', score: 75 },
+    { month: 'Apr', score: 80 },
+  ];
+
+  const studentReports = [
+    { name: 'Ananya Singh', tests: 24, avgScore: '82%', courses: 6, interview: '85%', overall: 78 },
+    { name: 'Rahul Verma', tests: 18, avgScore: '76%', courses: 5, interview: '72%', overall: 65 },
+    { name: 'Priya Sharma', tests: 28, avgScore: '88%', courses: 7, interview: '90%', overall: 85 },
+  ];
+
+  const renderReports = () => (
+    <div className="reports-management-page">
+      <div className="view-page-header">
+        <div>
+          <h1>Student Reports & Analytics</h1>
+          <p>View comprehensive student performance data</p>
+        </div>
+        <button className="create-course-main-btn">
+          <span>⬇</span> Export Reports
+        </button>
+      </div>
+
+      <div className="admin-stats-grid">
+        {reportStats.map((stat) => (
+          <div key={stat.label} className="adm-stat-card">
+            <div className="adm-stat-top">
+              <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
+                {stat.icon}
+              </div>
+            </div>
+            <div className="adm-stat-info">
+              <div className="adm-stat-value">{stat.value}</div>
+              <div className="adm-stat-label">{stat.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="analytics-charts-row">
+        <div className="chart-card">
+          <h3>Performance by Subject</h3>
+          <div className="bar-chart-container">
+            {subjectPerformance.map(item => (
+              <div key={item.subject} className="bar-column">
+                <div className="bar-fill-wrap">
+                  <div className="bar-fill" style={{ height: `${item.score}%` }}>
+                    <span className="bar-val">{item.score}</span>
+                  </div>
+                </div>
+                <span className="bar-label">{item.subject}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="chart-card">
+          <h3>Monthly Performance Trend</h3>
+          <div className="line-chart-container">
+            <div className="line-y-axis">
+              <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
+            </div>
+            <div className="trend-lines-wrap">
+              <svg viewBox="0 0 400 150" className="trend-svg">
+                <polyline
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth="3"
+                  points="50,120 150,100 250,80 350,50"
+                />
+                <circle cx="50" cy="120" r="5" fill="#3b82f6" />
+                <circle cx="150" cy="100" r="5" fill="#3b82f6" />
+                <circle cx="250" cy="80" r="5" fill="#3b82f6" />
+                <circle cx="350" cy="50" r="5" fill="#3b82f6" />
+              </svg>
+              <div className="trend-labels">
+                {performanceTrend.map(t => <span key={t.month}>{t.month}</span>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="admin-management-section">
+        <div className="filter-chips-row">
+          <button className="chip active">All</button>
+          <button className="chip">Top performers</button>
+          <button className="chip">Needs attention</button>
+          <button className="chip">Recent</button>
+        </div>
+
+        <div className="table-header-row">
+          <h2>Individual Student Reports</h2>
+        </div>
+
+        <table className="adm-table reports-table">
+          <thead>
+            <tr>
+              <th>STUDENT NAME</th>
+              <th>TESTS ATTEMPTED</th>
+              <th>AVG SCORE</th>
+              <th>COURSES ENROLLED</th>
+              <th>INTERVIEW SCORE</th>
+              <th>OVERALL PROGRESS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {studentReports.map((report) => (
+              <tr key={report.name}>
+                <td style={{ fontWeight: '700' }}>{report.name}</td>
+                <td>{report.tests}</td>
+                <td style={{ color: '#3b82f6', fontWeight: '700' }}>{report.avgScore}</td>
+                <td>{report.courses}</td>
+                <td style={{ color: '#10b981', fontWeight: '700' }}>{report.interview}</td>
+                <td>
+                  <div className="adm-progress-wrap">
+                    <div className="adm-prog-bar">
+                      <div className="adm-prog-fill" style={{ width: `${report.overall}%` }}></div>
+                    </div>
+                    <span>{report.overall}%</span>
+                  </div>
+                </td>
+                <td>
+                  <button className="view-details-btn">View Details</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'Dashboard':
@@ -652,6 +992,10 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
         return renderCourses();
       case 'Tests':
         return renderTests();
+      case 'Live Classes':
+        return renderLiveClasses();
+      case 'Reports':
+        return renderReports();
       default:
         return renderDashboard();
     }
