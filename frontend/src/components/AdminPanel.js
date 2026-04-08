@@ -287,8 +287,130 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
     }
   ];
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    author: '',
+    modules: '',
+    hours: '',
+    category: 'General Studies',
+    status: 'Draft'
+  });
+
+  const handleCreateSubmit = (e) => {
+    e.preventDefault();
+    console.log('Creating course:', formData);
+    setIsCreateModalOpen(false);
+    // In a real app, this would trigger an API call and update state
+  };
+
+  const renderCreateModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content">
+        <div className="adm-modal-header">
+          <h2>Create New Course</h2>
+          <button className="close-modal" onClick={() => setIsCreateModalOpen(false)}>×</button>
+        </div>
+        <form onSubmit={handleCreateSubmit} className="adm-modal-form">
+          <div className="form-group">
+            <label>Course Title</label>
+            <input 
+              type="text" 
+              placeholder="e.g. Ancient Indian History" 
+              value={formData.title}
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              required 
+            />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Instructor Name</label>
+              <input 
+                type="text" 
+                placeholder="Dr. Name" 
+                value={formData.author}
+                onChange={(e) => setFormData({...formData, author: e.target.value})}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>Category</label>
+              <select 
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+              >
+                <option>General Studies</option>
+                <option>Polity</option>
+                <option>History</option>
+                <option>Economy</option>
+                <option>Geography</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Total Modules</label>
+              <input 
+                type="number" 
+                placeholder="20" 
+                value={formData.modules}
+                onChange={(e) => setFormData({...formData, modules: e.target.value})}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label>Duration (Hours)</label>
+              <input 
+                type="number" 
+                placeholder="100" 
+                value={formData.hours}
+                onChange={(e) => setFormData({...formData, hours: e.target.value})}
+                required 
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Initial Status</label>
+            <div className="status-radio-group">
+              <label>
+                <input 
+                  type="radio" 
+                  name="status" 
+                  checked={formData.status === 'Draft'} 
+                  onChange={() => setFormData({...formData, status: 'Draft'})} 
+                /> Draft
+              </label>
+              <label>
+                <input 
+                  type="radio" 
+                  name="status" 
+                  checked={formData.status === 'Published'} 
+                  onChange={() => setFormData({...formData, status: 'Published'})} 
+                /> Published
+              </label>
+            </div>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+            <button type="submit" className="submit-btn">Create Course</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
   const renderCourses = () => (
     <div className="course-management-page">
+      <div className="view-page-header">
+        <div>
+          <h1>Courses Management</h1>
+          <p>Create and manage course content</p>
+        </div>
+        <button className="create-course-main-btn" onClick={() => setIsCreateModalOpen(true)}>
+          <span>+</span> Create New Course
+        </button>
+      </div>
+
       <div className="admin-stats-grid">
         {courseStats.map((stat) => (
           <div key={stat.label} className="adm-stat-card">
@@ -314,7 +436,6 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
           {adminCourseData.map((course) => (
             <div key={course.id} className="admin-course-card">
               <div className="course-preview-img">
-                {/* Use the dynamically generated path if possible, or a local path */}
                 <img src={require(`../images/${course.image}`).default || course.image} alt={course.title} />
                 <span className={`status-badge ${course.status.toLowerCase()}`}>
                   {course.status}
@@ -350,6 +471,7 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
           ))}
         </div>
       </div>
+      {isCreateModalOpen && renderCreateModal()}
     </div>
   );
 
