@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../styles/Dashboard.css';
+import Courses from './Courses';
 
 
 const Dashboard = ({ user, onLogout }) => {
+  const [currentView, setCurrentView] = useState('Dashboard');
+
   const menuItems = [
-    { name: 'Dashboard', icon: '📊', active: true },
+    { name: 'Dashboard', icon: '📊' },
     { name: 'Courses', icon: '📖' },
     { name: 'Tests', icon: '📝' },
     { name: 'Interview', icon: '📹' },
@@ -21,25 +24,109 @@ const Dashboard = ({ user, onLogout }) => {
     { label: 'Day Streak', value: '24', change: 'Active', icon: '📅', color: '#f5f3ff' },
   ];
 
+  const renderContent = () => {
+    switch (currentView) {
+      case 'Courses':
+        return <Courses />;
+      case 'Dashboard':
+      default:
+        return (
+          <>
+            <section className="hero-banner">
+              <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
+              <p style={{ opacity: 0.9 }}>You're on track with your learning goals. Keep up the great work!</p>
+            </section>
+
+
+            <div className="stats-grid">
+              {stats.map((stat) => (
+                <div key={stat.label} className="stat-card">
+                  <div className="stat-header">
+                    <div className="stat-icon" style={{ backgroundColor: stat.color }}>{stat.icon}</div>
+                    <span className="stat-change">{stat.change}</span>
+                  </div>
+                  <div className="stat-value">{stat.value}</div>
+                  <div className="stat-label">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="content-row">
+              <section>
+                <div className="section-title">
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Continue Learning</h3>
+                  <button onClick={() => setCurrentView('Courses')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
+                </div>
+                
+                <div className="course-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4 style={{ fontWeight: '700' }}>Indian Polity & Governance</h4>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>65%</span>
+
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-inner" style={{ width: '65%' }}></div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
+                    <span>4 modules</span>
+                    <button 
+                      onClick={() => setCurrentView('Courses')} 
+                      style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600', border: 'none', background: 'none', cursor: 'pointer' }}
+                    >
+                      Continue →
+                    </button>
+
+                  </div>
+                </div>
+              </section>
+
+              <aside>
+                <div className="section-title">
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Upcoming Tests</h3>
+                  <a href="#" className="view-all">View All</a>
+                </div>
+                
+                <div className="test-list">
+                  <div className="test-item">
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>Prelims Mock Test - 1</h4>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                      100 Questions • 120 mins
+                    </div>
+                  </div>
+                  <div className="test-item">
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>CSAT Practice Test</h4>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                      50 Questions • 60 mins
+                    </div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </>
+        );
+    }
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-icon">AI</div>
+          <div className="logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>AI</div>
           <h1>Samkalp Vedhik</h1>
         </div>
         
         <nav className="nav-menu">
           {menuItems.map((item) => (
-            <a 
+            <button 
               key={item.name} 
-              href="#" 
-              className={`nav-item ${item.active ? 'active' : ''}`}
+              onClick={() => setCurrentView(item.name)}
+              className={`nav-item ${currentView === item.name ? 'active' : ''}`}
+              style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
             >
               <span>{item.icon}</span>
               {item.name}
-            </a>
+            </button>
           ))}
         </nav>
 
@@ -80,71 +167,7 @@ const Dashboard = ({ user, onLogout }) => {
           </div>
         </header>
 
-        <section className="hero-banner">
-          <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
-          <p style={{ opacity: 0.9 }}>You're on track with your learning goals. Keep up the great work!</p>
-        </section>
-
-
-        <div className="stats-grid">
-          {stats.map((stat) => (
-            <div key={stat.label} className="stat-card">
-              <div className="stat-header">
-                <div className="stat-icon" style={{ backgroundColor: stat.color }}>{stat.icon}</div>
-                <span className="stat-change">{stat.change}</span>
-              </div>
-              <div className="stat-value">{stat.value}</div>
-              <div className="stat-label">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="content-row">
-          <section>
-            <div className="section-title">
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Continue Learning</h3>
-              <a href="#" className="view-all">View All</a>
-            </div>
-            
-            <div className="course-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4 style={{ fontWeight: '700' }}>Indian Polity & Governance</h4>
-                <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>65%</span>
-
-              </div>
-              <div className="progress-bar">
-                <div className="progress-inner" style={{ width: '65%' }}></div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
-                <span>4 modules</span>
-                <a href="#" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600' }}>Continue →</a>
-
-              </div>
-            </div>
-          </section>
-
-          <aside>
-            <div className="section-title">
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Upcoming Tests</h3>
-              <a href="#" className="view-all">View All</a>
-            </div>
-            
-            <div className="test-list">
-              <div className="test-item">
-                <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>Prelims Mock Test - 1</h4>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                  100 Questions • 120 mins
-                </div>
-              </div>
-              <div className="test-item">
-                <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>CSAT Practice Test</h4>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                  50 Questions • 60 mins
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
+        {renderContent()}
       </main>
     </div>
   );

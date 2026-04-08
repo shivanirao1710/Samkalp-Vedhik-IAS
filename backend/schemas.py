@@ -22,6 +22,20 @@ class UserResponse(BaseModel):
     name: Optional[str] = None
     role: str
 
+    class Config:
+        from_attributes = True
+
+class CourseBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    modules: int = 0
+    lessons: int = 0
+    image_url: Optional[str] = None
+    status: str = "not_started"
+    progress: int = 0
+
+class Course(CourseBase):
+    id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
