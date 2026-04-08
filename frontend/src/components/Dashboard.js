@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import '../styles/Dashboard.css';
 import Courses from './Courses';
+import logo from '../images/logo.png';
+
 
 
 const Dashboard = ({ user, onLogout }) => {
@@ -112,12 +114,9 @@ const Dashboard = ({ user, onLogout }) => {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-icon">AI</div>
-          <div>
-            <h1 style={{ fontSize: '1rem', marginBottom: '0' }}>Samkalp Vedhik</h1>
-            <p style={{ fontSize: '0.7rem', color: '#64748b' }}>IAS Academy</p>
-          </div>
+          <img src={logo} alt="Samkalp Logo" className="brand-logo" />
         </div>
+
 
 
         <nav className="nav-menu">

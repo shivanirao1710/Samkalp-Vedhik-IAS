@@ -1,18 +1,17 @@
 import React from 'react';
 import '../styles/Auth.css';
 import heroImage from '../images/hero-image.png';
+import logo from '../images/logo.png';
+
 
 const AuthLayout = ({ children, title, subtitle }) => {
   return (
     <div className="auth-container">
       <div className="auth-left">
         <div className="logo-section">
-          <div className="logo-icon">AI</div>
-          <div className="brand-name">
-            <h1>Samkalp Vedhik</h1>
-            <p>IAS Academy</p>
-          </div>
+          <img src={logo} alt="Samkalp Logo" className="brand-logo" />
         </div>
+
 
         <div className="hero-content">
           <h2>Master UPSC with AI-Powered Intelligence</h2>

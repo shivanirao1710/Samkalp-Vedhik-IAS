@@ -1,6 +1,8 @@
 import React from 'react';
 import '../styles/FacultyDashboard.css';
 import '../styles/Dashboard.css'; // Reuse some common sidebar styles
+import logo from '../images/logo.png';
+
 
 const FacultyDashboard = ({ user, onLogout }) => {
   const menuItems = [
@@ -33,13 +35,9 @@ const FacultyDashboard = ({ user, onLogout }) => {
       {/* Sidebar - Reusing common layout but customized */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-icon">AI</div>
-
-          <div>
-            <h1>Samkalp Vedhik</h1>
-            <p>IAS Academy</p>
-          </div>
+          <img src={logo} alt="Samkalp Logo" className="brand-logo" />
         </div>
+
 
         <div className="sidebar-heading">Admin Panel</div>
 
