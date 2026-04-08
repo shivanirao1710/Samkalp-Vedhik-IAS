@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/Auth.css';
-
+import heroImage from '../images/hero-image.png';
 
 const AuthLayout = ({ children, title, subtitle }) => {
   return (
@@ -21,13 +21,14 @@ const AuthLayout = ({ children, title, subtitle }) => {
           </p>
           <div className="hero-image-wrapper">
             <img 
-              src="/hero-image.png" 
+              src={heroImage} 
               alt="Study Academic" 
               className="hero-image"
             />
           </div>
         </div>
       </div>
+
       
       <div className="auth-right">
         <div className="auth-card">
