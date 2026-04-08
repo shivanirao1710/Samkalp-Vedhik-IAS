@@ -9,7 +9,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
     <div className="auth-container">
       <div className="auth-left">
         <div className="logo-section">
-          <img src={logo} alt="Samkalp Logo" className="brand-logo" />
+          <img src={logo} alt="Samkalp Logo" className="auth-brand-logo" />
         </div>
 
 

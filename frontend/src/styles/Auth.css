@@ -7,7 +7,7 @@
 .auth-left {
   flex: 1.2;
   background: var(--bg-gradient);
-  padding: 4rem 5rem;
+  padding: 3rem 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -25,11 +25,13 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  margin-left: -1rem;
 }
 
 
-.brand-logo {
-  max-width: 320px;
+.auth-brand-logo {
+  width: 400px;
+  max-width: 100%;
   height: auto;
   display: block;
 }
