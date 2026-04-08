@@ -5,7 +5,7 @@ import models, database
 from pydantic import BaseModel, EmailStr
 from passlib.context import CryptContext
 from typing import Optional
-
+# 
 # Initialize database
 models.Base.metadata.create_all(bind=database.engine)
 
