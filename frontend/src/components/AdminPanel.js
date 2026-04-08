@@ -982,6 +982,117 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
     </div>
   );
 
+  const renderSettings = () => (
+    <div className="settings-management-page">
+      <div className="view-page-header">
+        <div>
+          <h1>Settings</h1>
+          <p>Manage platform configurations and security</p>
+        </div>
+      </div>
+
+      <div className="settings-grid">
+        <div className="settings-column">
+          <div className="chart-card settings-card">
+            <div className="settings-section-header">
+              <span className="section-icon">🌍</span>
+              <div className="section-title-wrap">
+                <h3>General Settings</h3>
+              </div>
+            </div>
+            <div className="settings-form">
+              <div className="form-group">
+                <label>Time Zone</label>
+                <select className="adm-select-styled">
+                  <option>Asia/Kolkata (IST)</option>
+                  <option>UTC (GMT)</option>
+                  <option>America/New_York (EST)</option>
+                </select>
+              </div>
+              <div className="toggle-setting-item">
+                <div className="setting-info">
+                  <h4>System Updates</h4>
+                  <p>Platform maintenance alerts</p>
+                </div>
+                <label className="adm-switch">
+                  <input type="checkbox" />
+                  <span className="adm-slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="chart-card settings-card security-card">
+            <div className="settings-section-header">
+              <span className="section-icon" style={{ backgroundColor: '#fff1f2', color: '#e11d48' }}>🔒</span>
+              <div className="section-title-wrap">
+                <h3>Security</h3>
+              </div>
+            </div>
+            <div className="settings-form">
+              <div className="form-group">
+                <label>Current Password</label>
+                <input type="password" placeholder="Enter current password" />
+              </div>
+              <div className="form-group">
+                <label>New Password</label>
+                <input type="password" placeholder="Enter new password" />
+              </div>
+              <div className="form-group">
+                <label>Confirm Password</label>
+                <input type="password" placeholder="Confirm new password" />
+              </div>
+              <button className="primary-long-btn">Update Password</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="settings-column">
+          <div className="chart-card settings-card">
+            <div className="settings-section-header">
+              <span className="section-icon" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed' }}>🛡️</span>
+              <div className="section-title-wrap">
+                <h3>System Configuration</h3>
+              </div>
+            </div>
+            <div className="settings-form">
+              <div className="toggle-setting-item">
+                <div className="setting-info">
+                  <h4>Auto-Enrollment</h4>
+                  <p>Automatically enroll new students</p>
+                </div>
+                <label className="adm-switch">
+                  <input type="checkbox" />
+                  <span className="adm-slider round"></span>
+                </label>
+              </div>
+              <div className="toggle-setting-item">
+                <div className="setting-info">
+                  <h4>AI Interview Recording</h4>
+                  <p>Enable video recording for interviews</p>
+                </div>
+                <label className="adm-switch">
+                  <input type="checkbox" defaultChecked />
+                  <span className="adm-slider round"></span>
+                </label>
+              </div>
+              <div className="toggle-setting-item">
+                <div className="setting-info">
+                  <h4>Maintenance Mode</h4>
+                  <p>Temporarily disable student access</p>
+                </div>
+                <label className="adm-switch">
+                  <input type="checkbox" />
+                  <span className="adm-slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'Dashboard':
@@ -996,6 +1107,8 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
         return renderLiveClasses();
       case 'Reports':
         return renderReports();
+      case 'Settings':
+        return renderSettings();
       default:
         return renderDashboard();
     }
