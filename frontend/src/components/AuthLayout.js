@@ -1,4 +1,6 @@
 import React from 'react';
+import '../styles/Auth.css';
+
 
 const AuthLayout = ({ children, title, subtitle }) => {
   return (

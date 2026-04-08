@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import '../styles/Auth.css';
+
 
 const RegisterForm = ({ onSwitch, onRegister }) => {
   const [role, setRole] = useState('student');

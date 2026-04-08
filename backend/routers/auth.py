@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from typing import Optional
 
-from .. import models, database, schemas
+import models, database, schemas
+
 
 router = APIRouter(
     tags=['Authentication']
