@@ -4,6 +4,7 @@ import AuthLayout from './components/AuthLayout';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Dashboard from './components/Dashboard';
+import FacultyDashboard from './components/FacultyDashboard';
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,7 +12,7 @@ function App() {
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    alert('Login successful! Welcome: ' + userData.email);
+    // Remove the alert for better UX in a dashboard setting
   };
 
   const handleRegisterSuccess = (data) => {
@@ -20,8 +21,12 @@ function App() {
   };
 
   if (user) {
+    if (user.role === 'faculty') {
+      return <FacultyDashboard user={user} onLogout={() => setUser(null)} />;
+    }
     return <Dashboard user={user} onLogout={() => setUser(null)} />;
   }
+
 
   return (
     <div className="App">
