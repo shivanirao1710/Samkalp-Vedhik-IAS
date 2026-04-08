@@ -43,5 +43,11 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.ge
         raise HTTPException(status_code=403, detail="Invalid Credentials")
     
     # Normally we would return a JWT here
-    return {"message": "Login successful", "email": user.email, "role": user.role}
+    return {
+        "message": "Login successful", 
+        "email": user.email, 
+        "name": user.name,
+        "role": user.role
+    }
+
 

@@ -13,23 +13,23 @@ const AuthLayout = ({ children, title, subtitle }) => {
             <p>IAS Academy</p>
           </div>
         </div>
-        
+
         <div className="hero-content">
           <h2>Master UPSC with AI-Powered Intelligence</h2>
           <p>
             Personalized learning paths, AI mock interviews, and comprehensive analytics to help you ace your IAS exam.
           </p>
           <div className="hero-image-wrapper">
-            <img 
-              src={heroImage} 
-              alt="Study Academic" 
+            <img
+              src={heroImage}
+              alt="Study Academic"
               className="hero-image"
             />
           </div>
         </div>
       </div>
 
-      
+
       <div className="auth-right">
         <div className="auth-card">
           <h2>{title}</h2>

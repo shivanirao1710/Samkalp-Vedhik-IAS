@@ -16,9 +16,9 @@ function App() {
   };
 
   const handleRegisterSuccess = (data) => {
-    alert('Registration successful! Please login.');
     setIsLogin(true);
   };
+
 
   if (user) {
     if (user.role === 'faculty') {

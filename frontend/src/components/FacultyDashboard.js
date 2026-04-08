@@ -33,21 +33,21 @@ const FacultyDashboard = ({ user, onLogout }) => {
       {/* Sidebar - Reusing common layout but customized */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-icon" style={{ background: 'var(--primary)' }}>AI</div>
+          <div className="logo-icon">AI</div>
 
           <div>
-            <h1 style={{ fontSize: '1rem', marginBottom: '0' }}>Samkalp Vedhik</h1>
-            <p style={{ fontSize: '0.7rem', color: '#64748b' }}>IAS Academy</p>
+            <h1>Samkalp Vedhik</h1>
+            <p>IAS Academy</p>
           </div>
         </div>
 
         <div className="sidebar-heading">Admin Panel</div>
-        
+
         <nav className="nav-menu">
           {menuItems.map((item) => (
-            <a 
-              key={item.name} 
-              href="#" 
+            <a
+              key={item.name}
+              href="#"
               className={`nav-item ${item.active ? 'active' : ''}`}
             >
               <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
@@ -68,7 +68,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
             <span>🔍</span>
             <input type="text" placeholder="Search students, courses, tests..." />
           </div>
-          
+
           <div className="user-profile">
             <span style={{ fontSize: '1.2rem', cursor: 'pointer', position: 'relative' }}>
               🔔
@@ -88,8 +88,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
             <h1>Admin Dashboard</h1>
             <p>Manage students, courses, tests, and interviews</p>
           </div>
-          <button className="nav-item" style={{ border: '1px solid #e2e8f0', background: 'white', padding: '0.5rem 1rem'}}>
-             🔍 Search
+          <button className="nav-item" style={{ border: '1px solid #e2e8f0', background: 'white', padding: '0.5rem 1rem' }}>
+            🔍 Search
           </button>
         </section>
 

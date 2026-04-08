@@ -57,7 +57,7 @@ const Dashboard = ({ user, onLogout }) => {
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Continue Learning</h3>
                   <button onClick={() => setCurrentView('Courses')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
                 </div>
-                
+
                 <div className="course-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h4 style={{ fontWeight: '700' }}>Indian Polity & Governance</h4>
@@ -69,8 +69,8 @@ const Dashboard = ({ user, onLogout }) => {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
                     <span>4 modules</span>
-                    <button 
-                      onClick={() => setCurrentView('Courses')} 
+                    <button
+                      onClick={() => setCurrentView('Courses')}
                       style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600', border: 'none', background: 'none', cursor: 'pointer' }}
                     >
                       Continue →
@@ -85,7 +85,7 @@ const Dashboard = ({ user, onLogout }) => {
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Upcoming Tests</h3>
                   <a href="#" className="view-all">View All</a>
                 </div>
-                
+
                 <div className="test-list">
                   <div className="test-item">
                     <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>Prelims Mock Test - 1</h4>
@@ -112,14 +112,18 @@ const Dashboard = ({ user, onLogout }) => {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <div className="logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>AI</div>
-          <h1>Samkalp Vedhik</h1>
+          <div className="logo-icon">AI</div>
+          <div>
+            <h1 style={{ fontSize: '1rem', marginBottom: '0' }}>Samkalp Vedhik</h1>
+            <p style={{ fontSize: '0.7rem', color: '#64748b' }}>IAS Academy</p>
+          </div>
         </div>
-        
+
+
         <nav className="nav-menu">
           {menuItems.map((item) => (
-            <button 
-              key={item.name} 
+            <button
+              key={item.name}
               onClick={() => setCurrentView(item.name)}
               className={`nav-item ${currentView === item.name ? 'active' : ''}`}
               style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
@@ -130,20 +134,12 @@ const Dashboard = ({ user, onLogout }) => {
           ))}
         </nav>
 
-        <div className="upgrade-card">
-          <h3>Upgrade to Pro</h3>
-          <p>Get unlimited access to all features</p>
-          <button className="upgrade-btn">Upgrade Now</button>
-        </div>
-        
-        <button 
-          onClick={onLogout} 
-          className="nav-item" 
-          style={{ marginTop: '1rem', border: 'none', background: 'none', width: '100%', cursor: 'pointer' }}
-        >
-          <span>🚪</span> Logout
+        <button onClick={onLogout} className="sign-out-btn">
+          <span>↪</span> Sign Out
         </button>
       </aside>
+
+
 
       {/* Main Content */}
       <main className="main-content">
@@ -152,7 +148,7 @@ const Dashboard = ({ user, onLogout }) => {
             <span>🔍</span>
             <input type="text" placeholder="Search courses, tests, topics..." />
           </div>
-          
+
           <div className="user-profile">
             <span style={{ fontSize: '1.2rem', cursor: 'pointer' }}>🔔</span>
             <div style={{ textAlign: 'right' }}>
