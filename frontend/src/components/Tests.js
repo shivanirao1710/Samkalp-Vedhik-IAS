@@ -1,0 +1,296 @@
+import React, { useState } from 'react';
+import '../styles/Tests.css';
+
+const MOCK_TESTS = [
+  {
+    id: 1,
+    title: 'Prelims Mock Test - 1',
+    category: 'General Studies',
+    questionsCount: 100,
+    duration: '120 mins',
+    difficulty: 'Medium',
+    questions: [
+      {
+        id: 1,
+        question: 'Which of the following describes the "Basic Structure" of the Indian Constitution?',
+        options: [
+          'It is defined in the Constitution itself',
+          'It was introduced by the Supreme Court in the Kesavananda Bharati case',
+          'It can be easily amended by the Parliament',
+          'It is limited to the Preamble only'
+        ],
+        correctAnswer: 1
+      },
+      {
+        id: 2,
+        question: 'The "Financial Emergency" can be declared under which Article?',
+        options: ['Article 352', 'Article 356', 'Article 360', 'Article 365'],
+        correctAnswer: 2
+      }
+    ]
+  },
+  {
+    id: 2,
+    title: 'Indian Polity Quiz',
+    category: 'Polity',
+    questionsCount: 50,
+    duration: '60 mins',
+    difficulty: 'Easy',
+    questions: [
+      {
+        id: 1,
+        question: 'Which article of the Indian Constitution deals with the Right to Equality?',
+        options: ['Article 14', 'Article 19', 'Article 21', 'Article 32'],
+        correctAnswer: 0
+      },
+      {
+        id: 2,
+        question: 'Who is the ex-officio Chairman of the Rajya Sabha?',
+        options: ['President', 'Vice-President', 'Prime Minister', 'Speaker'],
+        correctAnswer: 1
+      }
+    ]
+  },
+  {
+    id: 3,
+    title: 'CSAT Practice Test',
+    category: 'Aptitude',
+    questionsCount: 80,
+    duration: '120 mins',
+    difficulty: 'Hard',
+    questions: [
+      {
+        id: 1,
+        question: 'If the day after tomorrow is Sunday, what day was the day before yesterday?',
+        options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+        correctAnswer: 1
+      }
+    ]
+  }
+];
+
+const Tests = () => {
+  const [activeTest, setActiveTest] = useState(null);
+  const [userAnswers, setUserAnswers] = useState({});
+  const [showResults, setShowResults] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  const startTest = (test) => {
+    setActiveTest(test);
+    setUserAnswers({});
+    setShowResults(false);
+    setCurrentQuestionIndex(0);
+  };
+
+  const handleOptionSelect = (questionId, optionIndex) => {
+    setUserAnswers({
+      ...userAnswers,
+      [questionId]: optionIndex
+    });
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < activeTest.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const prevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const finishTest = () => {
+    setShowResults(true);
+  };
+
+  const calculateScore = () => {
+    let score = 0;
+    activeTest.questions.forEach(q => {
+      if (userAnswers[q.id] === q.correctAnswer) {
+        score++;
+      }
+    });
+    return score;
+  };
+
+  const resetTests = () => {
+    setActiveTest(null);
+    setShowResults(false);
+  };
+
+  if (showResults) {
+    const score = calculateScore();
+    const percentage = (score / activeTest.questions.length) * 100;
+
+    return (
+      <div className="test-results-container">
+        <div className="result-card">
+          <div className="result-header">
+            <h3>Test Results: {activeTest.title}</h3>
+            <div className={`score-badge ${percentage >= 60 ? 'pass' : 'fail'}`}>
+              {percentage}%
+            </div>
+          </div>
+          
+          <div className="stats-row">
+            <div className="stat-box">
+              <span className="label">Total Questions</span>
+              <span className="value">{activeTest.questions.length}</span>
+            </div>
+            <div className="stat-box">
+              <span className="label">Correct Answers</span>
+              <span className="value">{score}</span>
+            </div>
+            <div className="stat-box">
+              <span className="label">Incorrect</span>
+              <span className="value">{activeTest.questions.length - score}</span>
+            </div>
+          </div>
+
+          <div className="review-section">
+            <h4>Question Review</h4>
+            {activeTest.questions.map((q, idx) => (
+              <div key={q.id} className={`review-item ${userAnswers[q.id] === q.correctAnswer ? 'correct' : 'incorrect'}`}>
+                <p className="question-text">Q{idx + 1}: {q.question}</p>
+                <div className="options-review">
+                  <p>Your answer: <span className="ans">{q.options[userAnswers[q.id]] || 'Not answered'}</span></p>
+                  {userAnswers[q.id] !== q.correctAnswer && (
+                    <p>Correct answer: <span className="correct-ans">{q.options[q.correctAnswer]}</span></p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button className="back-btn" onClick={resetTests}>Back to Tests</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTest) {
+    const currentQuestion = activeTest.questions[currentQuestionIndex];
+
+    return (
+      <div className="active-test-container">
+        <div className="test-header-bar">
+          <div className="test-info">
+            <h2>{activeTest.title}</h2>
+            <span>Question {currentQuestionIndex + 1} of {activeTest.questions.length}</span>
+          </div>
+          <button className="quit-btn" onClick={() => setActiveTest(null)}>Quit Test</button>
+        </div>
+
+        <div className="question-card">
+          <div className="progress-bar-container">
+            <div 
+              className="progress-bar-fill" 
+              style={{ width: `${((currentQuestionIndex + 1) / activeTest.questions.length) * 100}%` }}
+            ></div>
+          </div>
+          
+          <h3 className="question-title">{currentQuestion.question}</h3>
+          
+          <div className="options-grid">
+            {currentQuestion.options.map((option, idx) => (
+              <button
+                key={idx}
+                className={`option-btn ${userAnswers[currentQuestion.id] === idx ? 'selected' : ''}`}
+                onClick={() => handleOptionSelect(currentQuestion.id, idx)}
+              >
+                <span className="option-label">{String.fromCharCode(65 + idx)}</span>
+                {option}
+              </button>
+            ))}
+          </div>
+
+          <div className="navigation-btns">
+            <button 
+              className="nav-btn prev" 
+              onClick={prevQuestion}
+              disabled={currentQuestionIndex === 0}
+            >
+              Previous
+            </button>
+            
+            {currentQuestionIndex === activeTest.questions.length - 1 ? (
+              <button 
+                className="finish-btn" 
+                onClick={finishTest}
+                disabled={userAnswers[currentQuestion.id] === undefined}
+              >
+                Finish Test
+              </button>
+            ) : (
+              <button 
+                className="nav-btn next" 
+                onClick={nextQuestion}
+                disabled={userAnswers[currentQuestion.id] === undefined}
+              >
+                Next
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tests-dashboard">
+      <div className="tests-header">
+        <div>
+          <h1>Practice Tests</h1>
+          <p>Test your knowledge and track your performance</p>
+        </div>
+        <div className="tests-stats-mini">
+          <div className="mini-stat">
+            <span className="icon">📝</span>
+            <div>
+              <span className="value">12</span>
+              <span className="label">Tests Completed</span>
+            </div>
+          </div>
+          <div className="mini-stat">
+            <span className="icon">🎯</span>
+            <div>
+              <span className="value">82%</span>
+              <span className="label">Average Score</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="filter-bar">
+        <button className="filter-btn active">All Tests</button>
+        <button className="filter-btn">Attempted</button>
+        <button className="filter-btn">Not Attempted</button>
+      </div>
+
+      <div className="tests-grid">
+        {MOCK_TESTS.map((test) => (
+          <div key={test.id} className="test-card-alt">
+            <div className="test-card-top">
+              <span className={`difficulty-tag ${test.difficulty.toLowerCase()}`}>
+                {test.difficulty}
+              </span>
+              <span className="category-tag">{test.category}</span>
+            </div>
+            <h3>{test.title}</h3>
+            <div className="test-meta">
+              <span>📋 {test.questionsCount} Questions</span>
+              <span>⏱️ {test.duration}</span>
+            </div>
+            <button className="start-test-btn" onClick={() => startTest(test)}>
+              Start Test
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Tests;

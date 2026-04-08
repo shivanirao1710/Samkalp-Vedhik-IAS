@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/Dashboard.css';
 import Courses from './Courses';
+import Tests from './Tests';
 import logo from '../images/logo.png';
 
 
@@ -30,6 +31,8 @@ const Dashboard = ({ user, onLogout }) => {
     switch (currentView) {
       case 'Courses':
         return <Courses />;
+      case 'Tests':
+        return <Tests />;
       case 'Dashboard':
       default:
         return (
@@ -85,7 +88,7 @@ const Dashboard = ({ user, onLogout }) => {
               <aside>
                 <div className="section-title">
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Upcoming Tests</h3>
-                  <a href="#" className="view-all">View All</a>
+                  <button onClick={() => setCurrentView('Tests')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
                 </div>
 
                 <div className="test-list">
