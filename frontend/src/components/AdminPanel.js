@@ -475,6 +475,173 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
     </div>
   );
 
+  const testStats = [
+    { label: 'Total Tests', value: '48', icon: '📝', color: '#e0f2fe' },
+    { label: 'Total Attempts', value: '1,429', icon: '👥', color: '#f0fdf4' },
+    { label: 'Avg Score', value: '68.2%', icon: '⏱️', color: '#fff7ed' },
+    { label: 'Draft Tests', value: '6', icon: '📋', color: '#fef2f2' },
+  ];
+
+  const adminTestData = [
+    { id: 1, name: 'CSAT Paper II - Mock Test 1', type: 'Full Length', duration: '120 mins', questions: 80, attempts: 142, avgScore: '68.5%', status: 'Published' },
+    { id: 2, name: 'Prelims Mock Test - Series 1', type: 'Full Length', duration: '120 mins', questions: 100, attempts: 198, avgScore: '72.3%', status: 'Published' },
+    { id: 3, name: 'Polity Chapter Test - Parliament', type: 'Topic Wise', duration: '45 mins', questions: 30, attempts: 85, avgScore: '64.2%', status: 'Draft' },
+  ];
+
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [testFormData, setTestFormData] = useState({
+    name: '',
+    type: 'Full Length',
+    duration: '',
+    questions: '',
+    status: 'Draft'
+  });
+
+  const handleTestSubmit = (e) => {
+    e.preventDefault();
+    console.log('Creating test:', testFormData);
+    setIsTestModalOpen(false);
+  };
+
+  const renderCreateTestModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content">
+        <div className="adm-modal-header">
+          <h2>Create New Test</h2>
+          <button className="close-modal" onClick={() => setIsTestModalOpen(false)}>×</button>
+        </div>
+        <form onSubmit={handleTestSubmit} className="adm-modal-form">
+          <div className="form-group">
+            <label>Test Name</label>
+            <input 
+              type="text" 
+              placeholder="e.g. History Prelims Series 1" 
+              value={testFormData.name}
+              onChange={(e) => setTestFormData({...testFormData, name: e.target.value})}
+              required 
+            />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Test Type</label>
+              <select 
+                value={testFormData.type}
+                onChange={(e) => setTestFormData({...testFormData, type: e.target.value})}
+              >
+                <option>Full Length</option>
+                <option>Topic Wise</option>
+                <option>Previous Year</option>
+                <option>Sectional</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Duration (Minutes)</label>
+              <input 
+                type="number" 
+                placeholder="120" 
+                value={testFormData.duration}
+                onChange={(e) => setTestFormData({...testFormData, duration: e.target.value})}
+                required 
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Number of Questions</label>
+            <input 
+              type="number" 
+              placeholder="100" 
+              value={testFormData.questions}
+              onChange={(e) => setTestFormData({...testFormData, questions: e.target.value})}
+              required 
+            />
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={() => setIsTestModalOpen(false)}>Cancel</button>
+            <button type="submit" className="submit-btn" style={{ background: '#F2921D' }}>Create Test</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  const renderTests = () => (
+    <div className="test-management-page">
+      <div className="view-page-header">
+        <div>
+          <h1>Tests Management</h1>
+          <p>Create and manage test papers</p>
+        </div>
+        <button className="create-course-main-btn" onClick={() => setIsTestModalOpen(true)}>
+          <span>+</span> Create New Test
+        </button>
+      </div>
+
+      <div className="admin-stats-grid">
+        {testStats.map((stat) => (
+          <div key={stat.label} className="adm-stat-card">
+            <div className="adm-stat-top">
+              <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
+                {stat.icon}
+              </div>
+            </div>
+            <div className="adm-stat-info">
+              <div className="adm-stat-value">{stat.value}</div>
+              <div className="adm-stat-label">{stat.label}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="admin-management-section">
+        <div className="table-header-row">
+          <h2>All Tests</h2>
+        </div>
+
+        <table className="adm-table tests-table">
+          <thead>
+            <tr>
+              <th>TEST NAME</th>
+              <th>TYPE</th>
+              <th>DURATION</th>
+              <th>QUESTIONS</th>
+              <th>ATTEMPTS</th>
+              <th>AVG SCORE</th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {adminTestData.map((test) => (
+              <tr key={test.id}>
+                <td style={{ fontWeight: '700', color: '#1e293b' }}>{test.name}</td>
+                <td>
+                  <span className="test-type-tag">{test.type}</span>
+                </td>
+                <td>{test.duration}</td>
+                <td>{test.questions}</td>
+                <td>{test.attempts}</td>
+                <td style={{ fontWeight: '700', color: '#10b981' }}>{test.avgScore}</td>
+                <td>
+                  <span className={`status-pill ${test.status.toLowerCase()}`}>
+                    {test.status}
+                  </span>
+                </td>
+                <td>
+                  <div className="adm-actions-cell">
+                    <button className="icon-btn edit">✎</button>
+                    <button className="icon-btn copy">⎘</button>
+                    <button className="icon-btn delete">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {isTestModalOpen && renderCreateTestModal()}
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'Dashboard':
@@ -483,6 +650,8 @@ const AdminPanel = ({ user, onLogout, onBackToStudent }) => {
         return renderStudents();
       case 'Courses':
         return renderCourses();
+      case 'Tests':
+        return renderTests();
       default:
         return renderDashboard();
     }
