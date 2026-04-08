@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import '../styles/Dashboard.css';
 import Courses from './Courses';
 import Tests from './Tests';
+import PsychometricTest from './PsychometricTest';
 import logo from '../images/logo.png';
 
 
@@ -21,7 +22,7 @@ const Dashboard = ({ user, onLogout }) => {
   ];
 
   const stats = [
-    { label: 'Overall Progress', value: '75%', change: '+12%', icon: '🎯', color: '#e0f2fe' },
+    { label: 'Overall Progress', value: '75%', change: '+12%', icon: '🎯', color: '#fff7ed' },
     { label: 'Learning Hours', value: '42.5h', change: '+8h', icon: '⏱️', color: '#fff7ed' },
     { label: 'Tests Completed', value: '12/18', change: '+5', icon: '📈', color: '#f0fdf4' },
     { label: 'Day Streak', value: '24', change: 'Active', icon: '📅', color: '#f5f3ff' },
@@ -33,6 +34,8 @@ const Dashboard = ({ user, onLogout }) => {
         return <Courses />;
       case 'Tests':
         return <Tests />;
+      case 'Psychometric Test':
+        return <PsychometricTest />;
       case 'Dashboard':
       default:
         return (
