@@ -66,7 +66,7 @@ const RegisterForm = ({ onSwitch, onRegister }) => {
           <span className="input-icon">👤</span>
           <input 
             type="text" 
-            placeholder="Shivanirao Rao" 
+            placeholder="Enter your name" 
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
