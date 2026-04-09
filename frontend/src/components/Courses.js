@@ -57,16 +57,33 @@ const Courses = () => {
 
       <div className="courses-grid">
         {filteredCourses.length > 0 ? (
-          filteredCourses.map(course => (
+          filteredCourses.map(course => {
+            const thumbSrc = course.image_url
+              ? (course.image_url.startsWith('/static')
+                  ? `http://localhost:8000${course.image_url}`
+                  : course.image_url)
+              : null;
+            return (
             <div key={course.id} className="course-card-full">
-              <div className="course-image" style={{ backgroundImage: `url(${course.image_url})` }}>
+              <div
+                className="course-image"
+                style={
+                  thumbSrc
+                    ? { backgroundImage: `url(${thumbSrc})` }
+                    : { background: 'linear-gradient(135deg, #F2921D 0%, #fbbf24 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3.5rem' }
+                }
+              >
+                {!thumbSrc && <span>📖</span>}
                 <div className="course-category">UPSC</div>
               </div>
               <div className="course-info">
                 <h3>{course.title}</h3>
+                {course.description && (
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem', lineHeight: 1.5 }}>{course.description}</p>
+                )}
                 <div className="course-stats">
                   <span>📖 {course.modules} Modules</span>
-                  <span>⏱️ {course.lessons} Lessons</span>
+                  <span>⏱️ {course.lessons} Hours</span>
                 </div>
                 <div className="course-progress">
                   <div className="progress-label">
@@ -80,7 +97,8 @@ const Courses = () => {
                 <button className="continue-btn">Continue Learning</button>
               </div>
             </div>
-          ))
+            );
+          })
         ) : (
           <div className="no-courses">No courses found in this category.</div>
         )}

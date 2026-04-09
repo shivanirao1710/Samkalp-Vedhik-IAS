@@ -157,19 +157,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderStudents = () => (
     <div className="student-management-page">
       <div className="admin-dash-header">
-        <button 
-          onClick={() => setActiveMenu('Dashboard')} 
-          className="back-btn" 
-          style={{ 
-            background: '#F2921D', 
-            border: 'none', 
-            padding: '0.65rem 1.2rem', 
-            borderRadius: '10px', 
-            cursor: 'pointer', 
-            marginRight: '1rem', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            fontWeight: 'bold', 
+        <button
+          onClick={() => setActiveMenu('Dashboard')}
+          className="back-btn"
+          style={{
+            background: '#F2921D',
+            border: 'none',
+            padding: '0.65rem 1.2rem',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            marginRight: '1rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontWeight: 'bold',
             color: '#ffffff',
             boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
           }}
@@ -313,23 +313,137 @@ const FacultyDashboard = ({ user, onLogout }) => {
     modules: '',
     hours: '',
     category: 'General Studies',
-    status: 'Draft'
+    status: 'Draft',
+    description: ''
   });
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [liveCourses, setLiveCourses] = useState([]);
 
-  const handleCreateSubmit = (e) => {
+  useEffect(() => {
+    fetchLiveCourses();
+  }, []);
+
+  const fetchLiveCourses = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/courses/');
+      const data = await res.json();
+      setLiveCourses(data);
+    } catch (err) {
+      console.error('Error fetching courses:', err);
+    }
+  };
+
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setThumbnailFile(file);
+    setThumbnailPreview(URL.createObjectURL(file));
+  };
+
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
-    console.log('Creating course:', formData);
-    setIsCreateModalOpen(false);
+    setIsSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('title', formData.title);
+      fd.append('description', formData.description || formData.category);
+      fd.append('modules', formData.modules || 0);
+      fd.append('lessons', formData.hours || 0);
+      fd.append('status', formData.status === 'Published' ? 'in_progress' : 'not_started');
+      fd.append('progress', 0);
+      if (thumbnailFile) fd.append('thumbnail', thumbnailFile);
+
+      const res = await fetch('http://localhost:8000/courses/', {
+        method: 'POST',
+        body: fd
+      });
+
+      if (res.ok) {
+        alert('Course created successfully! It is now visible in the Student Dashboard.');
+        setIsCreateModalOpen(false);
+        setFormData({ title: '', author: '', modules: '', hours: '', category: 'General Studies', status: 'Draft', description: '' });
+        setThumbnailFile(null);
+        setThumbnailPreview(null);
+        fetchLiveCourses();
+      } else {
+        const err = await res.json();
+        alert('Error: ' + (err.detail || 'Failed to create course'));
+      }
+    } catch (error) {
+      console.error('Course creation error:', error);
+      alert('Failed to connect to backend');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderCreateModal = () => (
     <div className="adm-modal-overlay">
-      <div className="adm-modal-content">
+      <div className="adm-modal-content" style={{ maxWidth: '640px' }}>
         <div className="adm-modal-header">
           <h2>Create New Course</h2>
           <button className="close-modal" onClick={() => setIsCreateModalOpen(false)}>×</button>
         </div>
         <form onSubmit={handleCreateSubmit} className="adm-modal-form">
+
+          {/* Thumbnail Upload */}
+          <div className="form-group">
+            <label>Course Thumbnail</label>
+            <div
+              className="thumbnail-upload-zone"
+              onClick={() => document.getElementById('course-thumbnail-input').click()}
+              style={{
+                border: '2px dashed #F2921D',
+                borderRadius: '14px',
+                padding: thumbnailPreview ? '0' : '2rem',
+                textAlign: 'center',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                background: thumbnailPreview ? 'transparent' : '#fffbf5',
+                position: 'relative',
+                minHeight: '140px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {thumbnailPreview ? (
+                <>
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail preview"
+                    style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '12px', display: 'block' }}
+                  />
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', borderRadius: '12px', opacity: 0,
+                    transition: 'opacity 0.2s'
+                  }}
+                  className="thumb-hover-overlay"
+                  >
+                    <span style={{ color: '#fff', fontWeight: 700 }}>🖼️ Change Image</span>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🖼️</div>
+                  <div style={{ fontWeight: 600, color: '#F2921D' }}>Click to upload thumbnail</div>
+                  <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.25rem' }}>PNG, JPG, WEBP up to 5MB</div>
+                </div>
+              )}
+            </div>
+            <input
+              id="course-thumbnail-input"
+              type="file"
+              accept="image/*"
+              onChange={handleThumbnailChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+
           <div className="form-group">
             <label>Course Title</label>
             <input
@@ -340,6 +454,18 @@ const FacultyDashboard = ({ user, onLogout }) => {
               required
             />
           </div>
+
+          <div className="form-group">
+            <label>Description</label>
+            <textarea
+              rows="2"
+              placeholder="Brief description of the course..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #e2e8f0', resize: 'vertical', fontFamily: 'inherit' }}
+            />
+          </div>
+
           <div className="form-row">
             <div className="form-group">
               <label>Instructor Name</label>
@@ -410,7 +536,9 @@ const FacultyDashboard = ({ user, onLogout }) => {
           </div>
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
-            <button type="submit" className="submit-btn">Create Course</button>
+            <button type="submit" className="submit-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create Course'}
+            </button>
           </div>
         </form>
       </div>
@@ -420,19 +548,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderCourses = () => (
     <div className="course-management-page">
       <div className="view-page-header">
-        <button 
-          onClick={() => setActiveMenu('Dashboard')} 
-          className="back-btn" 
-          style={{ 
-            background: '#F2921D', 
-            border: 'none', 
-            padding: '0.65rem 1.2rem', 
-            borderRadius: '10px', 
-            cursor: 'pointer', 
-            marginRight: '1rem', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            fontWeight: 'bold', 
+        <button
+          onClick={() => setActiveMenu('Dashboard')}
+          className="back-btn"
+          style={{
+            background: '#F2921D',
+            border: 'none',
+            padding: '0.65rem 1.2rem',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            marginRight: '1rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontWeight: 'bold',
             color: '#ffffff',
             boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
           }}
@@ -470,42 +598,60 @@ const FacultyDashboard = ({ user, onLogout }) => {
         </div>
 
         <div className="admin-courses-grid">
-          {adminCourseData.map((course) => (
-            <div key={course.id} className="admin-course-card">
-              <div className="course-preview-img">
-                <img src={require(`../images/${course.image}`).default || course.image} alt={course.title} />
-                <span className={`status-badge ${course.status.toLowerCase()}`}>
-                  {course.status}
-                </span>
-              </div>
-              <div className="course-card-body">
-                <h3>{course.title}</h3>
-                <p className="author">by {course.author}</p>
-                <div className="course-mini-stats">
-                  <div className="mini-item">
-                    <span className="val">{course.students}</span>
-                    <span className="lbl">Students</span>
-                  </div>
-                  <div className="mini-item">
-                    <span className="val">{course.modules}</span>
-                    <span className="lbl">Modules</span>
-                  </div>
-                  <div className="mini-item">
-                    <span className="val">{course.hours}</span>
-                    <span className="lbl">Hours</span>
-                  </div>
-                </div>
-                <div className="course-card-actions">
-                  <button className="edit-course-btn">
-                    <span>✎</span> Edit
-                  </button>
-                  <button className="delete-course-btn">
-                    <span>🗑️</span>
-                  </button>
-                </div>
-              </div>
+          {liveCourses.length === 0 && (
+            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+              <p style={{ fontWeight: 600 }}>No courses yet. Click "Create New Course" to add one!</p>
             </div>
-          ))}
+          )}
+          {liveCourses.map((course) => {
+            const thumbSrc = course.image_url
+              ? (course.image_url.startsWith('/static')
+                  ? `http://localhost:8000${course.image_url}`
+                  : course.image_url)
+              : null;
+            const statusLabel = course.status === 'in_progress' ? 'Published' : course.status === 'completed' ? 'Completed' : 'Draft';
+            return (
+              <div key={course.id} className="admin-course-card">
+                <div className="course-preview-img" style={!thumbSrc ? { background: 'linear-gradient(135deg, #F2921D 0%, #f59e0b 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' } : {}}>
+                  {thumbSrc ? (
+                    <img src={thumbSrc} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: '3rem' }}>📖</span>
+                  )}
+                  <span className={`status-badge ${statusLabel.toLowerCase()}`}>
+                    {statusLabel}
+                  </span>
+                </div>
+                <div className="course-card-body">
+                  <h3>{course.title}</h3>
+                  <p className="author" style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '0.75rem' }}>{course.description || 'No description'}</p>
+                  <div className="course-mini-stats">
+                    <div className="mini-item">
+                      <span className="val">{course.modules}</span>
+                      <span className="lbl">Modules</span>
+                    </div>
+                    <div className="mini-item">
+                      <span className="val">{course.lessons}</span>
+                      <span className="lbl">Hours</span>
+                    </div>
+                    <div className="mini-item">
+                      <span className="val">{course.progress}%</span>
+                      <span className="lbl">Progress</span>
+                    </div>
+                  </div>
+                  <div className="course-card-actions">
+                    <button className="edit-course-btn">
+                      <span>✎</span> Edit
+                    </button>
+                    <button className="delete-course-btn">
+                      <span>🗑️</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
       {isCreateModalOpen && renderCreateModal()}
@@ -570,9 +716,9 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
   const handleTestSubmit = async (e) => {
     e.preventDefault();
-    
+
     let submissionQuestions = [...testFormData.questions];
-    
+
     // Check if there's a typed question that wasn't added yet
     if (currentQuestion.text && !submissionQuestions.find(q => q.text === currentQuestion.text)) {
       const confirmAdd = window.confirm("You have a question typed but not added. Would you like to add it before submitting?");
@@ -618,8 +764,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
         alert("Error: " + (err.detail || "Failed to create test"));
       }
     } catch (error) {
-       console.error("Fetch error:", error);
-       alert("Failed to connect to backend");
+      console.error("Fetch error:", error);
+      alert("Failed to connect to backend");
     }
   };
 
@@ -669,9 +815,9 @@ const FacultyDashboard = ({ user, onLogout }) => {
             </div>
             <div className="modal-actions">
               <button type="button" className="cancel-btn" onClick={() => setIsTestModalOpen(false)}>Cancel</button>
-              <button 
-                type="button" 
-                className="submit-btn" 
+              <button
+                type="button"
+                className="submit-btn"
                 style={{ background: '#F2921D' }}
                 onClick={() => setTestModalStep(2)}
                 disabled={!testFormData.name || !testFormData.duration}
@@ -690,7 +836,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
                   <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>
                     {idx + 1}. {q.text}
                   </span>
-                  <button 
+                  <button
                     type="button"
                     onClick={() => {
                       const newQs = [...testFormData.questions];
@@ -706,58 +852,58 @@ const FacultyDashboard = ({ user, onLogout }) => {
             </div>
 
             <div className="question-entry-zone" style={{ border: '1.5px dashed #F2921D', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#fffefc' }}>
-               <div className="form-group">
-                  <label style={{ color: '#F2921D' }}>Add New Question</label>
-                  <textarea 
-                    style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #F2921D' }}
-                    rows="3"
-                    value={currentQuestion.text}
-                    onChange={(e) => setCurrentQuestion({...currentQuestion, text: e.target.value})}
-                    placeholder="Enter the question here..."
-                  />
-               </div>
+              <div className="form-group">
+                <label style={{ color: '#F2921D' }}>Add New Question</label>
+                <textarea
+                  style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #F2921D' }}
+                  rows="3"
+                  value={currentQuestion.text}
+                  onChange={(e) => setCurrentQuestion({ ...currentQuestion, text: e.target.value })}
+                  placeholder="Enter the question here..."
+                />
+              </div>
 
-               <div className="options-entry-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  {currentQuestion.options.map((opt, idx) => (
-                    <div key={idx} className="opt-input-wrap" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <input 
-                        type="radio" 
-                        name="correct-opt" 
-                        checked={opt.is_correct} 
-                        onChange={() => {
-                          const newOpts = currentQuestion.options.map((o, i) => ({ ...o, is_correct: i === idx }));
-                          setCurrentQuestion({...currentQuestion, options: newOpts});
-                        }}
-                      />
-                      <input 
-                        type="text" 
-                        placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                        value={opt.text}
-                        onChange={(e) => {
-                          const newOpts = [...currentQuestion.options];
-                          newOpts[idx].text = e.target.value;
-                          setCurrentQuestion({...currentQuestion, options: newOpts});
-                        }}
-                        style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid #e2e8f0' }}
-                      />
-                    </div>
-                  ))}
-               </div>
+              <div className="options-entry-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {currentQuestion.options.map((opt, idx) => (
+                  <div key={idx} className="opt-input-wrap" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input
+                      type="radio"
+                      name="correct-opt"
+                      checked={opt.is_correct}
+                      onChange={() => {
+                        const newOpts = currentQuestion.options.map((o, i) => ({ ...o, is_correct: i === idx }));
+                        setCurrentQuestion({ ...currentQuestion, options: newOpts });
+                      }}
+                    />
+                    <input
+                      type="text"
+                      placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                      value={opt.text}
+                      onChange={(e) => {
+                        const newOpts = [...currentQuestion.options];
+                        newOpts[idx].text = e.target.value;
+                        setCurrentQuestion({ ...currentQuestion, options: newOpts });
+                      }}
+                      style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid #e2e8f0' }}
+                    />
+                  </div>
+                ))}
+              </div>
 
-               <button 
-                 type="button" 
-                 onClick={addQuestionToTest}
-                 style={{ width: '100%', padding: '0.75rem', marginTop: '1.5rem', background: '#f1f5f9', border: 'none', borderRadius: '10px', color: '#475569', fontWeight: '700', cursor: 'pointer' }}
-               >
-                 + Add Question to List
-               </button>
+              <button
+                type="button"
+                onClick={addQuestionToTest}
+                style={{ width: '100%', padding: '0.75rem', marginTop: '1.5rem', background: '#f1f5f9', border: 'none', borderRadius: '10px', color: '#475569', fontWeight: '700', cursor: 'pointer' }}
+              >
+                + Add Question to List
+              </button>
             </div>
 
             <div className="modal-actions">
               <button type="button" className="cancel-btn" onClick={() => setTestModalStep(1)}>Back</button>
-              <button 
-                type="button" 
-                className="submit-btn" 
+              <button
+                type="button"
+                className="submit-btn"
                 style={{ background: '#10b981' }}
                 onClick={handleTestSubmit}
               >
@@ -830,7 +976,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
         alert("Failed to delete test");
       }
     } catch (error) {
-       console.error("Delete test error:", error);
+      console.error("Delete test error:", error);
     }
   };
 
@@ -868,7 +1014,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
         alert("Failed to update question");
       }
     } catch (error) {
-       console.error("Update error:", error);
+      console.error("Update error:", error);
     }
   };
 
@@ -880,46 +1026,46 @@ const FacultyDashboard = ({ user, onLogout }) => {
           <button className="close-modal" onClick={() => setIsEditQuestionModalOpen(false)}>×</button>
         </div>
         <form onSubmit={handleUpdateQuestion} className="adm-modal-form">
-           <div className="form-group">
-              <label>Question Text</label>
-              <textarea 
-                style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #e2e8f0' }}
-                rows="3"
-                value={editingQuestion.text}
-                onChange={(e) => setEditingQuestion({...editingQuestion, text: e.target.value})}
-                required
-              />
-           </div>
-           <div className="options-entry-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              {editingQuestion.options.map((opt, idx) => (
-                <div key={idx} className="opt-input-wrap" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <input 
-                    type="radio" 
-                    name="edit-correct-opt" 
-                    checked={opt.is_correct} 
-                    onChange={() => {
-                      const newOpts = editingQuestion.options.map((o, i) => ({ ...o, is_correct: i === idx }));
-                      setEditingQuestion({...editingQuestion, options: newOpts});
-                    }}
-                  />
-                  <input 
-                    type="text" 
-                    value={opt.text}
-                    onChange={(e) => {
-                      const newOpts = [...editingQuestion.options];
-                      newOpts[idx].text = e.target.value;
-                      setEditingQuestion({...editingQuestion, options: newOpts});
-                    }}
-                    style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid #e2e8f0' }}
-                    required
-                  />
-                </div>
-              ))}
-           </div>
-           <div className="modal-actions">
-              <button type="button" className="cancel-btn" onClick={() => setIsEditQuestionModalOpen(false)}>Cancel</button>
-              <button type="submit" className="submit-btn" style={{ background: '#F2921D' }}>Save Changes</button>
-           </div>
+          <div className="form-group">
+            <label>Question Text</label>
+            <textarea
+              style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #e2e8f0' }}
+              rows="3"
+              value={editingQuestion.text}
+              onChange={(e) => setEditingQuestion({ ...editingQuestion, text: e.target.value })}
+              required
+            />
+          </div>
+          <div className="options-entry-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            {editingQuestion.options.map((opt, idx) => (
+              <div key={idx} className="opt-input-wrap" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  type="radio"
+                  name="edit-correct-opt"
+                  checked={opt.is_correct}
+                  onChange={() => {
+                    const newOpts = editingQuestion.options.map((o, i) => ({ ...o, is_correct: i === idx }));
+                    setEditingQuestion({ ...editingQuestion, options: newOpts });
+                  }}
+                />
+                <input
+                  type="text"
+                  value={opt.text}
+                  onChange={(e) => {
+                    const newOpts = [...editingQuestion.options];
+                    newOpts[idx].text = e.target.value;
+                    setEditingQuestion({ ...editingQuestion, options: newOpts });
+                  }}
+                  style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid #e2e8f0' }}
+                  required
+                />
+              </div>
+            ))}
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={() => setIsEditQuestionModalOpen(false)}>Cancel</button>
+            <button type="submit" className="submit-btn" style={{ background: '#F2921D' }}>Save Changes</button>
+          </div>
         </form>
       </div>
     </div>
@@ -928,19 +1074,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderManageQuestionsView = () => (
     <div className="test-management-page">
       <div className="view-page-header">
-        <button 
-          onClick={() => setIsManagingQuestions(false)} 
-          className="back-btn" 
-          style={{ 
-            background: '#F2921D', 
-            border: 'none', 
-            padding: '0.65rem 1.2rem', 
-            borderRadius: '10px', 
-            cursor: 'pointer', 
-            marginRight: '1.5rem', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            fontWeight: 'bold', 
+        <button
+          onClick={() => setIsManagingQuestions(false)}
+          className="back-btn"
+          style={{
+            background: '#F2921D',
+            border: 'none',
+            padding: '0.65rem 1.2rem',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            marginRight: '1.5rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontWeight: 'bold',
             color: '#ffffff',
             boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)',
             transition: 'all 0.2s'
@@ -958,41 +1104,41 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
       <div className="admin-management-section" style={{ marginTop: '2rem' }}>
         <div className="questions-grid-detailed" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-           {testQuestions.map((q, idx) => (
-             <div key={q.id} className="detailed-question-card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                   <div style={{ flex: 1 }}>
-                      <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '700' }}>Q{idx + 1}: {q.text}</h4>
-                      <div className="options-display-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                         {q.options.map((opt, oIdx) => (
-                           <div key={oIdx} style={{ padding: '0.75rem', borderRadius: '10px', background: opt.is_correct ? '#f0fdf4' : '#f8fafc', border: opt.is_correct ? '1.5px solid #22c55e' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                              <span style={{ fontWeight: '700', color: opt.is_correct ? '#16a34a' : '#64748b' }}>{String.fromCharCode(65+oIdx)}</span>
-                              <span>{opt.text}</span>
-                              {opt.is_correct && <span style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>Correct</span>}
-                           </div>
-                         ))}
+          {testQuestions.map((q, idx) => (
+            <div key={q.id} className="detailed-question-card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '700' }}>Q{idx + 1}: {q.text}</h4>
+                  <div className="options-display-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    {q.options.map((opt, oIdx) => (
+                      <div key={oIdx} style={{ padding: '0.75rem', borderRadius: '10px', background: opt.is_correct ? '#f0fdf4' : '#f8fafc', border: opt.is_correct ? '1.5px solid #22c55e' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontWeight: '700', color: opt.is_correct ? '#16a34a' : '#64748b' }}>{String.fromCharCode(65 + oIdx)}</span>
+                        <span>{opt.text}</span>
+                        {opt.is_correct && <span style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>Correct</span>}
                       </div>
-                   </div>
-                   <div style={{ display: 'flex', gap: '0.75rem', marginLeft: '2rem' }}>
-                      <button 
-                        onClick={() => openEditQuestion(q)}
-                        style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', width: '40px', height: '40px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="Edit Question"
-                      >
-                        ✎
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteQuestion(q.id)}
-                        style={{ background: '#fee2e2', color: '#ef4444', border: 'none', width: '40px', height: '40px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        title="Delete Question"
-                      >
-                        🗑️
-                      </button>
-                   </div>
+                    ))}
+                  </div>
                 </div>
-             </div>
-           ))}
-           {testQuestions.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', background: '#f8fafc', borderRadius: '166px', border: '1.5px dashed #e2e8f0' }}>No questions found in this test.</p>}
+                <div style={{ display: 'flex', gap: '0.75rem', marginLeft: '2rem' }}>
+                  <button
+                    onClick={() => openEditQuestion(q)}
+                    style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', width: '40px', height: '40px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Edit Question"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    onClick={() => handleDeleteQuestion(q.id)}
+                    style={{ background: '#fee2e2', color: '#ef4444', border: 'none', width: '40px', height: '40px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    title="Delete Question"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {testQuestions.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', background: '#f8fafc', borderRadius: '166px', border: '1.5px dashed #e2e8f0' }}>No questions found in this test.</p>}
         </div>
       </div>
       {isEditQuestionModalOpen && renderEditQuestionModal()}
@@ -1005,19 +1151,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
     return (
       <div className="test-management-page">
         <div className="view-page-header">
-          <button 
-            onClick={() => setActiveMenu('Dashboard')} 
-            className="back-btn" 
-            style={{ 
-              background: '#F2921D', 
-              border: 'none', 
-              padding: '0.65rem 1.2rem', 
-              borderRadius: '10px', 
-              cursor: 'pointer', 
-              marginRight: '1.5rem', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              fontWeight: 'bold', 
+          <button
+            onClick={() => setActiveMenu('Dashboard')}
+            className="back-btn"
+            style={{
+              background: '#F2921D',
+              border: 'none',
+              padding: '0.65rem 1.2rem',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              marginRight: '1.5rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontWeight: 'bold',
               color: '#ffffff',
               boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
             }}
@@ -1089,7 +1235,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
               ))}
               {fetchedTests.length === 0 && (
                 <tr>
-                   <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No tests created yet.</td>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No tests created yet.</td>
                 </tr>
               )}
             </tbody>
@@ -1210,19 +1356,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderLiveClasses = () => (
     <div className="live-classes-management">
       <div className="view-page-header">
-        <button 
-          onClick={() => setActiveMenu('Dashboard')} 
-          className="back-btn" 
-          style={{ 
-            background: '#F2921D', 
-            border: 'none', 
-            padding: '0.65rem 1.2rem', 
-            borderRadius: '10px', 
-            cursor: 'pointer', 
-            marginRight: '1rem', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            fontWeight: 'bold', 
+        <button
+          onClick={() => setActiveMenu('Dashboard')}
+          className="back-btn"
+          style={{
+            background: '#F2921D',
+            border: 'none',
+            padding: '0.65rem 1.2rem',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            marginRight: '1rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontWeight: 'bold',
             color: '#ffffff',
             boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
           }}
@@ -1311,19 +1457,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderReports = () => (
     <div className="reports-management-page">
       <div className="view-page-header">
-        <button 
-          onClick={() => setActiveMenu('Dashboard')} 
-          className="back-btn" 
-          style={{ 
-            background: '#F2921D', 
-            border: 'none', 
-            padding: '0.65rem 1.2rem', 
-            borderRadius: '10px', 
-            cursor: 'pointer', 
-            marginRight: '1rem', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            fontWeight: 'bold', 
+        <button
+          onClick={() => setActiveMenu('Dashboard')}
+          className="back-btn"
+          style={{
+            background: '#F2921D',
+            border: 'none',
+            padding: '0.65rem 1.2rem',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            marginRight: '1rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontWeight: 'bold',
             color: '#ffffff',
             boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
           }}
@@ -1361,19 +1507,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderSettings = () => (
     <div className="settings-management-page">
       <div className="view-page-header">
-        <button 
-          onClick={() => setActiveMenu('Dashboard')} 
-          className="back-btn" 
-          style={{ 
-            background: '#F2921D', 
-            border: 'none', 
-            padding: '0.65rem 1.2rem', 
-            borderRadius: '10px', 
-            cursor: 'pointer', 
-            marginRight: '1rem', 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            fontWeight: 'bold', 
+        <button
+          onClick={() => setActiveMenu('Dashboard')}
+          className="back-btn"
+          style={{
+            background: '#F2921D',
+            border: 'none',
+            padding: '0.65rem 1.2rem',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            marginRight: '1rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontWeight: 'bold',
             color: '#ffffff',
             boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
           }}
