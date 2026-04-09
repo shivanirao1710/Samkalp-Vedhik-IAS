@@ -47,7 +47,7 @@ const Dashboard = ({ user, onLogout }) => {
           <>
             <section className="hero-banner">
               <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
-              <p style={{ opacity: 0.9 }}>You're on track with your learning goals. Keep up the great work!</p>
+              <p className="hero-subtitle" style={{ opacity: 0.9 }}>You're on track with your learning goals. Keep up the great work!</p>
             </section>
 
 
@@ -128,7 +128,7 @@ const Dashboard = ({ user, onLogout }) => {
                     <span>📅 Today</span>
                     <span>⏰ 04:00 PM</span>
                   </p>
-                  <button 
+                  <button
                     onClick={() => setCurrentView('Live Classes')}
                     style={{ width: '100%', marginTop: '1rem', padding: '0.6rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer' }}
                   >
@@ -218,10 +218,10 @@ const Dashboard = ({ user, onLogout }) => {
       <div className="mentor-fab-container">
         {isMentorToggle && (
           <div className="mentor-floating-window">
-             <AIMentor user={user} isFloating={true} onClose={() => setIsMentorToggle(false)} />
+            <AIMentor user={user} isFloating={true} onClose={() => setIsMentorToggle(false)} />
           </div>
         )}
-        <button 
+        <button
           className={`mentor-fab ${isMentorToggle ? 'active' : ''}`}
           onClick={() => setIsMentorToggle(!isMentorToggle)}
           title="Talk to AI Mentor"
