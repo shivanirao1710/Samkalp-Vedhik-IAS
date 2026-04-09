@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/FacultyDashboardExtended.css'; // Using the consolidated dashboard styles
+import ThemeToggle from './ThemeToggle';
 import logo from '../images/logo.png';
 
 const FacultyDashboard = ({ user, onLogout }) => {
@@ -157,25 +158,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderStudents = () => (
     <div className="student-management-page">
       <div className="admin-dash-header">
-        <button
-          onClick={() => setActiveMenu('Dashboard')}
-          className="back-btn"
-          style={{
-            background: '#F2921D',
-            border: 'none',
-            padding: '0.65rem 1.2rem',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            marginRight: '1rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
-          }}
-        >
-          ← Back
-        </button>
+        
         <div style={{ flex: 1 }}>
           <h1>Student Management</h1>
           <p>View and manage enrolled students</p>
@@ -778,25 +761,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderCourses = () => (
     <div className="course-management-page">
       <div className="view-page-header">
-        <button
-          onClick={() => setActiveMenu('Dashboard')}
-          className="back-btn"
-          style={{
-            background: '#F2921D',
-            border: 'none',
-            padding: '0.65rem 1.2rem',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            marginRight: '1rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
-          }}
-        >
-          ← Back
-        </button>
+        
         <div style={{ flex: 1 }}>
           <h1>Courses Management</h1>
           <p>Create and manage course content</p>
@@ -1382,25 +1347,6 @@ const FacultyDashboard = ({ user, onLogout }) => {
     return (
       <div className="test-management-page">
         <div className="view-page-header">
-          <button
-            onClick={() => setActiveMenu('Dashboard')}
-            className="back-btn"
-            style={{
-              background: '#F2921D',
-              border: 'none',
-              padding: '0.65rem 1.2rem',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              marginRight: '1.5rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              fontWeight: 'bold',
-              color: '#ffffff',
-              boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
-            }}
-          >
-            ← Back
-          </button>
           <div style={{ flex: 1 }}>
             <h1>Tests Management</h1>
             <p>Create and manage test papers</p>
@@ -1587,25 +1533,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderLiveClasses = () => (
     <div className="live-classes-management">
       <div className="view-page-header">
-        <button
-          onClick={() => setActiveMenu('Dashboard')}
-          className="back-btn"
-          style={{
-            background: '#F2921D',
-            border: 'none',
-            padding: '0.65rem 1.2rem',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            marginRight: '1rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
-          }}
-        >
-          ← Back
-        </button>
+        
+        
         <div style={{ flex: 1 }}>
           <h1>Live Classes</h1>
           <p>Schedule and manage live sessions</p>
@@ -1688,25 +1617,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderReports = () => (
     <div className="reports-management-page">
       <div className="view-page-header">
-        <button
-          onClick={() => setActiveMenu('Dashboard')}
-          className="back-btn"
-          style={{
-            background: '#F2921D',
-            border: 'none',
-            padding: '0.65rem 1.2rem',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            marginRight: '1rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
-          }}
-        >
-          ← Back
-        </button>
+        
         <div style={{ flex: 1 }}>
           <h1>Student Reports & Analytics</h1>
           <p>View comprehensive student performance data</p>
@@ -1738,25 +1649,6 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderSettings = () => (
     <div className="settings-management-page">
       <div className="view-page-header">
-        <button
-          onClick={() => setActiveMenu('Dashboard')}
-          className="back-btn"
-          style={{
-            background: '#F2921D',
-            border: 'none',
-            padding: '0.65rem 1.2rem',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            marginRight: '1rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            fontWeight: 'bold',
-            color: '#ffffff',
-            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
-          }}
-        >
-          ← Back
-        </button>
         <div style={{ flex: 1 }}>
           <h1>Settings</h1>
           <p>Manage platform configurations and security</p>
@@ -1823,12 +1715,10 @@ const FacultyDashboard = ({ user, onLogout }) => {
       {/* Main Content */}
       <main className="admin-main">
         <header className="admin-top-bar">
-          <div className="admin-search">
-            <span>🔍</span>
-            <input type="text" placeholder="Search students, courses, tests..." />
-          </div>
+          <div style={{ flex: 1 }}></div>
 
           <div className="admin-profile-section">
+            <ThemeToggle />
             <span className="adm-noti">🔔</span>
             <div className="adm-user-meta">
               <div className="adm-name">{user.name || 'Faculty User'}</div>

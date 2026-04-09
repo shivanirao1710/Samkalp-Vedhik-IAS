@@ -4,6 +4,7 @@ import Courses from './Courses';
 import Tests from './Tests';
 import PsychometricTest from './PsychometricTest';
 import AIMentor from './AIMentor';
+import ThemeToggle from './ThemeToggle';
 import logo from '../images/logo.png';
 
 
@@ -152,12 +153,10 @@ const Dashboard = ({ user, onLogout }) => {
       {/* Main Content */}
       <main className="main-content">
         <header className="top-bar">
-          <div className="search-box">
-            <span>🔍</span>
-            <input type="text" placeholder="Search courses, tests, topics..." />
-          </div>
+          <div style={{ flex: 1 }}></div> {/* Spacer to keep profile on the right */}
 
-          <div className="profile-wrapper">
+          <div className="profile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <ThemeToggle />
             <div className="user-profile" onClick={() => setIsProfileOpen(!isProfileOpen)}>
               <span className="notification-bell">🔔</span>
               <div className="user-info-text">

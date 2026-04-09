@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/AdminDashboard.css';
 import logo from '../images/logo.png';
 import '../styles/FacultyDashboardExtended.css'; // Use shared styles
+import ThemeToggle from './ThemeToggle';
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [users, setUsers] = useState([]);
@@ -227,11 +228,9 @@ const AdminDashboard = ({ user, onLogout }) => {
 
       <main className="admin-main">
         <header className="admin-top-bar">
-          <div className="admin-search">
-             <span>🔍</span>
-             <input type="text" placeholder="Search users..." />
-          </div>
-          <div className="admin-profile-section">
+          <div style={{ flex: 1 }}></div>
+          <div className="admin-profile-section" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <ThemeToggle />
             <div className="adm-user-meta">
               <div className="adm-name">{user.name}</div>
               <div className="adm-role">Platform Admin</div>
