@@ -24,3 +24,33 @@ body {
   color: var(--text-main);
   overflow-x: hidden;
 }
+
+.common-logout-btn {
+  width: 100%;
+  margin-top: auto;
+  padding: 0.85rem 1rem;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fee2e2;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.common-logout-btn:hover {
+  background: #ffe4e6;
+  color: #be123c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(225, 29, 72, 0.1);
+}
+
+.common-logout-btn .icon {
+  font-size: 1.1rem;
+}

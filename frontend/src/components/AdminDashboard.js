@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/AdminDashboard.css';
+import logo from '../images/logo.png';
+import '../styles/FacultyDashboardExtended.css'; // Use shared styles
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [users, setUsers] = useState([]);
@@ -186,45 +188,59 @@ const AdminDashboard = ({ user, onLogout }) => {
   );
 
   return (
-    <div className={`superadmin-layout ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      <aside className="superadmin-sidebar">
-        <div className="superadmin-sidebar-header">
-          <div className="superadmin-logo">Samkalp Admin</div>
+    <div className="admin-layout">
+      {/* Sidebar - Matching Faculty Style */}
+      <aside className="admin-sidebar" style={{ display: sidebarOpen ? 'flex' : 'none' }}>
+        <div className="admin-sidebar-logo">
+          <img src={logo} alt="Samkalp Logo" className="brand-logo" />
         </div>
-        
-        <nav className="superadmin-nav">
+
+        <div className="admin-panel-badge" style={{ backgroundColor: '#fff7ed', color: '#F2921D' }}>SUPER ADMIN PANEL</div>
+
+        <nav className="admin-nav">
           <button 
-            className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+            className={`adm-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => setActiveTab('overview')}
           >
-             Dashboard
+             <span className="adm-icon">⊞</span> Dashboard
           </button>
           <button 
-            className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
+            className={`adm-nav-item ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
-             Manage Users
+             <span className="adm-icon">👥</span> Manage Users
           </button>
           <button 
-            className={`nav-item ${activeTab === 'faculty-add' ? 'active' : ''}`}
+            className={`adm-nav-item ${activeTab === 'faculty-add' ? 'active' : ''}`}
             onClick={() => setActiveTab('faculty-add')}
           >
-             Add Faculty
+             <span className="adm-icon">＋</span> Add Faculty
           </button>
         </nav>
 
-        <div className="superadmin-sidebar-footer">
-          <button onClick={onLogout} className="logout-btn">Sign Out</button>
+        <div className="sidebar-bottom">
+          <button onClick={onLogout} className="common-logout-btn">
+            <span className="icon">↪</span> Sign Out
+          </button>
         </div>
       </aside>
 
-      <main className="superadmin-content">
-        <header className="superadmin-topbar">
-          <button className="toggle-sidebar" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
-          <div className="superadmin-welcome">Welcome, {user.name}</div>
+      <main className="admin-main">
+        <header className="admin-top-bar">
+          <div className="admin-search">
+             <span>🔍</span>
+             <input type="text" placeholder="Search users..." />
+          </div>
+          <div className="admin-profile-section">
+            <div className="adm-user-meta">
+              <div className="adm-name">{user.name}</div>
+              <div className="adm-role">Platform Admin</div>
+            </div>
+            <div className="adm-avatar" style={{ backgroundColor: '#F2921D' }}>💎</div>
+          </div>
         </header>
 
-        <div className="superadmin-page-content">
+        <div className="admin-page-content" style={{ padding: '2rem' }}>
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'users' && renderUserList()}
           {activeTab === 'faculty-add' && renderAddFaculty()}

@@ -1,128 +1,10 @@
 /* ============================================================
-   AdminDashboard.css — Professional Admin Interface Styles
+   AdminDashboard.css — Supplemental Styles for Admin Features
    ============================================================ */
 
-.superadmin-layout {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f1f5f9;
-  font-family: 'Inter', -apple-system, sans-serif;
-}
+/* We use FacultyDashboardExtended.css for the main layout/sidebar */
 
-/* Scoped under superadmin-layout to avoid conflicts */
-.superadmin-layout .superadmin-sidebar {
-  width: 260px;
-  background: #1e293b;
-  color: #f8fafc;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  transition: width 0.3s ease;
-}
-
-.superadmin-layout.sidebar-closed .superadmin-sidebar {
-  width: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.superadmin-layout .superadmin-sidebar-header {
-  margin-bottom: 2.5rem;
-  text-align: center;
-}
-
-.superadmin-layout .superadmin-logo {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #38bdf8;
-  letter-spacing: -0.025em;
-}
-
-.superadmin-layout .superadmin-nav {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.superadmin-layout .nav-item {
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  text-align: left;
-  background: transparent;
-  color: #94a3b8;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-}
-
-.superadmin-layout .nav-item:hover, 
-.superadmin-layout .nav-item.active {
-  background: #334155;
-  color: #38bdf8;
-}
-
-.superadmin-layout .superadmin-sidebar-footer {
-  margin-top: auto;
-  padding-top: 1.5rem;
-  border-top: 1px solid #334155;
-}
-
-.superadmin-layout .logout-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-/* Main content area */
-.superadmin-layout .superadmin-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-}
-
-.superadmin-layout .superadmin-topbar {
-  height: 64px;
-  background: white;
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.superadmin-layout .toggle-sidebar {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #64748b;
-}
-
-.superadmin-layout .superadmin-welcome {
-  font-weight: 700;
-  color: #1e293b;
-  font-size: 1rem;
-}
-
-.superadmin-layout .superadmin-page-content {
-  padding: 2rem;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.superadmin-layout .admin-title {
+.admin-title {
   font-size: 1.75rem;
   font-weight: 800;
   color: #1e293b;
@@ -130,22 +12,30 @@
   letter-spacing: -0.025em;
 }
 
-/* Overview stats */
-.superadmin-layout .admin-stats-grid {
+/* Overview stats - matching faculty stat cards */
+.admin-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.superadmin-layout .stat-card {
+.stat-card {
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
   border: 1px solid #e2e8f0;
+  border-bottom: 3px solid transparent;
+  transition: transform 0.2s;
 }
 
-.superadmin-layout .stat-card h3 {
+.stat-card:hover {
+  transform: translateY(-5px);
+  border-bottom-color: #F2921D;
+}
+
+.stat-card h3 {
   font-size: 0.875rem;
   color: #64748b;
   text-transform: uppercase;
@@ -153,29 +43,29 @@
   margin-bottom: 0.5rem;
 }
 
-.superadmin-layout .stat-val {
+.stat-val {
   font-size: 2rem;
   font-weight: 800;
   color: #1e293b;
 }
 
-/* User table */
-.superadmin-layout .user-table-wrapper {
+/* User table styles */
+.user-table-wrapper {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
-.superadmin-layout .admin-table {
+.admin-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
 }
 
-.superadmin-layout .admin-table th {
-  background: #f8fafc;
+.admin-table th {
+  background: #fafaf9;
   padding: 1rem 1.5rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -184,31 +74,31 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.superadmin-layout .admin-table td {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+.admin-table td {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f5f5f4;
   font-size: 0.95rem;
   color: #334155;
 }
 
-.superadmin-layout .role-badge {
-  padding: 0.25rem 0.6rem;
+.role-badge {
+  padding: 0.35rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 
-.superadmin-layout .role-badge.student { background: #dcfce7; color: #166534; }
-.superadmin-layout .role-badge.faculty { background: #fef9c3; color: #854d0e; }
-.superadmin-layout .role-badge.admin   { background: #dbeafe; color: #1e40af; }
+.role-badge.student { background: #dcfce7; color: #166534; }
+.role-badge.faculty { background: #fef9c3; color: #854d0e; }
+.role-badge.admin   { background: #fff7ed; color: #F2921D; }
 
-.superadmin-layout .actions-cell {
+.actions-cell {
   display: flex;
   gap: 0.5rem;
 }
 
-.superadmin-layout .table-btn {
+.table-btn {
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -218,24 +108,25 @@
   transition: all 0.2s;
 }
 
-.superadmin-layout .table-btn.reset { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
-.superadmin-layout .table-btn.delete { background: #fee2e2; color: #ef4444; border-color: #fecaca; }
+.table-btn.reset { background: #fff7ed; color: #C2410C; border-color: #ffedd5; }
+.table-btn.reset:hover { background: #ffedd5; }
+.table-btn.delete { background: #fee2e2; color: #ef4444; border-color: #fecaca; }
 
-/* Forms */
-.superadmin-layout .admin-form-card {
+/* Admin Form Specifics */
+.admin-form-card {
   background: white;
   max-width: 500px;
   padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
   border: 1px solid #e2e8f0;
 }
 
-.superadmin-layout .form-group {
+.form-group {
   margin-bottom: 1.5rem;
 }
 
-.superadmin-layout .form-group label {
+.form-group label {
   display: block;
   font-size: 0.875rem;
   font-weight: 700;
@@ -243,45 +134,68 @@
   margin-bottom: 0.5rem;
 }
 
-.superadmin-layout .form-group input {
+.form-group input {
   width: 100%;
-  padding: 0.75rem;
-  border-radius: 8px;
+  padding: 0.85rem;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: #fafaf9;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
   outline: none;
 }
 
-.superadmin-layout .admin-submit-btn {
+.form-group input:focus {
+  border-color: #F2921D;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(242, 146, 29, 0.1);
+}
+
+.admin-submit-btn {
   width: 100%;
   padding: 1rem;
-  background: #38bdf8;
+  background: linear-gradient(135deg, #F2921D 0%, #D93425 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 700;
   font-size: 1.1rem;
   cursor: pointer;
+  box-shadow: 0 4px 6px rgba(242, 146, 29, 0.2);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Modals - Not necessarily nested if they use portals, but we likely don't */
+.admin-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(242, 146, 29, 0.3);
+}
+
+.success-msg {
+  padding: 1rem;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+}
+
+/* Modals */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(15, 23, 42, 0.8);
   display: flex;
   align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
-  z-index: 1000;
+  backdrop-filter: blur(8px);
+  z-index: 3000;
 }
 
 .modal-content {
   background: white;
   padding: 2.5rem;
-  border-radius: 16px;
+  border-radius: 24px;
   max-width: 440px;
   width: 100%;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }

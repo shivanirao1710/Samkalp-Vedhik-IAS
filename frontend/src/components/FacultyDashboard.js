@@ -1814,8 +1814,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
         </nav>
 
         <div className="sidebar-bottom">
-          <button onClick={onLogout} className="adm-sign-out-btn">
-            Logout
+          <button onClick={onLogout} className="common-logout-btn">
+            <span className="icon">↪</span> Sign Out
           </button>
         </div>
       </aside>

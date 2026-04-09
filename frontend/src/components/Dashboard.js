@@ -142,8 +142,8 @@ const Dashboard = ({ user, onLogout }) => {
           ))}
         </nav>
 
-        <button onClick={onLogout} className="sign-out-btn">
-          <span>↪</span> Sign Out
+        <button onClick={onLogout} className="common-logout-btn">
+          <span className="icon">↪</span> Sign Out
         </button>
       </aside>
 
