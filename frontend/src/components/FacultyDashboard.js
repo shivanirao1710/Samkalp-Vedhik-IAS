@@ -379,6 +379,236 @@ const FacultyDashboard = ({ user, onLogout }) => {
     }
   };
 
+  // ── Edit & Delete state ──────────────────────────────────────────
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editCourse, setEditCourse] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '', description: '', modules: '', hours: '', status: 'Draft'
+  });
+  const [editThumbnailFile, setEditThumbnailFile] = useState(null);
+  const [editThumbnailPreview, setEditThumbnailPreview] = useState(null);
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+
+  const openEditModal = (course) => {
+    setEditCourse(course);
+    const statusLabel = course.status === 'in_progress' ? 'Published' : 'Draft';
+    setEditFormData({
+      title: course.title || '',
+      description: course.description || '',
+      modules: course.modules || '',
+      hours: course.lessons || '',
+      status: statusLabel
+    });
+    // Show existing thumbnail as preview
+    if (course.image_url) {
+      const src = course.image_url.startsWith('/static')
+        ? `http://localhost:8000${course.image_url}`
+        : course.image_url;
+      setEditThumbnailPreview(src);
+    } else {
+      setEditThumbnailPreview(null);
+    }
+    setEditThumbnailFile(null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditThumbnailChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setEditThumbnailFile(file);
+    setEditThumbnailPreview(URL.createObjectURL(file));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editCourse) return;
+    setIsEditSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('title', editFormData.title);
+      fd.append('description', editFormData.description);
+      fd.append('modules', editFormData.modules || 0);
+      fd.append('lessons', editFormData.hours || 0);
+      fd.append('status', editFormData.status === 'Published' ? 'in_progress' : 'not_started');
+      fd.append('progress', editCourse.progress || 0);
+      if (editThumbnailFile) fd.append('thumbnail', editThumbnailFile);
+
+      const res = await fetch(`http://localhost:8000/courses/${editCourse.id}`, {
+        method: 'PUT',
+        body: fd
+      });
+
+      if (res.ok) {
+        setIsEditModalOpen(false);
+        setEditCourse(null);
+        fetchLiveCourses();
+      } else {
+        const err = await res.json();
+        alert('Error: ' + (err.detail || 'Failed to update course'));
+      }
+    } catch (error) {
+      console.error('Edit error:', error);
+      alert('Failed to connect to backend');
+    } finally {
+      setIsEditSubmitting(false);
+    }
+  };
+
+  const handleDeleteCourse = async (course) => {
+    if (!window.confirm(`Delete "${course.title}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`http://localhost:8000/courses/${course.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchLiveCourses();
+      } else {
+        const err = await res.json();
+        alert('Error: ' + (err.detail || 'Failed to delete course'));
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Failed to connect to backend');
+    }
+  };
+
+  const renderEditModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content" style={{ maxWidth: '640px' }}>
+        <div className="adm-modal-header">
+          <h2>Edit Course</h2>
+          <button className="close-modal" onClick={() => setIsEditModalOpen(false)}>×</button>
+        </div>
+        <form onSubmit={handleEditSubmit} className="adm-modal-form">
+
+          {/* Thumbnail */}
+          <div className="form-group">
+            <label>Course Thumbnail</label>
+            <div
+              className="thumbnail-upload-zone"
+              onClick={() => document.getElementById('edit-thumbnail-input').click()}
+              style={{
+                border: '2px dashed #F2921D',
+                borderRadius: '14px',
+                padding: editThumbnailPreview ? '0' : '2rem',
+                textAlign: 'center',
+                cursor: 'pointer',
+                overflow: 'hidden',
+                background: editThumbnailPreview ? 'transparent' : '#fffbf5',
+                position: 'relative',
+                minHeight: '140px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {editThumbnailPreview ? (
+                <>
+                  <img
+                    src={editThumbnailPreview}
+                    alt="Thumbnail preview"
+                    style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '12px', display: 'block' }}
+                  />
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', borderRadius: '12px', opacity: 0, transition: 'opacity 0.2s'
+                  }} className="thumb-hover-overlay">
+                    <span style={{ color: '#fff', fontWeight: 700 }}>🖼️ Change Image</span>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🖼️</div>
+                  <div style={{ fontWeight: 600, color: '#F2921D' }}>Click to upload thumbnail</div>
+                  <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.25rem' }}>PNG, JPG, WEBP up to 5MB</div>
+                </div>
+              )}
+            </div>
+            <input
+              id="edit-thumbnail-input"
+              type="file"
+              accept="image/*"
+              onChange={handleEditThumbnailChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Course Title</label>
+            <input
+              type="text"
+              placeholder="e.g. Ancient Indian History"
+              value={editFormData.title}
+              onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Description</label>
+            <textarea
+              rows="2"
+              placeholder="Brief description of the course..."
+              value={editFormData.description}
+              onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+              style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #e2e8f0', resize: 'vertical', fontFamily: 'inherit', fontSize: '1rem', outline: 'none' }}
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Total Modules</label>
+              <input
+                type="number"
+                placeholder="20"
+                value={editFormData.modules}
+                onChange={(e) => setEditFormData({ ...editFormData, modules: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Duration (Hours)</label>
+              <input
+                type="number"
+                placeholder="100"
+                value={editFormData.hours}
+                onChange={(e) => setEditFormData({ ...editFormData, hours: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Status</label>
+            <div className="status-radio-group">
+              <label>
+                <input
+                  type="radio" name="edit-status"
+                  checked={editFormData.status === 'Draft'}
+                  onChange={() => setEditFormData({ ...editFormData, status: 'Draft' })}
+                /> Draft
+              </label>
+              <label>
+                <input
+                  type="radio" name="edit-status"
+                  checked={editFormData.status === 'Published'}
+                  onChange={() => setEditFormData({ ...editFormData, status: 'Published' })}
+                /> Published
+              </label>
+            </div>
+          </div>
+
+          <div className="modal-actions">
+            <button type="button" className="cancel-btn" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
+            <button type="submit" className="submit-btn" disabled={isEditSubmitting}
+              style={{ background: 'linear-gradient(135deg, #F2921D 0%, #D93425 100%)' }}>
+              {isEditSubmitting ? 'Saving...' : '✓ Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
   const renderCreateModal = () => (
     <div className="adm-modal-overlay">
       <div className="adm-modal-content" style={{ maxWidth: '640px' }}>
@@ -641,10 +871,10 @@ const FacultyDashboard = ({ user, onLogout }) => {
                     </div>
                   </div>
                   <div className="course-card-actions">
-                    <button className="edit-course-btn">
+                    <button className="edit-course-btn" onClick={() => openEditModal(course)}>
                       <span>✎</span> Edit
                     </button>
-                    <button className="delete-course-btn">
+                    <button className="delete-course-btn" onClick={() => handleDeleteCourse(course)}>
                       <span>🗑️</span>
                     </button>
                   </div>
@@ -655,6 +885,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
         </div>
       </div>
       {isCreateModalOpen && renderCreateModal()}
+      {isEditModalOpen && renderEditModal()}
     </div>
   );
 
