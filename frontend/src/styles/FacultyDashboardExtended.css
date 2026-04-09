@@ -657,10 +657,26 @@
   background: white;
   width: 100%;
   max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
   border-radius: 24px;
   padding: 2.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: modalSlideUp 0.3s ease-out;
+}
+
+/* Thumbnail upload zone hover effect */
+.thumbnail-upload-zone:hover .thumb-hover-overlay {
+  opacity: 1 !important;
+}
+
+.thumbnail-upload-zone:hover {
+  border-color: #D93425 !important;
+}
+
+.submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 @keyframes modalSlideUp {

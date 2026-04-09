@@ -34,6 +34,9 @@ class CourseBase(BaseModel):
     status: str = "not_started"
     progress: int = 0
 
+class CourseCreate(CourseBase):
+    pass
+
 class Course(CourseBase):
     id: int
 
