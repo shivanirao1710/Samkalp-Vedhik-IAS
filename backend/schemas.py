@@ -25,6 +25,18 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class PasswordReset(BaseModel):
+    user_id: int
+    new_password: str
+
+class UserAdminResponse(BaseModel):
+    id: int
+    email: str
+    name: Optional[str]
+    role: str
+    class Config:
+        from_attributes = True
+
 class CourseBase(BaseModel):
     title: str
     description: Optional[str] = None

@@ -5,6 +5,7 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import Dashboard from './components/Dashboard';
 import FacultyDashboard from './components/FacultyDashboard';
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,7 +13,6 @@ function App() {
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    // Remove the alert for better UX in a dashboard setting
   };
 
   const handleRegisterSuccess = (data) => {
@@ -21,6 +21,9 @@ function App() {
 
 
   if (user) {
+    if (user.role === 'admin') {
+      return <AdminDashboard user={user} onLogout={() => setUser(null)} />;
+    }
     if (user.role === 'faculty') {
       return <FacultyDashboard user={user} onLogout={() => setUser(null)} />;
     }
