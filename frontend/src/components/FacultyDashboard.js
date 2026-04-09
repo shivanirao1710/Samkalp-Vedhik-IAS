@@ -87,8 +87,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
       <div className="admin-management-section">
         <div className="admin-tabs">
           {['Students', 'Psychometric Results', 'Live Classes', 'Interview Reviews'].map(tab => (
-            <button 
-              key={tab} 
+            <button
+              key={tab}
               className={`adm-tab ${activeTab === tab ? 'active' : ''}`}
               onClick={() => setActiveTab(tab)}
             >
@@ -255,33 +255,33 @@ const FacultyDashboard = ({ user, onLogout }) => {
   ];
 
   const adminCourseData = [
-    { 
-      id: 1, 
-      title: 'Indian Polity & Governance', 
-      author: 'Dr. Rajesh Kumar', 
-      students: 245, 
-      modules: 24, 
-      hours: 120, 
+    {
+      id: 1,
+      title: 'Indian Polity & Governance',
+      author: 'Dr. Rajesh Kumar',
+      students: 245,
+      modules: 24,
+      hours: 120,
       status: 'Published',
       image: 'course_polity_thumb_1775669670972.png'
     },
-    { 
-      id: 2, 
-      title: 'Modern Indian History', 
-      author: 'Prof. Meera Singh', 
-      students: 198, 
-      modules: 20, 
-      hours: 100, 
+    {
+      id: 2,
+      title: 'Modern Indian History',
+      author: 'Prof. Meera Singh',
+      students: 198,
+      modules: 20,
+      hours: 100,
       status: 'Published',
       image: 'course_history_thumb_1775669750158.png'
     },
-    { 
-      id: 3, 
-      title: 'Indian Economy', 
-      author: 'Dr. Amit Sharma', 
-      students: 312, 
-      modules: 28, 
-      hours: 150, 
+    {
+      id: 3,
+      title: 'Indian Economy',
+      author: 'Dr. Amit Sharma',
+      students: 312,
+      modules: 28,
+      hours: 150,
       status: 'Draft',
       image: 'course_economy_thumb_1775669777507.png'
     }
@@ -313,30 +313,30 @@ const FacultyDashboard = ({ user, onLogout }) => {
         <form onSubmit={handleCreateSubmit} className="adm-modal-form">
           <div className="form-group">
             <label>Course Title</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Ancient Indian History" 
+            <input
+              type="text"
+              placeholder="e.g. Ancient Indian History"
               value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              required 
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
             />
           </div>
           <div className="form-row">
             <div className="form-group">
               <label>Instructor Name</label>
-              <input 
-                type="text" 
-                placeholder="Dr. Name" 
+              <input
+                type="text"
+                placeholder="Dr. Name"
                 value={formData.author}
-                onChange={(e) => setFormData({...formData, author: e.target.value})}
-                required 
+                onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                required
               />
             </div>
             <div className="form-group">
               <label>Category</label>
-              <select 
+              <select
                 value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               >
                 <option>General Studies</option>
                 <option>Polity</option>
@@ -349,22 +349,22 @@ const FacultyDashboard = ({ user, onLogout }) => {
           <div className="form-row">
             <div className="form-group">
               <label>Total Modules</label>
-              <input 
-                type="number" 
-                placeholder="20" 
+              <input
+                type="number"
+                placeholder="20"
                 value={formData.modules}
-                onChange={(e) => setFormData({...formData, modules: e.target.value})}
-                required 
+                onChange={(e) => setFormData({ ...formData, modules: e.target.value })}
+                required
               />
             </div>
             <div className="form-group">
               <label>Duration (Hours)</label>
-              <input 
-                type="number" 
-                placeholder="100" 
+              <input
+                type="number"
+                placeholder="100"
                 value={formData.hours}
-                onChange={(e) => setFormData({...formData, hours: e.target.value})}
-                required 
+                onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
+                required
               />
             </div>
           </div>
@@ -372,19 +372,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
             <label>Initial Status</label>
             <div className="status-radio-group">
               <label>
-                <input 
-                  type="radio" 
-                  name="status" 
-                  checked={formData.status === 'Draft'} 
-                  onChange={() => setFormData({...formData, status: 'Draft'})} 
+                <input
+                  type="radio"
+                  name="status"
+                  checked={formData.status === 'Draft'}
+                  onChange={() => setFormData({ ...formData, status: 'Draft' })}
                 /> Draft
               </label>
               <label>
-                <input 
-                  type="radio" 
-                  name="status" 
-                  checked={formData.status === 'Published'} 
-                  onChange={() => setFormData({...formData, status: 'Published'})} 
+                <input
+                  type="radio"
+                  name="status"
+                  checked={formData.status === 'Published'}
+                  onChange={() => setFormData({ ...formData, status: 'Published' })}
                 /> Published
               </label>
             </div>
@@ -459,10 +459,10 @@ const FacultyDashboard = ({ user, onLogout }) => {
                 </div>
                 <div className="course-card-actions">
                   <button className="edit-course-btn">
-                     <span>✎</span> Edit
+                    <span>✎</span> Edit
                   </button>
                   <button className="delete-course-btn">
-                     <span>🗑️</span>
+                    <span>🗑️</span>
                   </button>
                 </div>
               </div>
@@ -488,77 +488,246 @@ const FacultyDashboard = ({ user, onLogout }) => {
   ];
 
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [testModalStep, setTestModalStep] = useState(1); // 1: Info, 2: Questions
   const [testFormData, setTestFormData] = useState({
     name: '',
     type: 'Full Length',
     duration: '',
-    questions: '',
+    questions: [],
     status: 'Draft'
   });
 
-  const handleTestSubmit = (e) => {
+  const [currentQuestion, setCurrentQuestion] = useState({
+    text: '',
+    explanation: '',
+    options: [
+      { text: '', is_correct: true },
+      { text: '', is_correct: false },
+      { text: '', is_correct: false },
+      { text: '', is_correct: false }
+    ]
+  });
+
+  const addQuestionToTest = () => {
+    if (!currentQuestion.text || currentQuestion.options.some(opt => !opt.text)) {
+      alert("Please fill in question text and all options");
+      return;
+    }
+    setTestFormData({
+      ...testFormData,
+      questions: [...testFormData.questions, currentQuestion]
+    });
+    // Reset current question
+    setCurrentQuestion({
+      text: '',
+      explanation: '',
+      options: [
+        { text: '', is_correct: true },
+        { text: '', is_correct: false },
+        { text: '', is_correct: false },
+        { text: '', is_correct: false }
+      ]
+    });
+  };
+
+  const handleTestSubmit = async (e) => {
     e.preventDefault();
-    console.log('Creating test:', testFormData);
-    setIsTestModalOpen(false);
+    
+    let submissionQuestions = [...testFormData.questions];
+    
+    // Check if there's a typed question that wasn't added yet
+    if (currentQuestion.text && !submissionQuestions.find(q => q.text === currentQuestion.text)) {
+      const confirmAdd = window.confirm("You have a question typed but not added. Would you like to add it before submitting?");
+      if (confirmAdd) {
+        if (currentQuestion.options.some(opt => !opt.text)) {
+          alert("Please fill in all options for the current question before adding it.");
+          return;
+        }
+        submissionQuestions.push(currentQuestion);
+      }
+    }
+
+    if (submissionQuestions.length === 0) {
+      alert("Please add at least one question");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/tests/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: testFormData.name,
+          category: testFormData.type,
+          duration_mins: parseInt(testFormData.duration),
+          questions: submissionQuestions
+        })
+      });
+
+      if (response.ok) {
+        alert("Test created successfully!");
+        setIsTestModalOpen(false);
+        setTestModalStep(1);
+        setTestFormData({
+          name: '',
+          type: 'Full Length',
+          duration: '',
+          questions: [],
+          status: 'Draft'
+        });
+      } else {
+        const err = await response.json();
+        alert("Error: " + (err.detail || "Failed to create test"));
+      }
+    } catch (error) {
+       console.error("Fetch error:", error);
+       alert("Failed to connect to backend");
+    }
   };
 
   const renderCreateTestModal = () => (
     <div className="adm-modal-overlay">
-      <div className="adm-modal-content">
+      <div className="adm-modal-content" style={{ maxWidth: testModalStep === 2 ? '800px' : '600px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div className="adm-modal-header">
-          <h2>Create New Test</h2>
-          <button className="close-modal" onClick={() => setIsTestModalOpen(false)}>×</button>
+          <h2>{testModalStep === 1 ? 'Step 1: Test Details' : 'Step 2: Add Questions'}</h2>
+          <button className="close-modal" onClick={() => { setIsTestModalOpen(false); setTestModalStep(1); }}>×</button>
         </div>
-        <form onSubmit={handleTestSubmit} className="adm-modal-form">
-          <div className="form-group">
-            <label>Test Name</label>
-            <input 
-              type="text" 
-              placeholder="e.g. History Prelims Series 1" 
-              value={testFormData.name}
-              onChange={(e) => setTestFormData({...testFormData, name: e.target.value})}
-              required 
-            />
-          </div>
-          <div className="form-row">
+
+        {testModalStep === 1 ? (
+          <div className="adm-modal-form">
             <div className="form-group">
-              <label>Test Type</label>
-              <select 
-                value={testFormData.type}
-                onChange={(e) => setTestFormData({...testFormData, type: e.target.value})}
-              >
-                <option>Full Length</option>
-                <option>Topic Wise</option>
-                <option>Previous Year</option>
-                <option>Sectional</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Duration (Minutes)</label>
-              <input 
-                type="number" 
-                placeholder="120" 
-                value={testFormData.duration}
-                onChange={(e) => setTestFormData({...testFormData, duration: e.target.value})}
-                required 
+              <label>Test Name</label>
+              <input
+                type="text"
+                placeholder="e.g. History Prelims Series 1"
+                value={testFormData.name}
+                onChange={(e) => setTestFormData({ ...testFormData, name: e.target.value })}
+                required
               />
             </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Test Type</label>
+                <select
+                  value={testFormData.type}
+                  onChange={(e) => setTestFormData({ ...testFormData, type: e.target.value })}
+                >
+                  <option>Full Length</option>
+                  <option>Topic Wise</option>
+                  <option>Previous Year</option>
+                  <option>Sectional</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Duration (Minutes)</label>
+                <input
+                  type="number"
+                  placeholder="120"
+                  value={testFormData.duration}
+                  onChange={(e) => setTestFormData({ ...testFormData, duration: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="cancel-btn" onClick={() => setIsTestModalOpen(false)}>Cancel</button>
+              <button 
+                type="button" 
+                className="submit-btn" 
+                style={{ background: '#F2921D' }}
+                onClick={() => setTestModalStep(2)}
+                disabled={!testFormData.name || !testFormData.duration}
+              >
+                Next: Add Questions
+              </button>
+            </div>
           </div>
-          <div className="form-group">
-            <label>Number of Questions</label>
-            <input 
-              type="number" 
-              placeholder="100" 
-              value={testFormData.questions}
-              onChange={(e) => setTestFormData({...testFormData, questions: e.target.value})}
-              required 
-            />
+        ) : (
+          <div className="adm-modal-form">
+            <div className="added-questions-list" style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px' }}>
+              <strong style={{ display: 'block', marginBottom: '0.5rem' }}>Added Questions ({testFormData.questions.length})</strong>
+              {testFormData.questions.length === 0 && <p style={{ fontSize: '0.85rem', color: '#64748b' }}>No questions added yet.</p>}
+              {testFormData.questions.map((q, idx) => (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', borderBottom: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>
+                    {idx + 1}. {q.text}
+                  </span>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const newQs = [...testFormData.questions];
+                      newQs.splice(idx, 1);
+                      setTestFormData({ ...testFormData, questions: newQs });
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="question-entry-zone" style={{ border: '1.5px dashed #F2921D', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#fffefc' }}>
+               <div className="form-group">
+                  <label style={{ color: '#F2921D' }}>Add New Question</label>
+                  <textarea 
+                    style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #F2921D' }}
+                    rows="3"
+                    value={currentQuestion.text}
+                    onChange={(e) => setCurrentQuestion({...currentQuestion, text: e.target.value})}
+                    placeholder="Enter the question here..."
+                  />
+               </div>
+
+               <div className="options-entry-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  {currentQuestion.options.map((opt, idx) => (
+                    <div key={idx} className="opt-input-wrap" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input 
+                        type="radio" 
+                        name="correct-opt" 
+                        checked={opt.is_correct} 
+                        onChange={() => {
+                          const newOpts = currentQuestion.options.map((o, i) => ({ ...o, is_correct: i === idx }));
+                          setCurrentQuestion({...currentQuestion, options: newOpts});
+                        }}
+                      />
+                      <input 
+                        type="text" 
+                        placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                        value={opt.text}
+                        onChange={(e) => {
+                          const newOpts = [...currentQuestion.options];
+                          newOpts[idx].text = e.target.value;
+                          setCurrentQuestion({...currentQuestion, options: newOpts});
+                        }}
+                        style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid #e2e8f0' }}
+                      />
+                    </div>
+                  ))}
+               </div>
+
+               <button 
+                 type="button" 
+                 onClick={addQuestionToTest}
+                 style={{ width: '100%', padding: '0.75rem', marginTop: '1.5rem', background: '#f1f5f9', border: 'none', borderRadius: '10px', color: '#475569', fontWeight: '700', cursor: 'pointer' }}
+               >
+                 + Add Question to List
+               </button>
+            </div>
+
+            <div className="modal-actions">
+              <button type="button" className="cancel-btn" onClick={() => setTestModalStep(1)}>Back</button>
+              <button 
+                type="button" 
+                className="submit-btn" 
+                style={{ background: '#10b981' }}
+                onClick={handleTestSubmit}
+              >
+                Create Final Test ({testFormData.questions.length} Qs)
+              </button>
+            </div>
           </div>
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={() => setIsTestModalOpen(false)}>Cancel</button>
-            <button type="submit" className="submit-btn" style={{ background: '#F2921D' }}>Create Test</button>
-          </div>
-        </form>
+        )}
       </div>
     </div>
   );
@@ -680,62 +849,62 @@ const FacultyDashboard = ({ user, onLogout }) => {
         <form onSubmit={handleClassSubmit} className="adm-modal-form">
           <div className="form-group">
             <label>Class Title</label>
-            <input 
-              type="text" 
-              placeholder="e.g. Economy Masterclass" 
+            <input
+              type="text"
+              placeholder="e.g. Economy Masterclass"
               value={classFormData.title}
-              onChange={(e) => setClassFormData({...classFormData, title: e.target.value})}
-              required 
+              onChange={(e) => setClassFormData({ ...classFormData, title: e.target.value })}
+              required
             />
           </div>
           <div className="form-group">
             <label>Instructor</label>
-            <input 
-              type="text" 
-              placeholder="Instructor Name" 
+            <input
+              type="text"
+              placeholder="Instructor Name"
               value={classFormData.instructor}
-              onChange={(e) => setClassFormData({...classFormData, instructor: e.target.value})}
-              required 
+              onChange={(e) => setClassFormData({ ...classFormData, instructor: e.target.value })}
+              required
             />
           </div>
           <div className="form-row">
             <div className="form-group">
               <label>Date</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 value={classFormData.date}
-                onChange={(e) => setClassFormData({...classFormData, date: e.target.value})}
-                required 
+                onChange={(e) => setClassFormData({ ...classFormData, date: e.target.value })}
+                required
               />
             </div>
             <div className="form-group">
               <label>Time</label>
-              <input 
-                type="time" 
+              <input
+                type="time"
                 value={classFormData.time}
-                onChange={(e) => setClassFormData({...classFormData, time: e.target.value})}
-                required 
+                onChange={(e) => setClassFormData({ ...classFormData, time: e.target.value })}
+                required
               />
             </div>
           </div>
           <div className="form-row">
             <div className="form-group">
               <label>Duration (Hours)</label>
-              <input 
-                type="text" 
-                placeholder="2 hours" 
+              <input
+                type="text"
+                placeholder="2 hours"
                 value={classFormData.duration}
-                onChange={(e) => setClassFormData({...classFormData, duration: e.target.value})}
-                required 
+                onChange={(e) => setClassFormData({ ...classFormData, duration: e.target.value })}
+                required
               />
             </div>
             <div className="form-group">
               <label>Capacity</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={classFormData.capacity}
-                onChange={(e) => setClassFormData({...classFormData, capacity: e.target.value})}
-                required 
+                onChange={(e) => setClassFormData({ ...classFormData, capacity: e.target.value })}
+                required
               />
             </div>
           </div>
@@ -806,7 +975,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
                 <td>
                   <div className="adm-reg-progress">
                     <div className="adm-reg-bar">
-                       <div className="adm-reg-fill" style={{ width: `${(live.registered / live.capacity) * 100}%` }}></div>
+                      <div className="adm-reg-fill" style={{ width: `${(live.registered / live.capacity) * 100}%` }}></div>
                     </div>
                     <span>{live.registered}/{live.capacity}</span>
                   </div>
@@ -870,8 +1039,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
         </div>
       </div>
       <div className="chart-card">
-         <h3>Faculty Account Settings</h3>
-         <p>Manage your account preferences and notification settings here.</p>
+        <h3>Faculty Account Settings</h3>
+        <p>Manage your account preferences and notification settings here.</p>
       </div>
     </div>
   );
@@ -921,9 +1090,9 @@ const FacultyDashboard = ({ user, onLogout }) => {
         </nav>
 
         <div className="sidebar-bottom">
-           <button onClick={onLogout} className="adm-sign-out-btn">
-             Logout
-           </button>
+          <button onClick={onLogout} className="adm-sign-out-btn">
+            Logout
+          </button>
         </div>
       </aside>
 
