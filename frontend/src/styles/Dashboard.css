@@ -402,4 +402,78 @@
 
 .sign-out-btn:hover {
   background: #ffe4e6;
-}
+}
+
+/* ── FLOATING AI MENTOR ─────────────────────────────────── */
+.mentor-fab-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.mentor-fab {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  font-size: 2.5rem;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mentor-fab:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 15px 35px rgba(99, 102, 241, 0.5);
+}
+
+.mentor-fab.active {
+  background: #ef4444;
+  transform: rotate(90deg);
+  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+}
+
+.mentor-floating-window {
+  width: 500px;
+  height: 700px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  transform-origin: bottom right;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(100px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (max-width: 500px) {
+  .mentor-floating-window {
+    width: 90vw;
+    height: 80vh;
+    right: 5vw;
+    bottom: 5rem;
+  }
+}
+

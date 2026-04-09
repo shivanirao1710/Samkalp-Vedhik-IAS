@@ -45,6 +45,7 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.ge
     # Normally we would return a JWT here
     return {
         "message": "Login successful", 
+        "id": user.id,
         "email": user.email, 
         "name": user.name,
         "role": user.role
