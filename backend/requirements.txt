@@ -7,3 +7,6 @@ python-dotenv
 bcrypt==3.2.0
 passlib[bcrypt]
 python-multipart
+google-generativeai
+google-genai
+groq
