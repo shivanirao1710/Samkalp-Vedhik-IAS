@@ -15,10 +15,18 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # Using Llama 3.3 70B for high-quality, high-speed analysis
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
-client = Groq(api_key=GROQ_API_KEY)
+client = None
+if GROQ_API_KEY:
+    try:
+        client = Groq(api_key=GROQ_API_KEY)
+    except Exception as e:
+        print(f"Failed to initialize Groq client: {e}")
 
 def call_llm(prompt: str, retries: int = 3) -> str:
     """Call Groq LLM with retries for stability."""
+    if not client:
+        raise HTTPException(status_code=500, detail="AI Client (Groq) not initialized. Check GROQ_API_KEY.")
+    
     import time
     for i in range(retries):
         try:
@@ -234,8 +242,8 @@ def get_psychometric_questions():
 @router.post("/analyze")
 def analyze_psychometric(submission: PsychometricSubmit, db: Session = Depends(get_db)):
     """Submit answers → Groq analyzes → Returns structured report. Replaces any old report."""
-    if not GROQ_API_KEY:
-        raise HTTPException(status_code=500, detail="Groq API key not configured")
+    if not client:
+        raise HTTPException(status_code=500, detail="Groq AI client not initialized (missing API Key)")
 
     # Delete existing report
     db.query(models.PsychometricReport).filter(
@@ -331,8 +339,8 @@ def delete_user_report(user_id: int, db: Session = Depends(get_db)):
 
 @router.post("/mentor/chat")
 def mentor_chat(payload: MentorMessage):
-    if not GROQ_API_KEY:
-        raise HTTPException(status_code=500, detail="Groq API key not configured")
+    if not client:
+        raise HTTPException(status_code=500, detail="Groq AI client not initialized (missing API Key)")
 
     system_context = f"""You are an empathetic, experienced UPSC mentor named "Samkalp Mentor AI". 
 You are having a conversation with {payload.user_name}, a UPSC aspirant.
