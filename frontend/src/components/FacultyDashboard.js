@@ -33,10 +33,10 @@ const FacultyDashboard = ({ user, onLogout }) => {
   ];
 
   const actions = [
-    { title: 'Add Course', subtitle: 'Create new course', icon: '＋' },
-    { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋' },
-    { title: 'Create Test', subtitle: 'Add new test', icon: '＋' },
-    { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews' },
+    { title: 'Add Course', subtitle: 'Create new course', icon: '＋', target: 'Courses', trigger: () => setIsCreateModalOpen(true) },
+    { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
+    { title: 'Create Test', subtitle: 'Add new test', icon: '＋', target: 'Tests', trigger: () => setIsTestModalOpen(true) },
+    { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews', target: 'Interviews' },
   ];
 
   const studentData = [
@@ -75,7 +75,14 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
       <div className="admin-actions-grid">
         {actions.map((action) => (
-          <button key={action.title} className="adm-action-card">
+          <button 
+            key={action.title} 
+            className="adm-action-card"
+            onClick={() => {
+              setActiveMenu(action.target);
+              if (action.trigger) action.trigger();
+            }}
+          >
             <div className="adm-action-icon">{action.icon}</div>
             <div className="adm-action-text">
               <h3>{action.title}</h3>
@@ -83,74 +90,6 @@ const FacultyDashboard = ({ user, onLogout }) => {
             </div>
           </button>
         ))}
-      </div>
-
-      <div className="admin-management-section">
-        <div className="admin-tabs">
-          {['Students', 'Psychometric Results', 'Live Classes', 'Interview Reviews'].map(tab => (
-            <button
-              key={tab}
-              className={`adm-tab ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === 'Students' && '👥 '}
-              {tab === 'Psychometric Results' && '🧠 '}
-              {tab === 'Live Classes' && '📅 '}
-              {tab === 'Interview Reviews' && '📹 '}
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        <div className="admin-table-container">
-          <div className="table-header-row">
-            <h2>Student Management</h2>
-            <select className="adm-filter-select">
-              <option>All Students</option>
-            </select>
-          </div>
-
-          <table className="adm-table">
-            <thead>
-              <tr>
-                <th>Student Name</th>
-                <th>Email</th>
-                <th>Progress</th>
-                <th>Tests Completed</th>
-                <th>Last Active</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {studentData.map((student) => (
-                <tr key={student.id}>
-                  <td>
-                    <div className="adm-student-cell">
-                      <div className="adm-student-avatar" style={{ backgroundColor: student.color }}>
-                        {student.name.substring(0, 2).toUpperCase()}
-                      </div>
-                      {student.name}
-                    </div>
-                  </td>
-                  <td>{student.email}</td>
-                  <td>
-                    <div className="adm-progress-wrap">
-                      <div className="adm-prog-bar">
-                        <div className="adm-prog-fill" style={{ width: '65%' }}></div>
-                      </div>
-                      <span>65%</span>
-                    </div>
-                  </td>
-                  <td>{student.tests}</td>
-                  <td>2 hours ago</td>
-                  <td>
-                    <button className="adm-row-action">⋮</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </>
   );
