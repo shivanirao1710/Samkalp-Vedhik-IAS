@@ -103,3 +103,27 @@ class LiveClassEnrollment(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     class_id = Column(Integer, index=True)
+
+class CourseEnrollment(Base):
+    __tablename__ = "course_enrollments"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    course_id = Column(Integer, index=True)
+    status = Column(String, default="not_started")
+    progress = Column(Integer, default=0)
+
+class StudyMaterial(Base):
+    __tablename__ = "study_materials"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(String)
+    category = Column(String, default="General")
+    file_url = Column(String)
+    file_type = Column(String)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+class FavoriteMaterial(Base):
+    __tablename__ = "favorite_materials"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    material_id = Column(Integer, index=True)

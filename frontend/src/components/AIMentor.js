@@ -52,7 +52,7 @@ Stress Management: ${r.scores?.stress_management?.rating}
     setMessages([
       {
         role: 'mentor',
-        content: `👋 Hello, ${user?.name || user?.email?.split('@')[0] || 'Student'}! I'm **Samkalp Mentor AI**, your personal UPSC guide powered by Google Gemini.\n\nI can help you with:\n• 📊 Understanding your psychometric profile\n• 📚 UPSC preparation strategies\n• 🧠 Personalized study advice\n• 💪 Motivation & goal setting\n\nWhat would you like to know today?`,
+        content: `👋 Hello, ${user?.name || user?.email?.split('@')[0] || 'Student'}! I'm **Samkalp Mentor AI**, your personal UPSC guide.\n\nI can help you with:\n• 📊 Understanding your psychometric profile\n• 📚 UPSC preparation strategies\n• 🧠 Personalized study advice\n• 💪 Motivation & goal setting\n\nWhat would you like to know today?`,
         id: Date.now()
       }
     ]);
@@ -122,7 +122,6 @@ Stress Management: ${r.scores?.stress_management?.rating}
           <div className="mentor-avatar-card">
             <div className="mentor-avatar">🎓</div>
             <h3>Samkalp Mentor AI</h3>
-            <p>Powered by Google Gemini</p>
             <div className={`mentor-status ${hasReport ? 'status-active' : 'status-default'}`}>
               <span className="status-dot"></span>
               {hasReport ? 'Profile Loaded' : 'Ready to Help'}
@@ -161,7 +160,7 @@ Stress Management: ${r.scores?.stress_management?.rating}
             <div className="mentor-header-avatar">🎓</div>
             <div>
               <h3>Samkalp Mentor AI</h3>
-              <span className="mentor-online">● Online • Powered by Gemini</span>
+              <span className="mentor-online">● Online</span>
             </div>
           </div>
           <div className="mentor-header-actions">

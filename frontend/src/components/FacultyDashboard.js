@@ -7,12 +7,19 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [activeTab, setActiveTab] = useState('Students');
 
+  // Study Materials State
+  const [studyMaterials, setStudyMaterials] = useState([]);
+  const [isStudyMaterialModalOpen, setIsStudyMaterialModalOpen] = useState(false);
+  const [studyMaterialForm, setStudyMaterialForm] = useState({ title: '', description: '', category: 'General Studies' });
+  const [studyMaterialFile, setStudyMaterialFile] = useState(null);
+
   const menuItems = [
     { name: 'Dashboard', icon: '⊞' },
     { name: 'Students', icon: '👥' },
     { name: 'Courses', icon: '📖' },
     { name: 'Tests', icon: '📄' },
     { name: 'Live Classes', icon: '📺' },
+    { name: 'Study Materials', icon: '📚' },
     { name: 'Interviews', icon: '📹' },
     { name: 'Reports', icon: '📊' },
     { name: 'Settings', icon: '⚙️' },
@@ -75,8 +82,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
       <div className="admin-actions-grid">
         {actions.map((action) => (
-          <button 
-            key={action.title} 
+          <button
+            key={action.title}
             className="adm-action-card"
             onClick={() => {
               setActiveMenu(action.target);
@@ -97,7 +104,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderStudents = () => (
     <div className="student-management-page">
       <div className="admin-dash-header">
-        
+
         <div style={{ flex: 1 }}>
           <h1>Student Management</h1>
           <p>View and manage enrolled students</p>
@@ -245,7 +252,48 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     fetchLiveCourses();
+    fetchStudyMaterials();
   }, []);
+
+  const fetchStudyMaterials = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/study-materials/');
+      setStudyMaterials(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const handleStudyMaterialSubmit = async (e) => {
+    e.preventDefault();
+    if (!studyMaterialFile) {
+      alert("Please select a file.");
+      return;
+    }
+    const fd = new FormData();
+    fd.append('title', studyMaterialForm.title);
+    fd.append('description', studyMaterialForm.description);
+    fd.append('category', studyMaterialForm.category);
+    fd.append('file', studyMaterialFile);
+
+    try {
+      const res = await fetch('http://localhost:8000/study-materials/', { method: 'POST', body: fd });
+      if (res.ok) {
+        setIsStudyMaterialModalOpen(false);
+        setStudyMaterialFile(null);
+        setStudyMaterialForm({ title: '', description: '', category: 'General Studies' });
+        fetchStudyMaterials();
+      } else {
+        alert("Failed to upload material");
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteMaterial = async (id) => {
+    if (!window.confirm("Are you sure?")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/study-materials/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchStudyMaterials();
+    } catch (err) { console.error(err); }
+  };
 
   const fetchLiveCourses = async () => {
     try {
@@ -574,7 +622,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
                     justifyContent: 'center', borderRadius: '12px', opacity: 0,
                     transition: 'opacity 0.2s'
                   }}
-                  className="thumb-hover-overlay"
+                    className="thumb-hover-overlay"
                   >
                     <span style={{ color: '#fff', fontWeight: 700 }}>🖼️ Change Image</span>
                   </div>
@@ -700,7 +748,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderCourses = () => (
     <div className="course-management-page">
       <div className="view-page-header">
-        
+
         <div style={{ flex: 1 }}>
           <h1>Courses Management</h1>
           <p>Create and manage course content</p>
@@ -741,8 +789,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
           {liveCourses.map((course) => {
             const thumbSrc = course.image_url
               ? (course.image_url.startsWith('/static')
-                  ? `http://localhost:8000${course.image_url}`
-                  : course.image_url)
+                ? `http://localhost:8000${course.image_url}`
+                : course.image_url)
               : null;
             const statusLabel = course.status === 'in_progress' ? 'Published' : course.status === 'completed' ? 'Completed' : 'Draft';
             return (
@@ -1658,8 +1706,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderLiveClasses = () => (
     <div className="live-classes-management">
       <div className="view-page-header">
-        
-        
+
+
         <div style={{ flex: 1 }}>
           <h1>Live Classes</h1>
           <p>Schedule and manage live sessions</p>
@@ -1726,8 +1774,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
                 <td>
                   <div className="adm-actions-cell">
                     <button className="icon-btn edit" onClick={() => openEditClassModal(live)}>✎</button>
-                    <button 
-                      className="icon-btn copy" 
+                    <button
+                      className="icon-btn copy"
                       style={{ color: '#10b981', background: '#ecfdf5' }}
                       onClick={() => live.meeting_link ? window.open(live.meeting_link, '_blank') : alert("No meeting link set!")}
                       title="Start/Join Class"
@@ -1755,7 +1803,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderReports = () => (
     <div className="reports-management-page">
       <div className="view-page-header">
-        
+
         <div style={{ flex: 1 }}>
           <h1>Student Reports & Analytics</h1>
           <p>View comprehensive student performance data</p>
@@ -1799,6 +1847,78 @@ const FacultyDashboard = ({ user, onLogout }) => {
     </div>
   );
 
+  const renderStudyMaterials = () => (
+    <div className="course-management-page">
+      <div className="view-page-header">
+        <div style={{ flex: 1 }}>
+          <h1>Study Materials</h1>
+          <p>Upload and manage study materials for students</p>
+        </div>
+        <button className="create-course-main-btn" onClick={() => setIsStudyMaterialModalOpen(true)}>
+          <span>+</span> Upload Material
+        </button>
+      </div>
+
+      <div className="admin-management-section">
+        <div className="table-header-row">
+          <h2>All Materials</h2>
+        </div>
+        <div className="admin-courses-grid">
+          {studyMaterials.length === 0 && <div style={{ padding: '2rem', color: '#64748b' }}>No materials found.</div>}
+          {studyMaterials.map(m => (
+            <div key={m.id} className="admin-course-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+              <h3>{m.title}</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0', flex: 1 }}>{m.description}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                <span className="status-badge published" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>{m.category}</span>
+                <button onClick={() => handleDeleteMaterial(m.id)} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontWeight: 600 }}>🗑️ Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {isStudyMaterialModalOpen && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '640px' }}>
+            <div className="adm-modal-header">
+              <h2>Upload Study Material</h2>
+              <button className="close-modal" onClick={() => setIsStudyMaterialModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleStudyMaterialSubmit} className="adm-modal-form">
+              <div className="form-group">
+                <label>Title</label>
+                <input required type="text" value={studyMaterialForm.title} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, title: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea rows="2" value={studyMaterialForm.description} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, description: e.target.value })} style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
+              </div>
+              <div className="form-group">
+                <label>Category</label>
+                <select value={studyMaterialForm.category} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, category: e.target.value })}>
+                  <option>General Studies</option>
+                  <option>Polity</option>
+                  <option>History</option>
+                  <option>Economy</option>
+                  <option>Geography</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>File (PDF, PPT, Videos)</label>
+                <input required type="file" onChange={e => setStudyMaterialFile(e.target.files[0])} style={{ padding: '1rem', border: '1px dashed #ccc', width: '100%', borderRadius: '12px' }} />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="cancel-btn" onClick={() => setIsStudyMaterialModalOpen(false)}>Cancel</button>
+                <button type="submit" className="submit-btn" style={{ background: 'var(--bg-gradient)' }}>Upload</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'Dashboard':
@@ -1811,6 +1931,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
         return renderTests();
       case 'Live Classes':
         return renderLiveClasses();
+      case 'Study Materials':
+        return renderStudyMaterials();
       case 'Reports':
         return renderReports();
       case 'Settings':

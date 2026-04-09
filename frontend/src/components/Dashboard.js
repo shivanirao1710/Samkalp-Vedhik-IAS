@@ -6,6 +6,8 @@ import PsychometricTest from './PsychometricTest';
 import AIMentor from './AIMentor';
 import LiveClasses from './LiveClasses';
 import ThemeToggle from './ThemeToggle';
+import Interview from './Interview';
+import StudyMaterials from './StudyMaterials';
 import logo from '../images/logo.png';
 
 
@@ -18,6 +20,7 @@ const Dashboard = ({ user, onLogout }) => {
     { name: 'Dashboard', icon: '📊' },
     { name: 'Courses', icon: '📖' },
     { name: 'Tests', icon: '📝' },
+    { name: 'Study Materials', icon: '📚' },
     { name: 'Interview', icon: '📹' },
     { name: 'Psychometric Test', icon: '🧠' },
     { name: 'Live Classes', icon: '📺' },
@@ -34,9 +37,13 @@ const Dashboard = ({ user, onLogout }) => {
   const renderContent = () => {
     switch (currentView) {
       case 'Courses':
-        return <Courses />;
+        return <Courses user={user} />;
       case 'Tests':
         return <Tests />;
+      case 'Study Materials':
+        return <StudyMaterials user={user} />;
+      case 'Interview':
+        return <Interview />;
       case 'Psychometric Test':
         return <PsychometricTest user={user} />;
       case 'Live Classes':

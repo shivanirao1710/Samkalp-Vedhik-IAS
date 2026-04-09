@@ -122,3 +122,50 @@ def delete_course(course_id: int, db: Session = Depends(get_db)):
     db.delete(course)
     db.commit()
     return {"message": "Course deleted successfully"}
+
+@router.post("/{course_id}/enroll/{user_id}")
+def enroll_in_course(course_id: int, user_id: int, db: Session = Depends(get_db)):
+    course = db.query(models.Course).filter(models.Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    existing = db.query(models.CourseEnrollment).filter(
+        models.CourseEnrollment.user_id == user_id, 
+        models.CourseEnrollment.course_id == course_id
+    ).first()
+    
+    if existing:
+        return {"message": "Already enrolled"}
+        
+    enrollment = models.CourseEnrollment(user_id=user_id, course_id=course_id)
+    db.add(enrollment)
+    db.commit()
+    return {"message": "Enrolled successfully"}
+
+@router.get("/student/{user_id}")
+def get_student_courses(user_id: int, db: Session = Depends(get_db)):
+    courses = db.query(models.Course).all()
+    enrollments = db.query(models.CourseEnrollment).filter(models.CourseEnrollment.user_id == user_id).all()
+    enrolled_dict = {e.course_id: e for e in enrollments}
+    
+    result = []
+    for c in courses:
+        c_dict = {
+            "id": c.id,
+            "title": c.title,
+            "description": c.description,
+            "modules": c.modules,
+            "lessons": c.lessons,
+            "image_url": c.image_url,
+        }
+        if c.id in enrolled_dict:
+            c_dict["is_enrolled"] = True
+            c_dict["status"] = enrolled_dict[c.id].status
+            c_dict["progress"] = enrolled_dict[c.id].progress
+        else:
+            c_dict["is_enrolled"] = False
+            c_dict["status"] = "not_enrolled"
+            c_dict["progress"] = 0
+            
+        result.append(c_dict)
+    return result
