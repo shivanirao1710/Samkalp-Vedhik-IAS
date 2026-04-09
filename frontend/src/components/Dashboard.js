@@ -4,6 +4,7 @@ import Courses from './Courses';
 import Tests from './Tests';
 import PsychometricTest from './PsychometricTest';
 import AIMentor from './AIMentor';
+import LiveClasses from './LiveClasses';
 import ThemeToggle from './ThemeToggle';
 import logo from '../images/logo.png';
 
@@ -38,6 +39,8 @@ const Dashboard = ({ user, onLogout }) => {
         return <Tests />;
       case 'Psychometric Test':
         return <PsychometricTest user={user} />;
+      case 'Live Classes':
+        return <LiveClasses user={user} />;
       case 'Dashboard':
       default:
         return (
@@ -109,6 +112,28 @@ const Dashboard = ({ user, onLogout }) => {
                       50 Questions • 60 mins
                     </div>
                   </div>
+                </div>
+
+                <div className="section-title" style={{ marginTop: '2rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Live Sessions</h3>
+                  <button onClick={() => setCurrentView('Live Classes')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
+                </div>
+                <div className="live-item-mini" style={{ padding: '1.25rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #ffedd5' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '1.25rem' }}>📺</span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Streaming Soon</span>
+                  </div>
+                  <h4 style={{ fontSize: '1rem', fontWeight: '700', color: '#1e293b' }}>Ethics & Case Studies</h4>
+                  <p style={{ fontSize: '0.8rem', color: '#7c2d12', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
+                    <span>📅 Today</span>
+                    <span>⏰ 04:00 PM</span>
+                  </p>
+                  <button 
+                    onClick={() => setCurrentView('Live Classes')}
+                    style={{ width: '100%', marginTop: '1rem', padding: '0.6rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    Join Waiting Room
+                  </button>
                 </div>
               </aside>
             </div>

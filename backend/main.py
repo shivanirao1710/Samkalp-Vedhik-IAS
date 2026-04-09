@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import models, database
-from routers import auth, courses, tests, psychometric, admin
+from routers import auth, courses, tests, psychometric, admin, live_classes
 import os
 # Initialize database
 models.Base.metadata.create_all(bind=database.engine)
@@ -56,6 +56,7 @@ app.include_router(courses.router)
 app.include_router(tests.router)
 app.include_router(psychometric.router)
 app.include_router(admin.router)
+app.include_router(live_classes.router)
 
 @app.get("/")
 def root():

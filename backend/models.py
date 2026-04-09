@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, Text, DateTime
+from sqlalchemy import Column, Integer, String, Enum, Text, DateTime, Float
 from database import Base
 import enum
 from datetime import datetime
@@ -84,3 +84,22 @@ class PsychometricReport(Base):
     report_json = Column(Text, nullable=False)  # Full AI-generated report as JSON
     answers_json = Column(Text, nullable=True)  # Student answers as JSON
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class LiveClass(Base):
+    __tablename__ = "live_classes"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    instructor = Column(String)
+    date = Column(String)
+    time = Column(String)
+    duration = Column(Float)
+    capacity = Column(Integer, default=200)
+    registered = Column(Integer, default=0)
+    meeting_link = Column(String, nullable=True)
+    status = Column(String, default="Upcoming")
+
+class LiveClassEnrollment(Base):
+    __tablename__ = "live_class_enrollments"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    class_id = Column(Integer, index=True)

@@ -1369,100 +1369,286 @@ const FacultyDashboard = ({ user, onLogout }) => {
     { label: 'Total Hours', value: '96', icon: '⏱️', color: '#f5f3ff' },
   ];
 
-  const adminLiveClassData = [
-    { id: 1, title: 'Indian Polity - Fundamental Rights', instructor: 'Dr. Rajesh Kumar', date: '2025-04-15', time: '10:00 AM', duration: '2 hours', registered: 145, capacity: 200, status: 'Upcoming' },
-    { id: 2, title: 'Current Affairs Discussion - April Week 2', instructor: 'Prof. Meera Singh', date: '2025-04-16', time: '4:00 PM', duration: '1.5 hours', registered: 189, capacity: 200, status: 'Upcoming' },
-    { id: 3, title: 'Map Reading Techniques - Special Session', instructor: 'Dr. Amit Sharma', date: '2025-04-14', time: '2:30 PM', duration: '1 hour', registered: 45, capacity: 50, status: 'Upcoming' },
-  ];
-
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
+  const [liveClasses, setLiveClasses] = useState([]);
   const [classFormData, setClassFormData] = useState({
     title: '',
     instructor: '',
     date: '',
     time: '',
     duration: '',
-    capacity: '200'
+    capacity: '200',
+    meeting_link: ''
   });
 
-  const handleClassSubmit = (e) => {
-    e.preventDefault();
-    console.log('Scheduling class:', classFormData);
-    setIsClassModalOpen(false);
+  useEffect(() => {
+    fetchLiveClasses();
+  }, []);
+
+  const fetchLiveClasses = async () => {
+    try {
+      const resp = await fetch('http://localhost:8000/live-classes/');
+      const data = await resp.json();
+      setLiveClasses(data);
+    } catch (err) {
+      console.error("Error fetching live classes:", err);
+    }
   };
+
+  const handleClassSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:8000/live-classes/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(classFormData)
+      });
+      if (response.ok) {
+        setIsClassModalOpen(false);
+        setClassFormData({ title: '', instructor: '', date: '', time: '', duration: '', capacity: '200' });
+        fetchLiveClasses();
+      } else {
+        alert("Failed to schedule class");
+      }
+    } catch (err) {
+      console.error("Error scheduling class:", err);
+    }
+  };
+
+  const handleDeleteClass = async (id) => {
+    if (!window.confirm("Delete this scheduled class?")) return;
+    try {
+      await fetch(`http://localhost:8000/live-classes/${id}`, { method: 'DELETE' });
+      fetchLiveClasses();
+    } catch (err) {
+      console.error("Error deleting class:", err);
+    }
+  };
+
+  const [isEditClassModalOpen, setIsEditClassModalOpen] = useState(false);
+  const [editingClassId, setEditingClassId] = useState(null);
+  const [editClassFormData, setEditClassFormData] = useState({
+    title: '', instructor: '', date: '', time: '', duration: '', capacity: '200', meeting_link: ''
+  });
+
+  const openEditClassModal = (live) => {
+    setEditingClassId(live.id);
+    setEditClassFormData({
+      title: live.title,
+      instructor: live.instructor,
+      date: live.date,
+      time: live.time,
+      duration: live.duration,
+      capacity: live.capacity,
+      meeting_link: live.meeting_link || ''
+    });
+    setIsEditClassModalOpen(true);
+  };
+
+  const handleEditClassSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`http://localhost:8000/live-classes/${editingClassId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editClassFormData)
+      });
+      if (response.ok) {
+        setIsEditClassModalOpen(false);
+        fetchLiveClasses();
+      } else {
+        alert("Failed to update class");
+      }
+    } catch (err) {
+      console.error("Error updating class:", err);
+    }
+  };
+
+  const renderEditClassModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content" style={{ maxWidth: '900px' }}>
+        <div className="adm-modal-header" style={{ borderBottom: 'none', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: '800' }}>Edit Scheduled Class</h2>
+          <button className="close-modal" onClick={() => setIsEditClassModalOpen(false)}>×</button>
+        </div>
+        <form onSubmit={handleEditClassSubmit} className="adm-modal-form">
+          <div className="form-group">
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Class Title</label>
+            <input
+              type="text"
+              placeholder="e.g. Economy Masterclass"
+              value={editClassFormData.title}
+              onChange={(e) => setEditClassFormData({ ...editClassFormData, title: e.target.value })}
+              required
+              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+            />
+          </div>
+          <div className="form-group">
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Instructor</label>
+            <input
+              type="text"
+              placeholder="Instructor Name"
+              value={editClassFormData.instructor}
+              onChange={(e) => setEditClassFormData({ ...editClassFormData, instructor: e.target.value })}
+              required
+              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+            />
+          </div>
+          <div className="form-group">
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Meeting Link</label>
+            <input
+              type="url"
+              placeholder="https://zoom.us/..."
+              value={editClassFormData.meeting_link}
+              onChange={(e) => setEditClassFormData({ ...editClassFormData, meeting_link: e.target.value })}
+              required
+              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+            />
+          </div>
+          <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.5rem' }}>
+            <div className="form-group">
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Date</label>
+              <input
+                type="date"
+                value={editClassFormData.date}
+                onChange={(e) => setEditClassFormData({ ...editClassFormData, date: e.target.value })}
+                required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+              />
+            </div>
+            <div className="form-group">
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Time</label>
+              <input
+                type="time"
+                value={editClassFormData.time}
+                onChange={(e) => setEditClassFormData({ ...editClassFormData, time: e.target.value })}
+                required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+              />
+            </div>
+          </div>
+          <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            <div className="form-group">
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Duration (Hours)</label>
+              <input
+                type="number"
+                step="0.5"
+                value={editClassFormData.duration}
+                onChange={(e) => setEditClassFormData({ ...editClassFormData, duration: e.target.value })}
+                required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+              />
+            </div>
+            <div className="form-group">
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Capacity</label>
+              <input
+                type="number"
+                value={editClassFormData.capacity}
+                onChange={(e) => setEditClassFormData({ ...editClassFormData, capacity: e.target.value })}
+                required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+              />
+            </div>
+          </div>
+          <div className="modal-actions" style={{ marginTop: '2.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <button type="button" className="cancel-btn" onClick={() => setIsEditClassModalOpen(false)} style={{ padding: '1rem 2rem', border: '1px solid #e2e8f0', borderRadius: '12px', background: 'white', fontWeight: 'bold', color: '#64748b' }}>Cancel</button>
+            <button type="submit" className="submit-btn" style={{ flex: 1, padding: '1.15rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '800' }}>Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 
   const renderScheduleClassModal = () => (
     <div className="adm-modal-overlay">
-      <div className="adm-modal-content">
-        <div className="adm-modal-header">
-          <h2>Schedule New Class</h2>
+      <div className="adm-modal-content" style={{ maxWidth: '900px' }}>
+        <div className="adm-modal-header" style={{ borderBottom: 'none', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: '800' }}>Schedule New Class</h2>
           <button className="close-modal" onClick={() => setIsClassModalOpen(false)}>×</button>
         </div>
         <form onSubmit={handleClassSubmit} className="adm-modal-form">
           <div className="form-group">
-            <label>Class Title</label>
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Class Title</label>
             <input
               type="text"
               placeholder="e.g. Economy Masterclass"
               value={classFormData.title}
               onChange={(e) => setClassFormData({ ...classFormData, title: e.target.value })}
               required
+              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
             />
           </div>
           <div className="form-group">
-            <label>Instructor</label>
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Instructor</label>
             <input
               type="text"
               placeholder="Instructor Name"
               value={classFormData.instructor}
               onChange={(e) => setClassFormData({ ...classFormData, instructor: e.target.value })}
               required
+              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
             />
           </div>
-          <div className="form-row">
+          <div className="form-group">
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Meeting Link (Zoom, Google Meet, etc.)</label>
+            <input
+              type="url"
+              placeholder="https://zoom.us/j/..."
+              value={classFormData.meeting_link}
+              onChange={(e) => setClassFormData({ ...classFormData, meeting_link: e.target.value })}
+              required
+              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+            />
+          </div>
+          <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
-              <label>Date</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Date</label>
               <input
                 type="date"
                 value={classFormData.date}
                 onChange={(e) => setClassFormData({ ...classFormData, date: e.target.value })}
                 required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
               />
             </div>
             <div className="form-group">
-              <label>Time</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Time</label>
               <input
                 type="time"
                 value={classFormData.time}
                 onChange={(e) => setClassFormData({ ...classFormData, time: e.target.value })}
                 required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
               />
             </div>
           </div>
-          <div className="form-row">
+          <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
             <div className="form-group">
-              <label>Duration (Hours)</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Duration (Hours)</label>
               <input
-                type="text"
-                placeholder="2 hours"
+                type="number"
+                step="0.5"
+                placeholder="2"
                 value={classFormData.duration}
                 onChange={(e) => setClassFormData({ ...classFormData, duration: e.target.value })}
                 required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
               />
             </div>
             <div className="form-group">
-              <label>Capacity</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Capacity</label>
               <input
                 type="number"
                 value={classFormData.capacity}
                 onChange={(e) => setClassFormData({ ...classFormData, capacity: e.target.value })}
                 required
+                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
               />
             </div>
           </div>
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={() => setIsClassModalOpen(false)}>Cancel</button>
-            <button type="submit" className="submit-btn" style={{ background: '#F2921D' }}>Schedule Class</button>
+          <div className="modal-actions" style={{ marginTop: '2.5rem', display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+            <button type="button" className="cancel-btn" onClick={() => setIsClassModalOpen(false)} style={{ padding: '1rem 2rem', border: '1px solid #e2e8f0', borderRadius: '12px', background: 'white', fontWeight: 'bold', color: '#64748b' }}>Cancel</button>
+            <button type="submit" className="submit-btn" style={{ flex: 1, padding: '1.15rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '800' }}>Schedule Class</button>
           </div>
         </form>
       </div>
@@ -1501,7 +1687,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
 
       <div className="admin-management-section">
         <div className="table-header-row">
-          <h2>All Live Classes</h2>
+          <h2>All Live Classes ({liveClasses.length})</h2>
         </div>
 
         <table className="adm-table live-table">
@@ -1517,7 +1703,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
             </tr>
           </thead>
           <tbody>
-            {adminLiveClassData.map((live) => (
+            {liveClasses.map((live) => (
               <tr key={live.id}>
                 <td style={{ fontWeight: '700', color: '#1e293b' }}>{live.title}</td>
                 <td>{live.instructor}</td>
@@ -1525,7 +1711,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
                   <div style={{ fontWeight: '700' }}>{live.date}</div>
                   <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{live.time}</div>
                 </td>
-                <td>{live.duration}</td>
+                <td>{live.duration} hours</td>
                 <td>
                   <div className="adm-reg-progress">
                     <div className="adm-reg-bar">
@@ -1535,21 +1721,34 @@ const FacultyDashboard = ({ user, onLogout }) => {
                   </div>
                 </td>
                 <td>
-                  <span className="status-pill upcoming">Upcoming</span>
+                  <span className={`status-pill ${live.status.toLowerCase()}`}>{live.status}</span>
                 </td>
                 <td>
                   <div className="adm-actions-cell">
-                    <button className="icon-btn edit">✎</button>
-                    <button className="icon-btn copy" style={{ color: '#10b981', background: '#ecfdf5' }}>📹</button>
-                    <button className="icon-btn delete">🗑️</button>
+                    <button className="icon-btn edit" onClick={() => openEditClassModal(live)}>✎</button>
+                    <button 
+                      className="icon-btn copy" 
+                      style={{ color: '#10b981', background: '#ecfdf5' }}
+                      onClick={() => live.meeting_link ? window.open(live.meeting_link, '_blank') : alert("No meeting link set!")}
+                      title="Start/Join Class"
+                    >
+                      📹
+                    </button>
+                    <button className="icon-btn delete" onClick={() => handleDeleteClass(live.id)}>🗑️</button>
                   </div>
                 </td>
               </tr>
             ))}
+            {liveClasses.length === 0 && (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>No live classes scheduled yet.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
       {isClassModalOpen && renderScheduleClassModal()}
+      {isEditClassModalOpen && renderEditClassModal()}
     </div>
   );
 

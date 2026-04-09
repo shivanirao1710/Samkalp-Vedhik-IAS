@@ -54,3 +54,22 @@ class Course(CourseBase):
 
     class Config:
         from_attributes = True
+
+class LiveClassBase(BaseModel):
+    title: str
+    instructor: str
+    date: str
+    time: str
+    duration: float
+    capacity: int
+    meeting_link: Optional[str] = None
+
+class LiveClassCreate(LiveClassBase):
+    pass
+
+class LiveClassResponse(LiveClassBase):
+    id: int
+    registered: int
+    status: str
+    class Config:
+        from_attributes = True
