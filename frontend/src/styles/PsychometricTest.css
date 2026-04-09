@@ -17,7 +17,7 @@
 }
 
 .psy-header-card {
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+  background: var(--bg-gradient);
   color: white;
   border-radius: 20px;
   padding: 2.5rem;
@@ -46,7 +46,7 @@
   font-size: 2rem;
   font-weight: 800;
   margin: 0 0 0.75rem;
-  background: linear-gradient(135deg, #fff, #c4b5fd);
+  background: linear-gradient(135deg, #fff, #ffedd5);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -113,7 +113,7 @@
 /* ── ACTIONS ───────────────────────────────────────────── */
 .psy-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 .psy-btn-primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--bg-gradient);
   color: white;
   border: none;
   border-radius: 12px;
@@ -122,9 +122,9 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.25s;
-  box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+  box-shadow: 0 4px 15px rgba(242, 146, 29, 0.4);
 }
-.psy-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.5); }
+.psy-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(242, 146, 29, 0.5); }
 .psy-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .psy-btn-secondary {
   background: white;
@@ -165,7 +165,7 @@
 .psy-table-wrapper { overflow-x: auto; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
 .psy-questions-table { width: 100%; border-collapse: collapse; background: white; }
 .psy-questions-table th {
-  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  background: var(--bg-gradient);
   color: white;
   padding: 1rem 1.25rem;
   text-align: left;
@@ -225,7 +225,7 @@
 }
 .psy-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: var(--bg-gradient);
   border-radius: 999px;
   transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
 }
@@ -356,7 +356,7 @@
 
 .psy-results-header {
   text-align: center;
-  background: linear-gradient(135deg, #1e1b4b, #312e81, #4c1d95);
+  background: var(--bg-gradient);
   color: white;
   border-radius: 20px;
   padding: 2.5rem;
@@ -483,7 +483,7 @@
 
 /* Motivational Card */
 .psy-motivation-card {
-  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  background: var(--bg-gradient);
   border-radius: 16px;
   padding: 2rem;
   color: white;

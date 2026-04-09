@@ -420,12 +420,12 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--bg-gradient);
   color: white;
   border: none;
   font-size: 2.5rem;
   cursor: pointer;
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 25px rgba(242, 146, 29, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -32,7 +32,7 @@
 
 /* Avatar Card */
 .mentor-avatar-card {
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%);
+  background: var(--bg-gradient);
   border-radius: 16px;
   padding: 1.5rem;
   text-align: center;
@@ -60,7 +60,7 @@
   font-size: 1rem;
   font-weight: 800;
   margin: 0 0 0.3rem;
-  background: linear-gradient(135deg, #fff, #c4b5fd);
+  background: linear-gradient(135deg, #fff, #ffedd5);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -179,7 +179,7 @@
   justify-content: space-between;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #e2e8f0;
-  background: linear-gradient(135deg, #f8f7ff, #f0effe);
+  background: linear-gradient(135deg, #fff7ed, #fffaf5);
 }
 .mentor-header-left {
   display: flex;
@@ -189,13 +189,13 @@
 .mentor-header-avatar {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--bg-gradient);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  box-shadow: 0 4px 12px rgba(242, 146, 29, 0.3);
 }
 .mentor-chat-header h3 {
   font-size: 0.95rem;
@@ -263,7 +263,7 @@
   flex-shrink: 0;
 }
 .mentor-msg-avatar {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--bg-gradient);
   font-size: 1rem;
 }
 .user-msg-avatar {
@@ -294,10 +294,10 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 .msg-user .msg-content {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--bg-gradient);
   color: white;
   border-bottom-right-radius: 4px;
-  box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+  box-shadow: 0 4px 15px rgba(242, 146, 29, 0.3);
 }
 .msg-error .msg-content {
   background: #fee2e2 !important;
@@ -364,7 +364,7 @@
 .mentor-send-btn {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--bg-gradient);
   color: white;
   border: none;
   border-radius: 12px;
@@ -374,7 +374,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.25s;
-  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
+  box-shadow: 0 4px 12px rgba(242, 146, 29, 0.35);
   flex-shrink: 0;
 }
 .mentor-send-btn:hover:not(:disabled) {
@@ -446,7 +446,7 @@
   border-radius: 12px;
   padding: 0.4rem 0.75rem;
   font-size: 0.75rem;
-  color: #4338ca;
+  color: var(--primary);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -455,7 +455,7 @@
 
 .suggestion-chip:hover {
   background: #f0effe;
-  border-color: #6366f1;
+  border-color: var(--primary);
   transform: translateY(-1px);
 }
 
