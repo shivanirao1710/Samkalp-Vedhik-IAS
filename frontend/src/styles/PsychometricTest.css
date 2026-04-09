@@ -1,270 +1,505 @@
+/* ============================================================
+   PsychometricTest.css — AI-Powered Psychometric Assessment
+   ============================================================ */
+
+/* ── CONTAINER ─────────────────────────────────────────── */
 .psychometric-container {
-  padding: 2rem;
-  max-width: 1000px;
+  padding: 1.5rem 2rem;
+  max-width: 1100px;
   margin: 0 auto;
-  animation: fadeIn 0.5s ease-out;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  min-height: 100vh;
 }
 
+/* ── LANDING ─────────────────────────────────────────────── */
 .psy-landing {
-  background: white;
-  border-radius: 30px;
-  padding: 4rem 3rem;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
-  text-align: center;
+  animation: fadeInUp 0.5s ease;
 }
 
 .psy-header-card {
-  margin-bottom: 4rem;
-}
-
-.psy-icon-main {
-  font-size: 4rem;
-  background: linear-gradient(135deg, #F2921D 0%, #D93425 100%);
-  width: 100px;
-  height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  margin: 0 auto 2rem;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
   color: white;
-  box-shadow: 0 10px 20px rgba(242, 146, 29, 0.2);
+  border-radius: 20px;
+  padding: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(79, 70, 229, 0.35);
 }
-
-.psy-header-card h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #1e293b;
+.psy-header-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.psy-icon-main {
+  font-size: 3.5rem;
   margin-bottom: 1rem;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
 }
-
+.psy-header-card h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.75rem;
+  background: linear-gradient(135deg, #fff, #c4b5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 .psy-header-card p {
-  color: #64748b;
-  font-size: 1.15rem;
-  max-width: 700px;
+  font-size: 1rem;
+  opacity: 0.85;
+  max-width: 600px;
   margin: 0 auto;
-  line-height: 1.6;
+}
+.psy-report-exists-banner {
+  margin-top: 1.25rem;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  display: inline-block;
+  font-size: 0.9rem;
+}
+.psy-link-btn {
+  background: none;
+  border: none;
+  color: #a5b4fc;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: underline;
+  font-size: 0.9rem;
 }
 
+/* ── FEATURES GRID ─────────────────────────────────────── */
 .psy-features-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 4rem;
-  text-align: left;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
-
 .psy-feature-item {
-  padding: 2rem;
-  border-radius: 24px;
-  transition: transform 0.2s;
+  border-radius: 14px;
+  padding: 1.5rem;
+  transition: transform 0.25s, box-shadow 0.25s;
+  border: 1px solid rgba(0,0,0,0.06);
 }
+.psy-feature-item:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.orange-light { background: #fff7ed; }
+.green { background: #f0fdf4; }
+.purple { background: #f5f3ff; }
+.orange { background: #fff3e0; }
+.psy-feat-icon { font-size: 1.75rem; margin-bottom: 0.6rem; }
+.psy-feature-item h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.4rem; color: #1e1b4b; }
+.psy-feature-item p { font-size: 0.82rem; color: #64748b; margin: 0; line-height: 1.5; }
 
-.psy-feature-item:hover {
-  transform: translateY(-5px);
-}
-
-.psy-feature-item.orange-light { background-color: #fff7ed; border: 1px solid #fde68a; }
-.psy-feature-item.green { background-color: #f0fdf4; }
-.psy-feature-item.purple { background-color: #f5f3ff; }
-.psy-feature-item.orange { background-color: #fff7ed; border: 1px solid #fde68a; }
-
-.psy-feat-icon {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.psy-feature-item h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-}
-
-.psy-feature-item p {
-  font-size: 0.9rem;
-  color: #64748b;
-  line-height: 1.5;
-}
-
+/* ── BEFORE YOU START ──────────────────────────────────── */
 .psy-before-start {
   background: #f8fafc;
-  padding: 2.5rem;
-  border-radius: 20px;
-  text-align: left;
-  margin-bottom: 3rem;
-}
-
-.psy-before-start h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
   margin-bottom: 1.5rem;
-  color: #1e293b;
 }
+.psy-before-start h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.75rem; color: #1e1b4b; }
+.psy-before-start ul { margin: 0; padding-left: 1.2rem; }
+.psy-before-start li { font-size: 0.88rem; color: #475569; margin-bottom: 0.4rem; line-height: 1.5; }
 
-.psy-before-start ul {
-  list-style: none;
-}
-
-.psy-before-start li {
-  position: relative;
-  padding-left: 1.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  color: #475569;
-}
-
-.psy-before-start li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: #F2921D;
-  font-weight: bold;
-}
-
-.psy-actions {
-  display: flex;
-  gap: 1.5rem;
-  justify-content: flex-end;
-}
-
-.psy-btn-primary, .psy-btn-secondary {
-  padding: 1rem 2.5rem;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
-}
-
+/* ── ACTIONS ───────────────────────────────────────────── */
+.psy-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 .psy-btn-primary {
-  background: linear-gradient(135deg, #F2921D 0%, #D93425 100%);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: white;
   border: none;
-  box-shadow: 0 4px 12px rgba(242, 146, 29, 0.2);
+  border-radius: 12px;
+  padding: 0.85rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 15px rgba(99,102,241,0.4);
 }
-
+.psy-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.5); }
+.psy-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .psy-btn-secondary {
   background: white;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
-}
-
-.psy-btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
-.psy-btn-secondary:hover { background: #f8fafc; }
-
-/* Testing View */
-.psy-testing {
-  max-width: 800px;
-  margin: 4rem auto;
-}
-
-.psy-test-card {
-  background: white;
-  border-radius: 24px;
-  padding: 4rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-}
-
-.psy-progress-container {
-  height: 8px;
-  background: #f1f5f9;
-  border-radius: 4px;
-  margin-bottom: 3rem;
-  overflow: hidden;
-}
-
-.psy-progress-bar {
-  height: 100%;
-  background: #F2921D;
-  transition: width 0.3s ease;
-}
-
-.psy-question-count {
-  display: block;
-  font-size: 0.9rem;
-  color: #64748b;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.psy-question-text {
-  font-size: 1.75rem;
-  color: #1e293b;
-  margin-bottom: 3rem;
-  line-height: 1.4;
-}
-
-.psy-options-list {
-  display: grid;
-  gap: 1rem;
-}
-
-.psy-option-btn {
-  padding: 1.25rem 2rem;
-  border: 2px solid #f1f5f9;
-  border-radius: 16px;
-  background: white;
-  text-align: left;
-  font-size: 1.1rem;
-  color: #475569;
+  color: #6366f1;
+  border: 2px solid #6366f1;
+  border-radius: 12px;
+  padding: 0.85rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.25s;
+}
+.psy-btn-secondary:hover { background: #f5f3ff; }
+
+/* ── TABLE VIEW ────────────────────────────────────────── */
+.psy-table-view { animation: fadeInUp 0.4s ease; }
+.psy-table-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.psy-back-btn {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6366f1;
+  font-weight: 600;
   transition: all 0.2s;
 }
-
-.psy-option-btn:hover {
-  border-color: #F2921D;
-  background: #fff7ed;
-  color: #D93425;
-}
-
-/* Results View */
-.psy-results-card {
-  background: white;
-  border-radius: 24px;
-  padding: 4rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.psy-result-header {
-  margin-bottom: 3rem;
-}
-
-.psy-success-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.psy-report-skeleton {
-  text-align: left;
-  margin-bottom: 3rem;
-}
-
-.psy-report-section {
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 16px;
-  margin-bottom: 1rem;
-}
-
-.psy-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.psy-score-tag {
-  background: #F2921D;
+.psy-back-btn:hover { background: #f5f3ff; }
+.psy-table-header h2 { font-size: 1.5rem; font-weight: 800; color: #1e1b4b; margin: 0; }
+.psy-table-header p { font-size: 0.9rem; color: #64748b; margin: 0; }
+.psy-table-wrapper { overflow-x: auto; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.psy-questions-table { width: 100%; border-collapse: collapse; background: white; }
+.psy-questions-table th {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
   color: white;
-  padding: 0.25rem 0.75rem;
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.psy-questions-table td { padding: 1rem 1.25rem; vertical-align: top; }
+.row-even { background: #fafafa; }
+.row-odd { background: white; }
+.psy-q-num { font-weight: 800; color: #6366f1; font-size: 1rem; width: 40px; }
+.psy-q-text { font-size: 0.9rem; color: #1e293b; font-weight: 500; min-width: 220px; }
+.psy-opt-list { margin: 0; padding-left: 1rem; }
+.psy-opt-list li { font-size: 0.8rem; color: #64748b; margin-bottom: 0.25rem; }
+
+/* Category badges */
+.cat-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+.cat-personality { background: #ede9fe; color: #6d28d9; }
+.cat-cognitive { background: #dbeafe; color: #1d4ed8; }
+.cat-learning-style { background: #dcfce7; color: #15803d; }
+.cat-motivation { background: #fef3c7; color: #b45309; }
+.cat-stress-management { background: #d1fae5; color: #065f46; }
+.cat-time-management { background: #e0f2fe; color: #0369a1; }
+.cat-critical-thinking { background: #fee2e2; color: #b91c1c; }
+
+/* ── TESTING VIEW ──────────────────────────────────────── */
+.psy-testing {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 70vh;
+  animation: fadeInUp 0.4s ease;
+}
+.psy-test-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+  border: 1px solid #e2e8f0;
+}
+.psy-progress-container {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.psy-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.psy-test-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.psy-category-badge {
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  border: 1px solid #ede9fe;
+}
+.psy-question-count { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
+.psy-question-text {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin: 0 0 2rem;
+  line-height: 1.5;
+}
+.psy-options-list { display: flex; flex-direction: column; gap: 0.85rem; }
+.psy-option-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: #fafafa;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.psy-option-btn:hover {
+  border-color: #6366f1;
+  background: #f5f3ff;
+  color: #4338ca;
+  transform: translateX(4px);
+}
+.psy-opt-letter {
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-weight: 800;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.psy-option-btn:hover .psy-opt-letter { background: #6366f1; color: white; }
+
+/* ── ANALYZING VIEW ────────────────────────────────────── */
+.psy-analyzing {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+}
+.psy-analyzing-card {
+  text-align: center;
+  background: white;
+  border-radius: 20px;
+  padding: 3rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+  max-width: 500px;
+  width: 100%;
+}
+.psy-ai-spinner {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 2rem;
+}
+.spinner-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  animation: spin 1.5s cubic-bezier(0.4,0,0.2,1) infinite;
+}
+.spinner-ring:nth-child(1) {
+  width: 80px; height: 80px;
+  border-top-color: #6366f1;
+  animation-delay: 0s;
+}
+.spinner-ring:nth-child(2) {
+  width: 60px; height: 60px;
+  top: 10px; left: 10px;
+  border-top-color: #8b5cf6;
+  animation-delay: 0.2s;
+  animation-direction: reverse;
+}
+.spinner-ring:nth-child(3) {
+  width: 40px; height: 40px;
+  top: 20px; left: 20px;
+  border-top-color: #a78bfa;
+  animation-delay: 0.4s;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.psy-analyzing-card h2 { font-size: 1.3rem; font-weight: 800; color: #1e1b4b; margin: 0 0 0.75rem; }
+.psy-analyzing-card > p { color: #64748b; font-size: 0.95rem; margin: 0 0 2rem; }
+.psy-analyzing-steps { display: flex; flex-direction: column; gap: 0.75rem; text-align: left; }
+.psy-step {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.psy-step-done { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.psy-step-active { background: #f5f3ff; color: #6d28d9; border: 1px solid #ede9fe; animation: pulse 1.5s infinite; }
+.psy-step-pending { background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+/* ── RESULTS ───────────────────────────────────────────── */
+.psy-results { animation: fadeInUp 0.5s ease; }
+
+.psy-results-header {
+  text-align: center;
+  background: linear-gradient(135deg, #1e1b4b, #312e81, #4c1d95);
+  color: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 50px rgba(79,70,229,0.3);
+}
+.psy-success-icon { font-size: 3rem; margin-bottom: 1rem; }
+.psy-results-header h2 { font-size: 2rem; font-weight: 800; margin: 0 0 1rem; }
+.psy-overall-profile {
+  max-width: 700px;
+  margin: 0 auto;
+  opacity: 0.9;
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+/* UPSC Readiness Banner */
+.psy-readiness-banner {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e2e8f0;
+  gap: 2rem;
+}
+.psy-readiness-left { flex: 1; }
+.psy-readiness-label { font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+.psy-readiness-bar-wrap { height: 10px; background: #f1f5f9; border-radius: 999px; margin: 0.75rem 0; overflow: hidden; }
+.psy-readiness-bar { height: 100%; border-radius: 999px; transition: width 1s ease; }
+.psy-readiness-desc { font-size: 0.88rem; color: #475569; margin: 0; line-height: 1.6; }
+.psy-readiness-right { text-align: center; }
+.psy-readiness-score-circle {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  border: 4px solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.psy-readiness-num { font-size: 1.5rem; font-weight: 900; line-height: 1; }
+.psy-readiness-level { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Score Cards */
+.psy-scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.psy-score-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+  border: 1px solid #e2e8f0;
+  transition: transform 0.25s;
+}
+.psy-score-card:hover { transform: translateY(-3px); }
+.psy-score-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.psy-score-icon { font-size: 1.5rem; }
+.psy-score-card h4 { font-size: 1rem; font-weight: 700; color: #1e1b4b; margin: 0 0 0.75rem; }
+.psy-score-bar-wrap { height: 8px; background: #f1f5f9; border-radius: 999px; margin-bottom: 0.5rem; overflow: hidden; }
+.psy-score-bar { height: 100%; border-radius: 999px; transition: width 1s ease; }
+.psy-score-num { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.5rem; }
+.psy-score-desc { font-size: 0.8rem; color: #64748b; margin: 0; line-height: 1.5; }
+
+/* Rating Badges */
+.psy-rating-badge { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; }
+.badge-green { background: #dcfce7; color: #15803d; }
+.badge-amber { background: #fef3c7; color: #b45309; }
+.badge-red { background: #fee2e2; color: #b91c1c; }
+
+/* SWOT Grid */
+.psy-swot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 600px) { .psy-swot-grid { grid-template-columns: 1fr; } }
+.psy-swot-card { background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.07); }
+.psy-strengths { border-top: 4px solid #22c55e; }
+.psy-improvements { border-top: 4px solid #f59e0b; }
+.psy-swot-card h3 { font-size: 1rem; font-weight: 700; margin: 0 0 1rem; color: #1e1b4b; }
+.psy-swot-card ul { margin: 0; padding-left: 1.2rem; }
+.psy-swot-card li { font-size: 0.88rem; color: #475569; margin-bottom: 0.5rem; line-height: 1.5; }
+
+/* Recommendations */
+.psy-recommendations { margin-bottom: 2rem; }
+.psy-recommendations h3 { font-size: 1.2rem; font-weight: 800; color: #1e1b4b; margin: 0 0 1rem; }
+.psy-recs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+.psy-rec-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+  border-left: 4px solid #e2e8f0;
+}
+.psy-priority-high { border-left-color: #ef4444; }
+.psy-priority-medium { border-left-color: #f59e0b; }
+.psy-priority-low { border-left-color: #22c55e; }
+.psy-rec-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.6rem; }
+.psy-rec-card h4 { font-size: 0.95rem; font-weight: 700; color: #1e1b4b; margin: 0; flex: 1; }
+.psy-rec-card p { font-size: 0.83rem; color: #475569; margin: 0; line-height: 1.5; }
+.psy-priority-badge { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 20px; white-space: nowrap; }
+.priority-high { background: #fee2e2; color: #b91c1c; }
+.priority-medium { background: #fef3c7; color: #b45309; }
+.priority-low { background: #dcfce7; color: #15803d; }
+
+/* Study Plan */
+.psy-study-plan {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.psy-study-plan h3 { font-size: 1rem; font-weight: 700; color: #15803d; margin: 0 0 0.75rem; }
+.psy-study-plan p { font-size: 0.9rem; color: #166534; margin: 0; line-height: 1.7; }
+
+/* Motivational Card */
+.psy-motivation-card {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border-radius: 16px;
+  padding: 2rem;
+  color: white;
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.psy-quote-icon { font-size: 2rem; display: block; margin-bottom: 0.75rem; }
+.psy-motivation-card p { font-size: 1rem; line-height: 1.7; margin: 0; opacity: 0.9; font-style: italic; }
+
+/* Loading & Error */
+.psy-loading { text-align: center; padding: 3rem; color: #64748b; font-size: 1rem; }
+.psy-error { color: #ef4444; font-size: 0.85rem; text-align: center; margin-top: 0.75rem; padding: 0.5rem; background: #fee2e2; border-radius: 8px; }
+
+/* Animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }

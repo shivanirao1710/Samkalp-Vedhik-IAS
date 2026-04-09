@@ -3,12 +3,14 @@ import '../styles/Dashboard.css';
 import Courses from './Courses';
 import Tests from './Tests';
 import PsychometricTest from './PsychometricTest';
+import AIMentor from './AIMentor';
 import logo from '../images/logo.png';
 
 
 
 const Dashboard = ({ user, onLogout }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
+  const [isMentorToggle, setIsMentorToggle] = useState(false);
 
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
@@ -16,7 +18,6 @@ const Dashboard = ({ user, onLogout }) => {
     { name: 'Tests', icon: '📝' },
     { name: 'Interview', icon: '📹' },
     { name: 'Psychometric Test', icon: '🧠' },
-    { name: 'AI Mentor', icon: '🎓' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'AI Doubt Solver', icon: '❓' },
   ];
@@ -35,7 +36,7 @@ const Dashboard = ({ user, onLogout }) => {
       case 'Tests':
         return <Tests />;
       case 'Psychometric Test':
-        return <PsychometricTest />;
+        return <PsychometricTest user={user} />;
       case 'Dashboard':
       default:
         return (
@@ -188,6 +189,22 @@ const Dashboard = ({ user, onLogout }) => {
 
         {renderContent()}
       </main>
+
+      {/* Floating AI Mentor */}
+      <div className="mentor-fab-container">
+        {isMentorToggle && (
+          <div className="mentor-floating-window">
+             <AIMentor user={user} isFloating={true} onClose={() => setIsMentorToggle(false)} />
+          </div>
+        )}
+        <button 
+          className={`mentor-fab ${isMentorToggle ? 'active' : ''}`}
+          onClick={() => setIsMentorToggle(!isMentorToggle)}
+          title="Talk to AI Mentor"
+        >
+          {isMentorToggle ? '✕' : '🎓'}
+        </button>
+      </div>
     </div>
   );
 };

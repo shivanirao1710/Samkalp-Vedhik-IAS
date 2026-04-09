@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy import Column, Integer, String, Enum, Text, DateTime
 from database import Base
 import enum
+from datetime import datetime
 
 class UserRole(enum.Enum):
     STUDENT = "student"
@@ -72,3 +73,13 @@ class StudentAnswer(Base):
     question_id = Column(Integer, index=True)
     selected_option_id = Column(Integer)
     is_correct = Column(Integer) # Cached for performance
+
+class PsychometricReport(Base):
+    __tablename__ = "psychometric_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    user_name = Column(String, nullable=True)
+    report_json = Column(Text, nullable=False)  # Full AI-generated report as JSON
+    answers_json = Column(Text, nullable=True)  # Student answers as JSON
+    created_at = Column(DateTime, default=datetime.utcnow)
