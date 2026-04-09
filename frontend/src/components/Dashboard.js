@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import '../styles/Dashboard.css';
 import Courses from './Courses';
+import Tests from './Tests';
+import PsychometricTest from './PsychometricTest';
 import logo from '../images/logo.png';
 
 
@@ -20,7 +22,7 @@ const Dashboard = ({ user, onLogout }) => {
   ];
 
   const stats = [
-    { label: 'Overall Progress', value: '75%', change: '+12%', icon: '🎯', color: '#e0f2fe' },
+    { label: 'Overall Progress', value: '75%', change: '+12%', icon: '🎯', color: '#fff7ed' },
     { label: 'Learning Hours', value: '42.5h', change: '+8h', icon: '⏱️', color: '#fff7ed' },
     { label: 'Tests Completed', value: '12/18', change: '+5', icon: '📈', color: '#f0fdf4' },
     { label: 'Day Streak', value: '24', change: 'Active', icon: '📅', color: '#f5f3ff' },
@@ -30,6 +32,10 @@ const Dashboard = ({ user, onLogout }) => {
     switch (currentView) {
       case 'Courses':
         return <Courses />;
+      case 'Tests':
+        return <Tests />;
+      case 'Psychometric Test':
+        return <PsychometricTest />;
       case 'Dashboard':
       default:
         return (
@@ -85,7 +91,7 @@ const Dashboard = ({ user, onLogout }) => {
               <aside>
                 <div className="section-title">
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Upcoming Tests</h3>
-                  <a href="#" className="view-all">View All</a>
+                  <button onClick={() => setCurrentView('Tests')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
                 </div>
 
                 <div className="test-list">
@@ -108,6 +114,8 @@ const Dashboard = ({ user, onLogout }) => {
         );
     }
   };
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <div className="dashboard-container">
@@ -148,17 +156,33 @@ const Dashboard = ({ user, onLogout }) => {
             <input type="text" placeholder="Search courses, tests, topics..." />
           </div>
 
-          <div className="user-profile">
-            <span style={{ fontSize: '1.2rem', cursor: 'pointer' }}>🔔</span>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: '700', fontSize: '0.9rem' }}>{user.name || user.email.split('@')[0]}</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Student</div>
+          <div className="profile-wrapper">
+            <div className="user-profile" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+              <span className="notification-bell">🔔</span>
+              <div className="user-info-text">
+                <div className="user-name">{user.name || user.email.split('@')[0]}</div>
+                <div className="user-role">Student</div>
+              </div>
+
+              <div className="avatar">
+                {(user.name || user.email).substring(0, 2).toUpperCase()}
+              </div>
             </div>
 
-            <div className="avatar">
-              {(user.name || user.email).substring(0, 2).toUpperCase()}
-            </div>
-
+            {isProfileOpen && (
+              <div className="profile-dropdown">
+                <button className="dropdown-item">
+                  <span className="icon">👤</span> My Profile
+                </button>
+                <button className="dropdown-item">
+                  <span className="icon">⚙️</span> Settings
+                </button>
+                <div className="dropdown-divider"></div>
+                <button className="dropdown-item logout-link" onClick={onLogout}>
+                  <span className="icon">↪</span> Logout
+                </button>
+              </div>
+            )}
           </div>
         </header>
 

@@ -1,0 +1,270 @@
+.psychometric-container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.psy-landing {
+  background: white;
+  border-radius: 30px;
+  padding: 4rem 3rem;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+.psy-header-card {
+  margin-bottom: 4rem;
+}
+
+.psy-icon-main {
+  font-size: 4rem;
+  background: linear-gradient(135deg, #F2921D 0%, #D93425 100%);
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  margin: 0 auto 2rem;
+  color: white;
+  box-shadow: 0 10px 20px rgba(242, 146, 29, 0.2);
+}
+
+.psy-header-card h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.psy-header-card p {
+  color: #64748b;
+  font-size: 1.15rem;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.psy-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  text-align: left;
+}
+
+.psy-feature-item {
+  padding: 2rem;
+  border-radius: 24px;
+  transition: transform 0.2s;
+}
+
+.psy-feature-item:hover {
+  transform: translateY(-5px);
+}
+
+.psy-feature-item.orange-light { background-color: #fff7ed; border: 1px solid #fde68a; }
+.psy-feature-item.green { background-color: #f0fdf4; }
+.psy-feature-item.purple { background-color: #f5f3ff; }
+.psy-feature-item.orange { background-color: #fff7ed; border: 1px solid #fde68a; }
+
+.psy-feat-icon {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.psy-feature-item h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.psy-feature-item p {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.psy-before-start {
+  background: #f8fafc;
+  padding: 2.5rem;
+  border-radius: 20px;
+  text-align: left;
+  margin-bottom: 3rem;
+}
+
+.psy-before-start h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1e293b;
+}
+
+.psy-before-start ul {
+  list-style: none;
+}
+
+.psy-before-start li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.psy-before-start li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #F2921D;
+  font-weight: bold;
+}
+
+.psy-actions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: flex-end;
+}
+
+.psy-btn-primary, .psy-btn-secondary {
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.psy-btn-primary {
+  background: linear-gradient(135deg, #F2921D 0%, #D93425 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(242, 146, 29, 0.2);
+}
+
+.psy-btn-secondary {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.psy-btn-primary:hover { opacity: 0.9; transform: scale(1.02); }
+.psy-btn-secondary:hover { background: #f8fafc; }
+
+/* Testing View */
+.psy-testing {
+  max-width: 800px;
+  margin: 4rem auto;
+}
+
+.psy-test-card {
+  background: white;
+  border-radius: 24px;
+  padding: 4rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+}
+
+.psy-progress-container {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  margin-bottom: 3rem;
+  overflow: hidden;
+}
+
+.psy-progress-bar {
+  height: 100%;
+  background: #F2921D;
+  transition: width 0.3s ease;
+}
+
+.psy-question-count {
+  display: block;
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.psy-question-text {
+  font-size: 1.75rem;
+  color: #1e293b;
+  margin-bottom: 3rem;
+  line-height: 1.4;
+}
+
+.psy-options-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.psy-option-btn {
+  padding: 1.25rem 2rem;
+  border: 2px solid #f1f5f9;
+  border-radius: 16px;
+  background: white;
+  text-align: left;
+  font-size: 1.1rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.psy-option-btn:hover {
+  border-color: #F2921D;
+  background: #fff7ed;
+  color: #D93425;
+}
+
+/* Results View */
+.psy-results-card {
+  background: white;
+  border-radius: 24px;
+  padding: 4rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.psy-result-header {
+  margin-bottom: 3rem;
+}
+
+.psy-success-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.psy-report-skeleton {
+  text-align: left;
+  margin-bottom: 3rem;
+}
+
+.psy-report-section {
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 16px;
+  margin-bottom: 1rem;
+}
+
+.psy-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.psy-score-tag {
+  background: #F2921D;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
