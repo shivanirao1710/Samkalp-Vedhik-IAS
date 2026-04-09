@@ -73,3 +73,51 @@ def get_test_questions(test_id: int, db: Session = Depends(get_db)):
             "options": [{"id": o.id, "text": o.text, "is_correct": bool(o.is_correct)} for o in options]
         })
     return result
+@router.delete("/questions/{question_id}")
+def delete_question(question_id: int, db: Session = Depends(get_db)):
+    db_q = db.query(models.Question).filter(models.Question.id == question_id).first()
+    if not db_q:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    # Delete associated options first
+    db.query(models.QuestionOption).filter(models.QuestionOption.question_id == question_id).delete()
+    db.delete(db_q)
+    db.commit()
+    return {"message": "Question deleted successfully"}
+
+@router.delete("/{test_id}")
+def delete_test(test_id: int, db: Session = Depends(get_db)):
+    db_test = db.query(models.Test).filter(models.Test.id == test_id).first()
+    if not db_test:
+        raise HTTPException(status_code=404, detail="Test not found")
+    
+    # Delete associated questions and their options
+    questions = db.query(models.Question).filter(models.Question.test_id == test_id).all()
+    for q in questions:
+        db.query(models.QuestionOption).filter(models.QuestionOption.question_id == q.id).delete()
+        db.delete(q)
+    
+    db.delete(db_test)
+    db.commit()
+    return {"message": "Test and all associated questions deleted successfully"}
+
+@router.put("/questions/{question_id}")
+def update_question(question_id: int, question_data: QuestionCreate, db: Session = Depends(get_db)):
+    db_q = db.query(models.Question).filter(models.Question.id == question_id).first()
+    if not db_q:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    db_q.text = question_data.text
+    db_q.explanation = question_data.explanation
+    
+    db.query(models.QuestionOption).filter(models.QuestionOption.question_id == question_id).delete()
+    for opt in question_data.options:
+        db_opt = models.QuestionOption(
+            question_id=question_id,
+            text=opt.text,
+            is_correct=1 if opt.is_correct else 0
+        )
+        db.add(db_opt)
+    
+    db.commit()
+    return db_q

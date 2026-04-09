@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/FacultyDashboardExtended.css'; // Using the consolidated dashboard styles
 import logo from '../images/logo.png';
 
@@ -157,7 +157,26 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderStudents = () => (
     <div className="student-management-page">
       <div className="admin-dash-header">
-        <div>
+        <button 
+          onClick={() => setActiveMenu('Dashboard')} 
+          className="back-btn" 
+          style={{ 
+            background: '#F2921D', 
+            border: 'none', 
+            padding: '0.65rem 1.2rem', 
+            borderRadius: '10px', 
+            cursor: 'pointer', 
+            marginRight: '1rem', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ flex: 1 }}>
           <h1>Student Management</h1>
           <p>View and manage enrolled students</p>
         </div>
@@ -401,7 +420,26 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderCourses = () => (
     <div className="course-management-page">
       <div className="view-page-header">
-        <div>
+        <button 
+          onClick={() => setActiveMenu('Dashboard')} 
+          className="back-btn" 
+          style={{ 
+            background: '#F2921D', 
+            border: 'none', 
+            padding: '0.65rem 1.2rem', 
+            borderRadius: '10px', 
+            cursor: 'pointer', 
+            marginRight: '1rem', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ flex: 1 }}>
           <h1>Courses Management</h1>
           <p>Create and manage course content</p>
         </div>
@@ -732,83 +770,335 @@ const FacultyDashboard = ({ user, onLogout }) => {
     </div>
   );
 
-  const renderTests = () => (
-    <div className="test-management-page">
-      <div className="view-page-header">
-        <div>
-          <h1>Tests Management</h1>
-          <p>Create and manage test papers</p>
+  const [fetchedTests, setFetchedTests] = useState([]);
+  const [isManagingQuestions, setIsManagingQuestions] = useState(false);
+  const [testToManage, setTestToManage] = useState(null);
+  const [testQuestions, setTestQuestions] = useState([]);
+
+  useEffect(() => {
+    fetchTests();
+  }, []);
+
+  const fetchTests = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/tests/');
+      const data = await response.json();
+      setFetchedTests(data);
+    } catch (error) {
+      console.error("Error fetching tests:", error);
+    }
+  };
+
+  const manageQuestions = async (test) => {
+    setTestToManage(test);
+    setIsManagingQuestions(true);
+    try {
+      const response = await fetch(`http://localhost:8000/tests/${test.id}/questions`);
+      const data = await response.json();
+      setTestQuestions(data);
+    } catch (error) {
+      console.error("Error fetching test questions:", error);
+    }
+  };
+
+  const handleDeleteQuestion = async (questionId) => {
+    if (!window.confirm("Are you sure you want to delete this question?")) return;
+    try {
+      const response = await fetch(`http://localhost:8000/tests/questions/${questionId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        setTestQuestions(testQuestions.filter(q => q.id !== questionId));
+        fetchTests(); // Refresh test list to update question count
+      } else {
+        alert("Failed to delete question");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+    }
+  };
+
+  const handleDeleteTest = async (testId) => {
+    if (!window.confirm("Are you sure you want to delete this entire test? This will remove all questions and cannot be undone.")) return;
+    try {
+      const response = await fetch(`http://localhost:8000/tests/${testId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        fetchTests();
+      } else {
+        alert("Failed to delete test");
+      }
+    } catch (error) {
+       console.error("Delete test error:", error);
+    }
+  };
+
+  const [editingQuestion, setEditingQuestion] = useState(null);
+  const [isEditQuestionModalOpen, setIsEditQuestionModalOpen] = useState(false);
+
+  const openEditQuestion = (question) => {
+    setEditingQuestion({
+      ...question,
+      options: question.options.map(o => ({ ...o })) // Clone options
+    });
+    setIsEditQuestionModalOpen(true);
+  };
+
+  const handleUpdateQuestion = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`http://localhost:8000/tests/questions/${editingQuestion.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: editingQuestion.text,
+          explanation: editingQuestion.explanation,
+          options: editingQuestion.options
+        })
+      });
+
+      if (response.ok) {
+        setIsEditQuestionModalOpen(false);
+        // Refresh question list
+        const refreshed = await fetch(`http://localhost:8000/tests/${testToManage.id}/questions`);
+        const data = await refreshed.json();
+        setTestQuestions(data);
+      } else {
+        alert("Failed to update question");
+      }
+    } catch (error) {
+       console.error("Update error:", error);
+    }
+  };
+
+  const renderEditQuestionModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content" style={{ maxWidth: '800px' }}>
+        <div className="adm-modal-header">
+          <h2>Edit Question</h2>
+          <button className="close-modal" onClick={() => setIsEditQuestionModalOpen(false)}>×</button>
         </div>
-        <button className="create-course-main-btn" onClick={() => setIsTestModalOpen(true)}>
-          <span>+</span> Create New Test
-        </button>
+        <form onSubmit={handleUpdateQuestion} className="adm-modal-form">
+           <div className="form-group">
+              <label>Question Text</label>
+              <textarea 
+                style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #e2e8f0' }}
+                rows="3"
+                value={editingQuestion.text}
+                onChange={(e) => setEditingQuestion({...editingQuestion, text: e.target.value})}
+                required
+              />
+           </div>
+           <div className="options-entry-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {editingQuestion.options.map((opt, idx) => (
+                <div key={idx} className="opt-input-wrap" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input 
+                    type="radio" 
+                    name="edit-correct-opt" 
+                    checked={opt.is_correct} 
+                    onChange={() => {
+                      const newOpts = editingQuestion.options.map((o, i) => ({ ...o, is_correct: i === idx }));
+                      setEditingQuestion({...editingQuestion, options: newOpts});
+                    }}
+                  />
+                  <input 
+                    type="text" 
+                    value={opt.text}
+                    onChange={(e) => {
+                      const newOpts = [...editingQuestion.options];
+                      newOpts[idx].text = e.target.value;
+                      setEditingQuestion({...editingQuestion, options: newOpts});
+                    }}
+                    style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid #e2e8f0' }}
+                    required
+                  />
+                </div>
+              ))}
+           </div>
+           <div className="modal-actions">
+              <button type="button" className="cancel-btn" onClick={() => setIsEditQuestionModalOpen(false)}>Cancel</button>
+              <button type="submit" className="submit-btn" style={{ background: '#F2921D' }}>Save Changes</button>
+           </div>
+        </form>
       </div>
-
-      <div className="admin-stats-grid">
-        {testStats.map((stat) => (
-          <div key={stat.label} className="adm-stat-card">
-            <div className="adm-stat-top">
-              <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
-                {stat.icon}
-              </div>
-            </div>
-            <div className="adm-stat-info">
-              <div className="adm-stat-value">{stat.value}</div>
-              <div className="adm-stat-label">{stat.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="admin-management-section">
-        <div className="table-header-row">
-          <h2>All Tests</h2>
-        </div>
-
-        <table className="adm-table tests-table">
-          <thead>
-            <tr>
-              <th>TEST NAME</th>
-              <th>TYPE</th>
-              <th>DURATION</th>
-              <th>QUESTIONS</th>
-              <th>ATTEMPTS</th>
-              <th>AVG SCORE</th>
-              <th>STATUS</th>
-              <th>ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {adminTestData.map((test) => (
-              <tr key={test.id}>
-                <td style={{ fontWeight: '700', color: '#1e293b' }}>{test.name}</td>
-                <td>
-                  <span className="test-type-tag">{test.type}</span>
-                </td>
-                <td>{test.duration}</td>
-                <td>{test.questions}</td>
-                <td>{test.attempts}</td>
-                <td style={{ fontWeight: '700', color: '#10b981' }}>{test.avgScore}</td>
-                <td>
-                  <span className={`status-pill ${test.status.toLowerCase()}`}>
-                    {test.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="adm-actions-cell">
-                    <button className="icon-btn edit">✎</button>
-                    <button className="icon-btn copy">⎘</button>
-                    <button className="icon-btn delete">🗑️</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {isTestModalOpen && renderCreateTestModal()}
     </div>
   );
+
+  const renderManageQuestionsView = () => (
+    <div className="test-management-page">
+      <div className="view-page-header">
+        <button 
+          onClick={() => setIsManagingQuestions(false)} 
+          className="back-btn" 
+          style={{ 
+            background: '#F2921D', 
+            border: 'none', 
+            padding: '0.65rem 1.2rem', 
+            borderRadius: '10px', 
+            cursor: 'pointer', 
+            marginRight: '1.5rem', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
+          onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        >
+          ← Back to Tests
+        </button>
+        <div style={{ flex: 1 }}>
+          <h1>Managing: {testToManage.title}</h1>
+          <p>{testQuestions.length} Questions currently in this test paper</p>
+        </div>
+      </div>
+
+      <div className="admin-management-section" style={{ marginTop: '2rem' }}>
+        <div className="questions-grid-detailed" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+           {testQuestions.map((q, idx) => (
+             <div key={q.id} className="detailed-question-card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                   <div style={{ flex: 1 }}>
+                      <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '700' }}>Q{idx + 1}: {q.text}</h4>
+                      <div className="options-display-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                         {q.options.map((opt, oIdx) => (
+                           <div key={oIdx} style={{ padding: '0.75rem', borderRadius: '10px', background: opt.is_correct ? '#f0fdf4' : '#f8fafc', border: opt.is_correct ? '1.5px solid #22c55e' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <span style={{ fontWeight: '700', color: opt.is_correct ? '#16a34a' : '#64748b' }}>{String.fromCharCode(65+oIdx)}</span>
+                              <span>{opt.text}</span>
+                              {opt.is_correct && <span style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>Correct</span>}
+                           </div>
+                         ))}
+                      </div>
+                   </div>
+                   <div style={{ display: 'flex', gap: '0.75rem', marginLeft: '2rem' }}>
+                      <button 
+                        onClick={() => openEditQuestion(q)}
+                        style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', width: '40px', height: '40px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Edit Question"
+                      >
+                        ✎
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteQuestion(q.id)}
+                        style={{ background: '#fee2e2', color: '#ef4444', border: 'none', width: '40px', height: '40px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        title="Delete Question"
+                      >
+                        🗑️
+                      </button>
+                   </div>
+                </div>
+             </div>
+           ))}
+           {testQuestions.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', background: '#f8fafc', borderRadius: '166px', border: '1.5px dashed #e2e8f0' }}>No questions found in this test.</p>}
+        </div>
+      </div>
+      {isEditQuestionModalOpen && renderEditQuestionModal()}
+    </div>
+  );
+
+  const renderTests = () => {
+    if (isManagingQuestions) return renderManageQuestionsView();
+
+    return (
+      <div className="test-management-page">
+        <div className="view-page-header">
+          <button 
+            onClick={() => setActiveMenu('Dashboard')} 
+            className="back-btn" 
+            style={{ 
+              background: '#F2921D', 
+              border: 'none', 
+              padding: '0.65rem 1.2rem', 
+              borderRadius: '10px', 
+              cursor: 'pointer', 
+              marginRight: '1.5rem', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              fontWeight: 'bold', 
+              color: '#ffffff',
+              boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
+            }}
+          >
+            ← Back
+          </button>
+          <div style={{ flex: 1 }}>
+            <h1>Tests Management</h1>
+            <p>Create and manage test papers</p>
+          </div>
+          <button className="create-course-main-btn" onClick={() => setIsTestModalOpen(true)}>
+            <span>+</span> Create New Test
+          </button>
+        </div>
+
+        <div className="admin-stats-grid">
+          {testStats.map((stat) => (
+            <div key={stat.label} className="adm-stat-card">
+              <div className="adm-stat-top">
+                <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
+                  {stat.icon}
+                </div>
+              </div>
+              <div className="adm-stat-info">
+                <div className="adm-stat-value">{stat.value}</div>
+                <div className="adm-stat-label">{stat.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="admin-management-section">
+          <div className="table-header-row">
+            <h2>All Tests ({fetchedTests.length})</h2>
+          </div>
+
+          <table className="adm-table tests-table">
+            <thead>
+              <tr>
+                <th>TEST NAME</th>
+                <th>TYPE</th>
+                <th>DURATION</th>
+                <th>QUESTIONS</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {fetchedTests.map((test) => (
+                <tr key={test.id}>
+                  <td style={{ fontWeight: '700', color: '#1e293b' }}>{test.title}</td>
+                  <td>
+                    <span className="test-type-tag">{test.category}</span>
+                  </td>
+                  <td>{test.duration_mins} mins</td>
+                  <td>{test.total_questions}</td>
+                  <td>
+                    <span className={`status-pill ${test.status?.toLowerCase() || 'published'}`}>
+                      {test.status || 'Published'}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="adm-actions-cell">
+                      <button className="icon-btn edit" onClick={() => manageQuestions(test)} title="Manage Questions">✎</button>
+                      <button className="icon-btn delete" onClick={() => handleDeleteTest(test.id)} title="Delete Test">🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {fetchedTests.length === 0 && (
+                <tr>
+                   <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No tests created yet.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        {isTestModalOpen && renderCreateTestModal()}
+      </div>
+    );
+  };
 
   const liveClassStats = [
     { label: 'Upcoming Classes', value: '12', icon: '📅', color: '#e0f2fe' },
@@ -920,7 +1210,26 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderLiveClasses = () => (
     <div className="live-classes-management">
       <div className="view-page-header">
-        <div>
+        <button 
+          onClick={() => setActiveMenu('Dashboard')} 
+          className="back-btn" 
+          style={{ 
+            background: '#F2921D', 
+            border: 'none', 
+            padding: '0.65rem 1.2rem', 
+            borderRadius: '10px', 
+            cursor: 'pointer', 
+            marginRight: '1rem', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ flex: 1 }}>
           <h1>Live Classes</h1>
           <p>Schedule and manage live sessions</p>
         </div>
@@ -1002,7 +1311,26 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderReports = () => (
     <div className="reports-management-page">
       <div className="view-page-header">
-        <div>
+        <button 
+          onClick={() => setActiveMenu('Dashboard')} 
+          className="back-btn" 
+          style={{ 
+            background: '#F2921D', 
+            border: 'none', 
+            padding: '0.65rem 1.2rem', 
+            borderRadius: '10px', 
+            cursor: 'pointer', 
+            marginRight: '1rem', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ flex: 1 }}>
           <h1>Student Reports & Analytics</h1>
           <p>View comprehensive student performance data</p>
         </div>
@@ -1033,7 +1361,26 @@ const FacultyDashboard = ({ user, onLogout }) => {
   const renderSettings = () => (
     <div className="settings-management-page">
       <div className="view-page-header">
-        <div>
+        <button 
+          onClick={() => setActiveMenu('Dashboard')} 
+          className="back-btn" 
+          style={{ 
+            background: '#F2921D', 
+            border: 'none', 
+            padding: '0.65rem 1.2rem', 
+            borderRadius: '10px', 
+            cursor: 'pointer', 
+            marginRight: '1rem', 
+            display: 'inline-flex', 
+            alignItems: 'center', 
+            fontWeight: 'bold', 
+            color: '#ffffff',
+            boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)'
+          }}
+        >
+          ← Back
+        </button>
+        <div style={{ flex: 1 }}>
           <h1>Settings</h1>
           <p>Manage platform configurations and security</p>
         </div>
