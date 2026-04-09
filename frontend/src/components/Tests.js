@@ -70,16 +70,53 @@ const MOCK_TESTS = [
 ];
 
 const Tests = () => {
+  const [tests, setTests] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const startTest = (test) => {
-    setActiveTest(test);
-    setUserAnswers({});
-    setShowResults(false);
-    setCurrentQuestionIndex(0);
+  React.useEffect(() => {
+    fetchTests();
+  }, []);
+
+  const fetchTests = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/tests/');
+      const data = await response.json();
+      setTests(data);
+    } catch (error) {
+      console.error("Error fetching tests:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startTest = async (test) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8000/tests/${test.id}/questions`);
+      const questions = await response.json();
+      
+      // Transform backend format to frontend format if needed
+      const formattedQuestions = questions.map(q => ({
+        id: q.id,
+        question: q.text,
+        options: q.options.map(o => o.text),
+        correctAnswer: q.options.findIndex(o => o.is_correct)
+      }));
+
+      setActiveTest({ ...test, questions: formattedQuestions });
+      setUserAnswers({});
+      setShowResults(false);
+      setCurrentQuestionIndex(0);
+    } catch (error) {
+       console.error("Error fetching questions:", error);
+       alert("Failed to load test questions");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOptionSelect = (questionId, optionIndex) => {
@@ -172,6 +209,22 @@ const Tests = () => {
 
   if (activeTest) {
     const currentQuestion = activeTest.questions[currentQuestionIndex];
+
+    if (!currentQuestion) {
+      return (
+        <div className="active-test-container">
+          <div className="test-header-bar">
+            <h2>{activeTest.title}</h2>
+            <button className="quit-btn" onClick={() => setActiveTest(null)}>Back</button>
+          </div>
+          <div className="question-card" style={{ textAlign: 'center', padding: '3rem' }}>
+            <span style={{ fontSize: '3rem' }}>📝</span>
+            <h3 style={{ marginTop: '1rem' }}>No questions available for this test.</h3>
+            <p style={{ color: '#64748b' }}>Please try another test or contact your instructor.</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="active-test-container">
@@ -270,18 +323,20 @@ const Tests = () => {
       </div>
 
       <div className="tests-grid">
-        {MOCK_TESTS.map((test) => (
+        {loading && <p>Loading tests...</p>}
+        {!loading && tests.length === 0 && <p>No tests available at the moment.</p>}
+        {tests.map((test) => (
           <div key={test.id} className="test-card-alt">
             <div className="test-card-top">
-              <span className={`difficulty-tag ${test.difficulty.toLowerCase()}`}>
-                {test.difficulty}
+              <span className={`difficulty-tag medium`}>
+                Medium
               </span>
               <span className="category-tag">{test.category}</span>
             </div>
             <h3>{test.title}</h3>
             <div className="test-meta">
-              <span>📋 {test.questionsCount} Questions</span>
-              <span>⏱️ {test.duration}</span>
+              <span>📋 {test.total_questions || 0} Questions</span>
+              <span>⏱️ {test.duration_mins} mins</span>
             </div>
             <button className="start-test-btn" onClick={() => startTest(test)}>
               Start Test

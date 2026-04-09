@@ -124,7 +124,7 @@ const RegisterForm = ({ onSwitch, onRegister }) => {
       </button>
 
       <div className="switch-auth">
-        Already have an account? <a href="#" onClick={onSwitch}>Sign in instead</a>
+        Already have an account? <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }} onClick={onSwitch}>Sign in instead</span>
       </div>
     </form>
   );

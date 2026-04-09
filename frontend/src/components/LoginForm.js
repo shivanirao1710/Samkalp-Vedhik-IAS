@@ -88,7 +88,7 @@ const LoginForm = ({ onSwitch, onLogin }) => {
           <input type="checkbox" id="remember" />
           <label htmlFor="remember">Remember me</label>
         </div>
-        <a href="#" className="forgot-link">Forgot password?</a>
+        <button type="button" className="forgot-link" style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem' }}>Forgot password?</button>
       </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>
@@ -96,7 +96,7 @@ const LoginForm = ({ onSwitch, onLogin }) => {
       </button>
 
       <div className="switch-auth">
-        Don't have an account? <a href="#" onClick={onSwitch}>Sign up now</a>
+        Don't have an account? <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }} onClick={onSwitch}>Sign up now</span>
       </div>
     </form>
   );

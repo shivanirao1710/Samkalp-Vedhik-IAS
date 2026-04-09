@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import models, database
-from routers import auth, courses
+from routers import auth, courses, tests
 
 # Initialize database
 models.Base.metadata.create_all(bind=database.engine)
@@ -20,6 +20,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(courses.router)
+app.include_router(tests.router)
 
 @app.get("/")
 def root():
