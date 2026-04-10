@@ -334,3 +334,123 @@
       background: #dc2626;
     }
     
+    .settings-tab-btn {
+      padding: 1.25rem;
+      border: none;
+      background: white;
+      border-left: 4px solid transparent;
+      text-align: left;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      transition: all 0.2s ease;
+    }
+    .settings-tab-btn.active {
+      background: #fff7ed;
+      border-left: 4px solid #f97316;
+      color: #f97316;
+    }
+    
+    /* Dark Mode Overrides */
+    body.dark-mode .profile-container,
+    .dark-mode .profile-container {
+      color: var(--text-main);
+    }
+    body.dark-mode .profile-card,
+    .dark-mode .profile-card {
+      background: var(--bg-card);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    }
+    body.dark-mode .profile-main-card h2,
+    .dark-mode .profile-main-card h2,
+    body.dark-mode .profile-section-title h3,
+    .dark-mode .profile-section-title h3,
+    body.dark-mode .stat-inline-value,
+    .dark-mode .stat-inline-value,
+    body.dark-mode .pref-info h4,
+    .dark-mode .pref-info h4 {
+      color: var(--text-main);
+    }
+    body.dark-mode .profile-subtitle,
+    .dark-mode .profile-subtitle,
+    body.dark-mode .profile-header p,
+    .dark-mode .profile-header p,
+    body.dark-mode .stat-inline-label,
+    .dark-mode .stat-inline-label,
+    body.dark-mode .info-group label,
+    .dark-mode .info-group label,
+    body.dark-mode .pref-info p,
+    .dark-mode .pref-info p {
+      color: var(--text-muted);
+    }
+    body.dark-mode .member-since,
+    .dark-mode .member-since {
+      background: rgba(249, 115, 22, 0.1);
+    }
+    body.dark-mode .info-field,
+    .dark-mode .info-field {
+      background: var(--bg-main);
+      border-color: #334155;
+      color: var(--text-main);
+    }
+    body.dark-mode input.info-field.editable,
+    .dark-mode input.info-field.editable {
+      background: var(--bg-card);
+      border-color: #475569;
+    }
+    body.dark-mode .preference-item,
+    .dark-mode .preference-item {
+      background: var(--bg-main);
+      border-color: #334155;
+    }
+    body.dark-mode .photo-dropdown-menu,
+    .dark-mode .photo-dropdown-menu {
+      background: var(--bg-card);
+      border-color: #334155;
+    }
+    body.dark-mode .photo-menu-item,
+    .dark-mode .photo-menu-item {
+      color: var(--text-main);
+    }
+    body.dark-mode .photo-menu-item:hover,
+    .dark-mode .photo-menu-item:hover {
+      background: var(--bg-main);
+    }
+    body.dark-mode .profile-section-title,
+    .dark-mode .profile-section-title,
+    body.dark-mode .stat-inline-group,
+    .dark-mode .stat-inline-group {
+      border-color: #334155;
+    }
+    body.dark-mode .cancel-btn,
+    .dark-mode .cancel-btn {
+      background: var(--bg-main);
+      color: var(--text-muted);
+    }
+    body.dark-mode .edit-btn,
+    .dark-mode .edit-btn {
+      background: rgba(249, 115, 22, 0.1);
+    }
+    body.dark-mode .edit-btn:hover,
+    .dark-mode .edit-btn:hover {
+      background: rgba(249, 115, 22, 0.2);
+    }
+    body.dark-mode .danger-zone,
+    .dark-mode .danger-zone {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+    
+    body.dark-mode .settings-tab-btn,
+    .dark-mode .settings-tab-btn {
+      color: var(--text-muted);
+      border-color: #334155 !important;
+      background: var(--bg-card) !important;
+    }
+    
+    body.dark-mode .settings-tab-btn.active,
+    .dark-mode .settings-tab-btn.active {
+      background: rgba(249, 115, 22, 0.1) !important;
+      color: #f97316 !important;
+    }

@@ -359,7 +359,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                   onChange={handleInputChange}
                 />
               ) : (
-                <div className="info-field" style={{ background: '#f8fafc' }}>{user.target_exam || 'UPSC CSE 2027'}</div>
+                <div className="info-field">{user.target_exam || 'UPSC CSE 2027'}</div>
               )}
             </div>
           </div>
