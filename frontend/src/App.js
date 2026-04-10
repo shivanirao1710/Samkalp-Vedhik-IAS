@@ -12,8 +12,21 @@ function App() {
   const [authPortal, setAuthPortal] = useState('student'); // 'student' or 'faculty'
   const [user, setUser] = useState(null);
 
+  React.useEffect(() => {
+    const savedUser = localStorage.getItem('samkalp_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
   const handleLoginSuccess = (userData) => {
     setUser(userData);
+    localStorage.setItem('samkalp_user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('samkalp_user');
   };
 
   const handleRegisterSuccess = (data) => {
@@ -24,12 +37,12 @@ function App() {
 
   if (user) {
     if (user.role === 'admin') {
-      return <AdminDashboard user={user} onLogout={() => setUser(null)} onUserUpdate={setUser} />;
+      return <AdminDashboard user={user} onLogout={handleLogout} onUserUpdate={setUser} />;
     }
     if (user.role === 'faculty') {
-      return <FacultyDashboard user={user} onLogout={() => setUser(null)} onUserUpdate={setUser} />;
+      return <FacultyDashboard user={user} onLogout={handleLogout} onUserUpdate={setUser} />;
     }
-    return <Dashboard user={user} onLogout={() => setUser(null)} onUserUpdate={setUser} />;
+    return <Dashboard user={user} onLogout={handleLogout} onUserUpdate={setUser} />;
   }
 
 

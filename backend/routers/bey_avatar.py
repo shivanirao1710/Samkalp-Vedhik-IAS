@@ -83,3 +83,55 @@ You MUST:
         "call_id": "iframe-session",
         "beyCallLink": f"https://bey.chat/{agent_id}",
     }
+@router.post("/init-interview")
+async def init_interview(user_name: str = "Candidate"):
+    load_dotenv()
+    bey_key = os.getenv("BEY_API_KEY")
+    if not bey_key:
+        raise HTTPException(status_code=500, detail="BEY_API_KEY is not configured in .env")
+
+    headers = {
+        "x-api-key": bey_key,
+        "Content-Type": "application/json"
+    }
+
+    name = user_name.split(' ')[0]
+
+    system_prompt = f"""You are a senior UPSC Board Interview Panelist conducting a mock interview for {name}.
+You are professional, serious yet encouraging, and highly intellectually sharp.
+Your goal is to evaluate the candidate's personality, ethics, and administrative aptitude.
+
+Instructions:
+1. Conduct the interview strictly as a UPSC Board Member.
+2. Ask questions one by one.
+3. Be attentive to the candidate's answers.
+4. Maintain a neutral but professional persona.
+5. Your name is 'Chairman'.
+"""
+
+    greeting = f"Welcome {name}. I am the Chairman of this board. We shall begin your mock interview now. Please take a seat and relax. Are you ready to begin?"
+
+    try:
+        ag_payload = {
+            "name": f"UPSC Interviewer - {name}",
+            "avatar_id": "2ed7477f-3961-4ce1-b331-5e4530c55a57", 
+            "system_prompt": system_prompt,
+            "greeting": greeting,
+            "max_session_length_minutes": 30,
+            "tts": {
+                "type": "google_tts",
+                "voice": "en-IN-Neural2-B"
+            }
+        }
+        ag_resp = requests.post(f"{BEY_API_BASE}/agents", headers=headers, json=ag_payload)
+        if not ag_resp.ok:
+            raise Exception(ag_resp.text)
+        agent_data = ag_resp.json()
+        agent_id = agent_data.get("agent_id") or agent_data.get("id")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create Bey Agent: {str(e)}")
+
+    return {
+        "agent_id": agent_id,
+        "beyCallLink": f"https://bey.chat/{agent_id}",
+    }

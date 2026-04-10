@@ -164,3 +164,12 @@ class AdminRequest(Base):
     status = Column(String, default="pending") # pending, seen, replied
     reply = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+class InterviewResult(Base):
+    __tablename__ = "interview_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    overall_score = Column(Integer)
+    report_json = Column(Text, nullable=False) # Store the full analysis object
+    created_at = Column(DateTime, default=datetime.utcnow)

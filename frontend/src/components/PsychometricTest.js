@@ -300,8 +300,128 @@ const PsychometricTest = ({ user }) => {
       { label: 'Time Management', key: 'time_management', icon: '⏰' },
     ];
 
+    const downloadPDF = async () => {
+        const scoreRows = allScores.map(({ label, key }) => {
+            const s = scores[key] || {};
+            const score = s.score || 0;
+            const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+            return `
+                <div style="margin-bottom:18px; padding:16px; border:1px solid #e2e8f0; border-radius:12px; break-inside:avoid;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <strong style="font-size:14px;">${label}</strong>
+                        <span style="font-size:13px; font-weight:700; color:${color};">${score}/100</span>
+                    </div>
+                    <div style="background:#f1f5f9; border-radius:99px; height:8px; overflow:hidden;">
+                        <div style="width:${score}%; height:100%; background:${color}; border-radius:99px;"></div>
+                    </div>
+                    <p style="font-size:12px; color:#64748b; margin-top:8px;">${s.description || ''}</p>
+                </div>
+            `;
+        }).join('');
+
+        const strengths = (report.strengths || []).map(s => `<li style="margin-bottom:6px;">${s}</li>`).join('');
+        const improvements = (report.areas_for_improvement || []).map(a => `<li style="margin-bottom:6px;">${a}</li>`).join('');
+        const recs = (report.personalized_recommendations || []).map(r => {
+            const pcolor = (r.priority||'').toLowerCase() === 'high' ? '#ef4444' : (r.priority||'').toLowerCase() === 'medium' ? '#f59e0b' : '#22c55e';
+            return `
+                <div style="margin-bottom:14px; padding:14px; border-left:4px solid ${pcolor}; background:#f8fafc; border-radius:8px; break-inside:avoid;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>${r.title}</strong>
+                        <span style="font-size:11px; background:${pcolor}22; color:${pcolor}; padding:2px 8px; border-radius:99px; font-weight:700;">${r.priority}</span>
+                    </div>
+                    <p style="font-size:12px; color:#64748b; margin-top:6px;">${r.description}</p>
+                </div>
+            `;
+        }).join('');
+
+        const upscScore = report.upsc_readiness?.score || 0;
+        const upscColor = upscScore >= 70 ? '#22c55e' : upscScore >= 40 ? '#f59e0b' : '#ef4444';
+
+        const htmlContent = `
+            <div style="font-family: Arial, sans-serif; color: #1e293b; max-width: 750px; margin: 0 auto; padding: 20px;">
+                
+                <!-- Header -->
+                <div style="background: linear-gradient(135deg, #F2921D, #D93425); color: white; border-radius:16px; padding:32px; margin-bottom:24px;">
+                    <h1 style="font-size:26px; font-weight:800; margin:0 0 8px 0; color:white;">🧠 Psychometric Analysis Report</h1>
+                    <p style="margin:4px 0; font-size:13px; opacity:0.9;">Student: <strong>${user?.name || 'UPSC Aspirant'}</strong></p>
+                    <p style="margin:4px 0; font-size:13px; opacity:0.9;">Date: <strong>${new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })}</strong></p>
+                </div>
+                
+                <!-- Overall Profile -->
+                <div style="background:#f8fafc; border-radius:12px; padding:20px; margin-bottom:24px; border:1px solid #e2e8f0;">
+                    <h2 style="font-size:16px; margin:0 0 8px 0;">Overall Profile</h2>
+                    <p style="color:#475569; font-size:13px; line-height:1.6;">${report.overall_profile || ''}</p>
+                </div>
+                
+                <!-- UPSC Readiness -->
+                ${report.upsc_readiness ? `
+                <div style="background:white; border:2px solid ${upscColor}; border-radius:12px; padding:20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; break-inside:avoid;">
+                    <div>
+                        <h3 style="margin:0 0 6px 0; font-size:15px;">UPSC Readiness</h3>
+                        <p style="color:#64748b; font-size:12px;">${report.upsc_readiness.description || ''}</p>
+                    </div>
+                    <div style="text-align:center; min-width:80px;">
+                        <div style="font-size:28px; font-weight:800; color:${upscColor};">${upscScore}</div>
+                        <div style="font-size:11px; color:#64748b;">${report.upsc_readiness.level || ''}</div>
+                    </div>
+                </div>` : ''}
+
+                <!-- Score Breakdown -->
+                <h2 style="font-size:17px; margin:0 0 16px 0;">Score Breakdown</h2>
+                ${scoreRows}
+                
+                <!-- Page Break -->
+                <div style="page-break-before:always; padding-top:20px;"></div>
+                
+                <!-- Strengths & Improvements -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+                    <div style="background:#f0fdf4; border-radius:12px; padding:18px; break-inside:avoid;">
+                        <h3 style="font-size:14px; color:#166534; margin:0 0 12px 0;">💪 Strengths</h3>
+                        <ul style="margin:0; padding-left:18px; font-size:13px; color:#166534;">${strengths}</ul>
+                    </div>
+                    <div style="background:#fff7ed; border-radius:12px; padding:18px; break-inside:avoid;">
+                        <h3 style="font-size:14px; color:#9a3412; margin:0 0 12px 0;">🎯 Areas for Improvement</h3>
+                        <ul style="margin:0; padding-left:18px; font-size:13px; color:#9a3412;">${improvements}</ul>
+                    </div>
+                </div>
+                
+                <!-- Recommendations -->
+                <h2 style="font-size:17px; margin:0 0 16px 0;">🚀 Personalized Recommendations</h2>
+                ${recs}
+                
+                <!-- Study Plan -->
+                ${report.study_plan_suggestion ? `
+                <div style="background:#eff6ff; border-radius:12px; padding:18px; margin-top:16px; break-inside:avoid;">
+                    <h3 style="font-size:14px; color:#1e40af; margin:0 0 8px 0;">📅 Recommended Study Approach</h3>
+                    <p style="font-size:13px; color:#1e40af; line-height:1.6;">${report.study_plan_suggestion}</p>
+                </div>` : ''}
+
+                <!-- Motivational Quote -->
+                ${report.motivational_message ? `
+                <div style="text-align:center; padding:30px; margin-top:24px; border-top:1px solid #e2e8f0;">
+                    <p style="font-size:15px; font-style:italic; color:#64748b;">"${report.motivational_message}"</p>
+                </div>` : ''}
+            </div>
+        `;
+
+        const element = document.createElement('div');
+        element.innerHTML = htmlContent;
+
+        const opt = {
+          margin:    [5, 5, 5, 5],
+          filename:  `Psychometric_Report_${user?.name || 'Student'}.pdf`,
+          image:     { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF:     { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'avoid-all'] }
+        };
+
+        await window.html2pdf().set(opt).from(element).save();
+    };
+
     return (
       <div className="psy-results">
+        <div id="psy-report-content" style={{ background: 'white', padding: '10px' }}>
         {/* Header */}
         <div className="psy-results-header">
           <div className="psy-success-icon">🎉</div>
@@ -379,7 +499,7 @@ const PsychometricTest = ({ user }) => {
 
         {/* Recommendations */}
         {report.personalized_recommendations && (
-          <div className="psy-recommendations">
+          <div className="psy-recommendations" style={{ breakBefore: 'always', pageBreakBefore: 'always', paddingTop: '40px' }}>
             <h3>🚀 Personalized Recommendations</h3>
             <div className="psy-recs-grid">
               {report.personalized_recommendations.map((rec, i) => (
@@ -413,11 +533,22 @@ const PsychometricTest = ({ user }) => {
           </div>
         )}
 
-        <div className="psy-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button className="psy-btn-secondary" onClick={() => setView('landing')}>← Back to Landing</button>
-          <button className="psy-btn-primary" onClick={retakeAssessment} style={{ background: '#f59e0b' }}>🔄 Retake Assessment</button>
-          <button className="psy-btn-primary" onClick={() => setView('video_counselling')} style={{ background: '#3b82f6' }}>
-            📹 Discuss with AI Mentor
+        </div>
+
+        <div className="psy-actions no-print" style={{ 
+            marginTop: '3.5rem', 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
+            gap: '0.75rem',
+            width: '100%'
+        }}>
+          <button className="psy-btn-secondary" style={{ padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={() => setView('landing')}>← Back</button>
+          <button className="psy-btn-primary" style={{ background: '#10b981', padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={downloadPDF}>
+            📥 Download PDF
+          </button>
+          <button className="psy-btn-primary" style={{ background: '#f59e0b', padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={retakeAssessment}>🔄 Retake Test</button>
+          <button className="psy-btn-primary" style={{ background: '#3b82f6', padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={() => setView('video_counselling')}>
+            📹 AI Mentor
           </button>
         </div>
       </div>

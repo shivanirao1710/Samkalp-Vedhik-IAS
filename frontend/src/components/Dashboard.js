@@ -36,6 +36,9 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
   React.useEffect(() => {
     const fetchDashboardData = async () => {
+      // Only fetch if we are actually viewing the main dashboard summary
+      if (currentView !== 'Dashboard') return;
+      
       setLoading(true);
       try {
         // 1. Sync profile
@@ -50,8 +53,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         if (statsResp.ok) {
           const statsData = await statsResp.json();
           setDashboardStats({
-            overallProgress: '0%', // Calculate if needed, for now placeholder 0
-            learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h', // Dynamic mock hours based on streak
+            overallProgress: '0%', 
+            learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h', 
             testsCompleted: `${statsData.tests_taken}/20`,
             dayStreak: statsData.study_streak.toString()
           });
@@ -68,14 +71,14 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         const testsResp = await fetch(`http://localhost:8000/tests/`);
         if (testsResp.ok) {
           const tests = await testsResp.json();
-          setUpcomingTests(tests.slice(0, 2)); // Just top 2 for mini view
+          setUpcomingTests(tests.slice(0, 2)); 
         }
 
         // 5. Fetch Live Sessions
         const liveResp = await fetch(`http://localhost:8000/live-classes/`);
         if (liveResp.ok) {
           const sessions = await liveResp.json();
-          setLiveSessions(sessions.slice(0, 1)); // Next session
+          setLiveSessions(sessions.slice(0, 1)); 
         }
 
         // 6. Fetch Notifications
@@ -101,7 +104,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     };
     
     fetchDashboardData();
-  }, [user.id]);
+  }, [user.id, currentView]); // RE-FETCH WHEN USER CLICKS BACK ON DASHBOARD
 
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
@@ -130,7 +133,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
       case 'Study Materials':
         return <StudyMaterials user={user} />;
       case 'Interview':
-        return <Interview />;
+        return <Interview user={user} />;
       case 'Psychometric Test':
         return <PsychometricTest user={user} />;
       case 'Live Classes':

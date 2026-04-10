@@ -128,3 +128,81 @@ body.dark-mode .common-logout-btn:hover {
 .common-logout-btn .icon {
   font-size: 1.1rem;
 }
+
+/* Print Overrides */
+@media print {
+  .sidebar, .top-bar, .no-print, .mentor-fab-container, .psy-actions, .psy-back-btn {
+    display: none !important;
+  }
+  
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    background: white !important;
+  }
+  
+  .psychometric-container, .interview-results-page {
+    padding: 0 !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .psy-test-results {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Prevent cards from being split across pages */
+  .psy-score-card, 
+  .psy-swot-card, 
+  .psy-rec-card, 
+  .psy-motivation-card,
+  .psy-readiness-banner,
+  .psy-study-plan {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 20px !important;
+  }
+  
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Force perfect PDF alignment during rendering */
+.pdf-rendering {
+    width: 900px !important;
+    padding: 30px !important;
+    background: white !important;
+    margin: 0 auto !important;
+}
+
+.pdf-rendering .psy-scores-grid,
+.pdf-rendering .psy-recs-grid {
+    display: block !important;
+}
+
+.pdf-rendering .psy-score-card,
+.pdf-rendering .psy-rec-card {
+    width: 100% !important;
+    margin-bottom: 25px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+.pdf-rendering .psy-swot-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px;
+}
+
+.pdf-rendering * {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+}
