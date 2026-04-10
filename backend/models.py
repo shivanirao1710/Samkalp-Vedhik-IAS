@@ -16,6 +16,14 @@ class User(Base):
     name = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="student") # or Enum(UserRole)
+    phone = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    target_exam = Column(String, nullable=True)
+    department = Column(String, nullable=True)
+    profile_image = Column(String, nullable=True)
+    study_streak = Column(Integer, default=0)
+    preferences_json = Column(Text, nullable=True)
+    member_since = Column(DateTime, default=datetime.utcnow)
 
 class Course(Base):
     __tablename__ = "courses"

@@ -1,16 +1,20 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime
 
 class UserCreate(BaseModel):
     email: EmailStr
     name: Optional[str] = None
     password: str
     role: str = "student"
+    phone: Optional[str] = None
+    location: Optional[str] = None
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    role: str = "student"
 
 class Token(BaseModel):
     access_token: str
@@ -24,8 +28,9 @@ class UserResponse(BaseModel):
     phone: Optional[str] = None
     location: Optional[str] = None
     target_exam: Optional[str] = None
+    department: Optional[str] = None
     profile_image: Optional[str] = None
-    member_since: Optional[str] = None
+    member_since: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -36,6 +41,7 @@ class ProfileUpdate(BaseModel):
     phone: Optional[str] = None
     location: Optional[str] = None
     target_exam: Optional[str] = None
+    department: Optional[str] = None
     preferences_json: Optional[str] = None
 
 class PasswordReset(BaseModel):
@@ -51,6 +57,9 @@ class UserAdminResponse(BaseModel):
     email: str
     name: Optional[str]
     role: str
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    member_since: Optional[datetime] = None
     class Config:
         from_attributes = True
 

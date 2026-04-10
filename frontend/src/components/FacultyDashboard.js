@@ -13,6 +13,22 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState('Students');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  useEffect(() => {
+    // Sync profile data on mount
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/users/me/${user.id}`);
+        if (response.ok) {
+          const updatedUser = await response.json();
+          onUserUpdate(updatedUser);
+        }
+      } catch (err) {
+        console.error("Failed to sync faculty profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   // Study Materials State
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [isStudyMaterialModalOpen, setIsStudyMaterialModalOpen] = useState(false);
@@ -31,20 +47,6 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Reports', icon: '📊' },
   ];
 
-  const dashboardStats = [
-    { label: 'Total Students', value: '248', change: '+12', icon: '👥', color: '#e0f2fe' },
-    { label: 'Active Courses', value: '24', change: '+2', icon: '📖', color: '#f0fdf4' },
-    { label: 'Total tests', value: '156', change: '+8', icon: '📄', color: '#fff7ed' },
-    { label: 'Interviews Conducted', value: '892', change: '+45', icon: '📹', color: '#f5f3ff' },
-  ];
-
-  const studentPageStats = [
-    { label: 'Total Students', value: '245', icon: '👥', color: '#e0f2fe' },
-    { label: 'Active Students', value: '198', icon: '👤', color: '#f0fdf4' },
-    { label: 'New This Month', value: '24', icon: '📅', color: '#fff7ed' },
-    { label: 'Inactive', value: '12', icon: '👤', color: '#fef2f2' },
-  ];
-
   const actions = [
     { title: 'Add Course', subtitle: 'Create new course', icon: '＋', target: 'Courses', trigger: () => setIsCreateModalOpen(true) },
     { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
@@ -52,12 +54,80 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews', target: 'Interviews' },
   ];
 
-  const studentData = [
-    { id: 1, name: 'Ananya Singh', email: 'ananya@example.com', phone: '+91 98765 43210', date: '2024-12-15', courses: '6 courses', tests: 24, status: 'Active', color: '#F2921D' },
-    { id: 2, name: 'Rahul Sharma', email: 'rahul@example.com', phone: '+91 98765 43211', date: '2024-12-10', courses: '4 courses', tests: 12, status: 'Active', color: '#0ea5e9' },
-    { id: 3, name: 'Priya Patel', email: 'priya@example.com', phone: '+91 98765 43212', date: '2024-11-28', courses: '8 courses', tests: 32, status: 'Active', color: '#10b981' },
-    { id: 4, name: 'Amit Kumar', email: 'amit@example.com', phone: '+91 98765 43213', date: '2024-11-20', courses: '2 courses', tests: 8, status: 'Inactive', color: '#64748b' },
-  ];
+  const [dashboardStats, setDashboardStats] = useState([
+    { label: 'Total Students', value: '0', change: '+0', icon: '👥', color: '#e0f2fe' },
+    { label: 'Active Courses', value: '0', change: '+0', icon: '📖', color: '#f0fdf4' },
+    { label: 'Total tests', value: '0', change: '+0', icon: '📄', color: '#fff7ed' },
+    { label: 'Interviews Conducted', value: '0', change: '+0', icon: '📹', color: '#f5f3ff' },
+  ]);
+
+  // Live Student Data State
+  const [studentData, setStudentData] = useState([]);
+  const [studentPageStats, setStudentPageStats] = useState([
+    { label: 'Total Students', value: '0', icon: '👥', color: '#e0f2fe' },
+    { label: 'Active Students', value: '0', icon: '👤', color: '#f0fdf4' },
+    { label: 'New This Month', value: '0', icon: '📅', color: '#fff7ed' },
+    { label: 'Inactive', value: '0', icon: '👤', color: '#fef2f2' },
+  ]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    setLoadingStudents(true);
+    try {
+      const response = await fetch('http://localhost:8000/admin/students-detailed');
+      if (response.ok) {
+        const data = await response.json();
+        setStudentData(data);
+
+        // Calculate stats
+        const total = data.length;
+        const active = data.length;
+
+        setStudentPageStats([
+          { label: 'Total Students', value: total.toString(), icon: '👥', color: '#e0f2fe' },
+          { label: 'Active Students', value: active.toString(), icon: '👤', color: '#f0fdf4' },
+          { label: 'New This Month', value: '1', icon: '📅', color: '#fff7ed' },
+          { label: 'Inactive', value: '0', icon: '👤', color: '#fef2f2' },
+        ]);
+
+        setDashboardStats(prev => prev.map(s => {
+          if (s.label === 'Total Students') return { ...s, value: total.toString() };
+          return s;
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch students:", err);
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  const fetchGeneralStats = async () => {
+    try {
+      const [coursesRes, testsRes] = await Promise.all([
+        fetch('http://localhost:8000/courses/'),
+        fetch('http://localhost:8000/tests/')
+      ]);
+
+      const courses = await coursesRes.json();
+      const tests = await testsRes.json();
+
+      setDashboardStats(prev => prev.map(s => {
+        if (s.label === 'Active Courses') return { ...s, value: courses.length.toString() };
+        if (s.label === 'Total tests') return { ...s, value: tests.length.toString() };
+        return s;
+      }));
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => {
+    fetchGeneralStats();
+  }, []);
 
   const renderDashboard = () => (
     <>
@@ -135,7 +205,12 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
       <div className="student-search-bar">
         <span>🔍</span>
-        <input type="text" placeholder="Search students by name, email, or phone..." />
+        <input 
+          type="text" 
+          placeholder="Search students by name, email, or phone..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <div className="admin-management-section">
@@ -152,51 +227,58 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               <th>COURSES</th>
               <th>TESTS COMPLETED</th>
               <th>STATUS</th>
-              <th>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            {studentData.map((student) => (
-              <tr key={student.id}>
-                <td>
-                  <div className="adm-student-cell">
-                    <div className="adm-student-avatar" style={{ backgroundColor: student.color }}>
-                      {student.name.substring(0, 2).toUpperCase()}
+            {studentData
+              .filter(student => 
+                (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((student) => (
+                <tr key={student.id}>
+                  <td>
+                    <div className="adm-student-cell">
+                      <div className="adm-student-avatar" style={{ backgroundColor: student.color }}>
+                        {(student.name || '??').substring(0, 2).toUpperCase()}
+                      </div>
+                      {student.name}
                     </div>
-                    {student.name}
-                  </div>
-                </td>
-                <td>
-                  <div className="contact-info-cell">
-                    <div className="contact-item">✉️ {student.email}</div>
-                    <div className="contact-item">📞 {student.phone}</div>
-                  </div>
-                </td>
-                <td>{student.date}</td>
-                <td>
-                  <span className="course-count-tag">{student.courses}</span>
-                </td>
-                <td>{student.tests}</td>
-                <td>
-                  <span className={`status-pill ${student.status.toLowerCase()}`}>
-                    {student.status}
-                  </span>
-                </td>
-                <td>
-                  <button className="adm-row-action">⋮</button>
+                  </td>
+                  <td>
+                    <div className="contact-info-cell">
+                      <div className="contact-item">✉️ {student.email}</div>
+                      <div className="contact-item">📞 {student.phone}</div>
+                    </div>
+                  </td>
+                  <td>{student.enrolled_date}</td>
+                  <td>
+                    <span className="course-count-tag">{student.courses}</span>
+                  </td>
+                  <td>{student.tests}</td>
+                  <td>
+                    <span className={`status-pill ${(student.status || 'Active').toLowerCase()}`}>
+                      {student.status || 'Active'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            {studentData.filter(student => 
+              (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+            ).length === 0 && (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  No students found matching "{searchTerm}"
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
 
-        <div className="adm-pagination">
-          <span>Showing 4 of 248 students</span>
-          <div className="adm-pagination-btns">
-            <button disabled>Previous</button>
-            <button className="active">Next</button>
-          </div>
-        </div>
+
       </div>
     </div>
   );
@@ -1950,7 +2032,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const renderSettings = () => (
     <Settings user={user} onBack={() => setActiveMenu('Dashboard')} />
   );
-  
+
   const renderProfile = () => (
     <FacultyProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setActiveMenu('Dashboard')} />
   );

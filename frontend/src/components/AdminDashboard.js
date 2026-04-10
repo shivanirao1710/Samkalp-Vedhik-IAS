@@ -108,14 +108,15 @@ const AdminDashboard = ({ user, onLogout }) => {
     );
   };
 
-  const renderUserList = () => (
-    <div className="admin-user-list">
-      <h2 className="admin-title">User Management</h2>
+  const renderUserTable = (title, userList) => (
+    <div className="user-table-section" style={{ marginBottom: '3rem' }}>
+      <div className="table-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.25rem' }}>{title} ({userList.length})</h3>
+      </div>
       <div className="user-table-wrapper">
         <table className="admin-table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
@@ -123,28 +124,48 @@ const AdminDashboard = ({ user, onLogout }) => {
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
-              <tr key={u.id}>
-                <td>{u.id}</td>
-                <td className="font-bold">{u.name}</td>
-                <td>{u.email}</td>
-                <td>
-                  <span className={`role-badge ${u.role}`}>{u.role}</span>
-                </td>
-                <td className="actions-cell">
-                  <button className="table-btn reset" onClick={() => {
-                    setResetData({ ...resetData, userId: u.id });
-                    setShowResetModal(true);
-                  }}>Reset Pwd</button>
-                  <button className="table-btn delete" onClick={() => handleDeleteUser(u.id)}>Delete</button>
-                </td>
-              </tr>
-            ))}
+            {userList.length === 0 ? (
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No {title.toLowerCase()} found.</td></tr>
+            ) : (
+              userList.map(u => (
+                <tr key={u.id}>
+                  <td className="font-bold">{u.name}</td>
+                  <td>{u.email}</td>
+                  <td>
+                    <span className={`role-badge ${u.role}`}>{u.role}</span>
+                  </td>
+                  <td className="actions-cell">
+                    <button className="table-btn reset" onClick={() => {
+                      setResetData({ ...resetData, userId: u.id });
+                      setShowResetModal(true);
+                    }}>Reset Pwd</button>
+                    <button className="table-btn delete" onClick={() => handleDeleteUser(u.id)}>Delete</button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
+
+  const renderUserList = () => {
+    const facultyList = users.filter(u => u.role === 'faculty');
+    const studentList = users.filter(u => u.role === 'student');
+    const adminList = users.filter(u => u.role === 'admin');
+
+    return (
+      <div className="admin-user-list">
+        <h2 className="admin-title">User Management</h2>
+        
+        {renderUserTable("Faculty Members", facultyList)}
+        {renderUserTable("Students", studentList)}
+        
+        {adminList.length > 0 && renderUserTable("Administrators", adminList)}
+      </div>
+    );
+  };
 
   const renderAddFaculty = () => (
     <div className="admin-add-faculty">

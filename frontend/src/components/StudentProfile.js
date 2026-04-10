@@ -6,9 +6,9 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [editData, setEditData] = useState({
     name: user.name || '',
     email: user.email || '',
-    phone: user.phone || '+91 98765 43210',
-    location: user.location || 'New Delhi, India',
-    target_exam: user.target_exam || 'UPSC CSE 2027'
+    phone: user.phone || '',
+    location: user.location || '',
+    target_exam: user.target_exam || ''
   });
   const [stats, setStats] = useState({
     courses_completed: "0/0",
@@ -323,11 +323,12 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                   <input
                     className="info-field editable"
                     name="phone"
+                    placeholder="+91 98765 43210"
                     value={editData.phone}
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.phone || '+91 98765 43210'}</div>
+                  <div className="info-field">{user.phone || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
                 )}
               </div>
               <div className="info-group">
@@ -336,11 +337,12 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                   <input
                     className="info-field editable"
                     name="location"
+                    placeholder="City, Country"
                     value={editData.location}
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.location || 'New Delhi, India'}</div>
+                  <div className="info-field">{user.location || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
                 )}
               </div>
             </div>
@@ -355,11 +357,12 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                 <input
                   className="info-field editable"
                   name="target_exam"
+                  placeholder="e.g. UPSC CSE 2027"
                   value={editData.target_exam}
                   onChange={handleInputChange}
                 />
               ) : (
-                <div className="info-field">{user.target_exam || 'UPSC CSE 2027'}</div>
+                <div className="info-field">{user.target_exam || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
               )}
             </div>
           </div>

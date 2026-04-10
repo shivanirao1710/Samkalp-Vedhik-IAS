@@ -120,7 +120,7 @@ const Courses = ({ user }) => {
                           <div className="progress-bar-fill" style={{ width: `${course.progress || 0}%` }}></div>
                         </div>
                       </div>
-                      <button className="continue-btn" style={{ background: course.status === 'completed' ? '#10b981' : '', color: 'white' }}>
+                      <button className="continue-btn" style={{ background: course.status === 'completed' ? '#10b981' : '' }}>
                         {course.status === 'completed' ? 'Completed' : 'Continue Learning'}
                       </button>
                     </>
