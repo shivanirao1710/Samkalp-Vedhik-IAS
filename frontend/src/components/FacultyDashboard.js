@@ -66,6 +66,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { label: 'Inactive', value: '0', icon: '👤', color: '#fef2f2' },
   ]);
   const [loadingStudents, setLoadingStudents] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchStudents();
@@ -200,7 +201,12 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
       <div className="student-search-bar">
         <span>🔍</span>
-        <input type="text" placeholder="Search students by name, email, or phone..." />
+        <input 
+          type="text" 
+          placeholder="Search students by name, email, or phone..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <div className="admin-management-section">
@@ -220,34 +226,51 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </tr>
           </thead>
           <tbody>
-            {studentData.map((student) => (
-              <tr key={student.id}>
-                <td>
-                  <div className="adm-student-cell">
-                    <div className="adm-student-avatar" style={{ backgroundColor: student.color }}>
-                      {student.name.substring(0, 2).toUpperCase()}
+            {studentData
+              .filter(student => 
+                (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((student) => (
+                <tr key={student.id}>
+                  <td>
+                    <div className="adm-student-cell">
+                      <div className="adm-student-avatar" style={{ backgroundColor: student.color }}>
+                        {(student.name || '??').substring(0, 2).toUpperCase()}
+                      </div>
+                      {student.name}
                     </div>
-                    {student.name}
-                  </div>
-                </td>
-                <td>
-                  <div className="contact-info-cell">
-                    <div className="contact-item">✉️ {student.email}</div>
-                    <div className="contact-item">📞 {student.phone}</div>
-                  </div>
-                </td>
-                <td>{student.enrolled_date}</td>
-                <td>
-                  <span className="course-count-tag">{student.courses}</span>
-                </td>
-                <td>{student.tests}</td>
-                <td>
-                  <span className={`status-pill ${student.status.toLowerCase()}`}>
-                    {student.status}
-                  </span>
+                  </td>
+                  <td>
+                    <div className="contact-info-cell">
+                      <div className="contact-item">✉️ {student.email}</div>
+                      <div className="contact-item">📞 {student.phone}</div>
+                    </div>
+                  </td>
+                  <td>{student.enrolled_date}</td>
+                  <td>
+                    <span className="course-count-tag">{student.courses}</span>
+                  </td>
+                  <td>{student.tests}</td>
+                  <td>
+                    <span className={`status-pill ${(student.status || 'Active').toLowerCase()}`}>
+                      {student.status || 'Active'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            {studentData.filter(student => 
+              (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+              (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+            ).length === 0 && (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  No students found matching "{searchTerm}"
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
 
