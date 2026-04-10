@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/FacultyDashboardExtended.css'; // Using the consolidated dashboard styles
 import ThemeToggle from './ThemeToggle';
+import Settings from './Settings';
+import FacultyProfile from './FacultyProfile';
 import logo from '../images/logo.png';
 
 const FacultyDashboard = ({ user, onLogout }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [activeTab, setActiveTab] = useState('Students');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Study Materials State
   const [studyMaterials, setStudyMaterials] = useState([]);
@@ -1833,18 +1836,11 @@ const FacultyDashboard = ({ user, onLogout }) => {
   );
 
   const renderSettings = () => (
-    <div className="settings-management-page">
-      <div className="view-page-header">
-        <div style={{ flex: 1 }}>
-          <h1>Settings</h1>
-          <p>Manage platform configurations and security</p>
-        </div>
-      </div>
-      <div className="chart-card">
-        <h3>Faculty Account Settings</h3>
-        <p>Manage your account preferences and notification settings here.</p>
-      </div>
-    </div>
+    <Settings user={user} onBack={() => setActiveMenu('Dashboard')} />
+  );
+  
+  const renderProfile = () => (
+    <FacultyProfile user={user} onUserUpdate={() => {}} onLogout={onLogout} onBack={() => setActiveMenu('Dashboard')} />
   );
 
   const renderStudyMaterials = () => (
@@ -1937,6 +1933,8 @@ const FacultyDashboard = ({ user, onLogout }) => {
         return renderReports();
       case 'Settings':
         return renderSettings();
+      case 'Profile':
+        return renderProfile();
       default:
         return renderDashboard();
     }
@@ -1977,14 +1975,31 @@ const FacultyDashboard = ({ user, onLogout }) => {
         <header className="admin-top-bar">
           <div style={{ flex: 1 }}></div>
 
-          <div className="admin-profile-section">
+          <div className="profile-wrapper admin-profile-section" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
             <span className="adm-noti">🔔</span>
-            <div className="adm-user-meta">
-              <div className="adm-name">{user.name || 'Faculty User'}</div>
-              <div className="adm-role">Faculty Member</div>
+            <div className="user-profile" onClick={() => setIsProfileOpen(!isProfileOpen)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}>
+              <div className="adm-user-meta">
+                <div className="adm-name">{user.name || user.email.split('@')[0]}</div>
+                <div className="adm-role">Faculty Member</div>
+              </div>
+              <div className="adm-avatar">{(user.name || user.email).substring(0, 2).toUpperCase()}</div>
             </div>
-            <div className="adm-avatar">👨‍🏫</div>
+
+            {isProfileOpen && (
+              <div className="profile-dropdown" style={{ top: '100%' }}>
+                <button className="dropdown-item" onClick={() => { setActiveMenu('Profile'); setIsProfileOpen(false); }}>
+                  <span className="icon">👤</span> My Profile
+                </button>
+                <button className="dropdown-item" onClick={() => { setActiveMenu('Settings'); setIsProfileOpen(false); }}>
+                  <span className="icon">⚙️</span> Settings
+                </button>
+                <div className="dropdown-divider"></div>
+                <button className="dropdown-item logout-link" onClick={onLogout}>
+                  <span className="icon">↪</span> Logout
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
