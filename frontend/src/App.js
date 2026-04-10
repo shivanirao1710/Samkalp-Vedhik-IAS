@@ -22,12 +22,12 @@ function App() {
 
   if (user) {
     if (user.role === 'admin') {
-      return <AdminDashboard user={user} onLogout={() => setUser(null)} />;
+      return <AdminDashboard user={user} onLogout={() => setUser(null)} onUserUpdate={setUser} />;
     }
     if (user.role === 'faculty') {
-      return <FacultyDashboard user={user} onLogout={() => setUser(null)} />;
+      return <FacultyDashboard user={user} onLogout={() => setUser(null)} onUserUpdate={setUser} />;
     }
-    return <Dashboard user={user} onLogout={() => setUser(null)} />;
+    return <Dashboard user={user} onLogout={() => setUser(null)} onUserUpdate={setUser} />;
   }
 
 

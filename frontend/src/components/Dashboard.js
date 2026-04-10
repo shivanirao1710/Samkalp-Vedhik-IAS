@@ -8,11 +8,11 @@ import LiveClasses from './LiveClasses';
 import ThemeToggle from './ThemeToggle';
 import Interview from './Interview';
 import StudyMaterials from './StudyMaterials';
+import StudentProfile from './StudentProfile';
+import Settings from './Settings';
 import logo from '../images/logo.png';
 
-
-
-const Dashboard = ({ user, onLogout }) => {
+const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
   const [isMentorToggle, setIsMentorToggle] = useState(false);
 
@@ -48,6 +48,10 @@ const Dashboard = ({ user, onLogout }) => {
         return <PsychometricTest user={user} />;
       case 'Live Classes':
         return <LiveClasses user={user} />;
+      case 'Profile':
+        return <StudentProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setCurrentView('Dashboard')} />;
+      case 'Settings':
+        return <Settings user={user} onBack={() => setCurrentView('Dashboard')} />;
       case 'Dashboard':
       default:
         return (
@@ -203,15 +207,11 @@ const Dashboard = ({ user, onLogout }) => {
 
             {isProfileOpen && (
               <div className="profile-dropdown">
-                <button className="dropdown-item">
+                <button className="dropdown-item" onClick={() => { setCurrentView('Profile'); setIsProfileOpen(false); }}>
                   <span className="icon">👤</span> My Profile
                 </button>
-                <button className="dropdown-item">
+                <button className="dropdown-item" onClick={() => { setCurrentView('Settings'); setIsProfileOpen(false); }}>
                   <span className="icon">⚙️</span> Settings
-                </button>
-                <div className="dropdown-divider"></div>
-                <button className="dropdown-item logout-link" onClick={onLogout}>
-                  <span className="icon">↪</span> Logout
                 </button>
               </div>
             )}
