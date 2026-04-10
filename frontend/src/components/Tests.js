@@ -76,6 +76,13 @@ const Tests = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [filterTab, setFilterTab] = useState('All Tests');
+  const [attemptedTestIds, setAttemptedTestIds] = useState(() => {
+    try {
+      const stored = localStorage.getItem('samkalp_student_attemptedTestsMap');
+      return stored ? JSON.parse(stored) : {}; 
+    } catch(e) { return {}; }
+  });
 
   React.useEffect(() => {
     fetchTests();
@@ -139,6 +146,14 @@ const Tests = () => {
   };
 
   const finishTest = () => {
+    const score = calculateScore();
+    const percentage = (score / activeTest.questions.length) * 100;
+    
+    // Save attempt
+    const newAttempts = { ...attemptedTestIds, [activeTest.id]: Math.max(percentage, attemptedTestIds[activeTest.id] || 0) };
+    setAttemptedTestIds(newAttempts);
+    localStorage.setItem('samkalp_student_attemptedTestsMap', JSON.stringify(newAttempts));
+    
     setShowResults(true);
   };
 
@@ -291,6 +306,18 @@ const Tests = () => {
     );
   }
 
+  const testsCompletedCount = Object.keys(attemptedTestIds).length;
+  const avgScore = testsCompletedCount > 0 
+    ? (Object.values(attemptedTestIds).reduce((sum, s) => sum + s, 0) / testsCompletedCount).toFixed(0)
+    : 0;
+
+  const filteredTests = tests.filter(test => {
+    const isAttempted = attemptedTestIds[test.id] !== undefined;
+    if (filterTab === 'Attempted') return isAttempted;
+    if (filterTab === 'Not Attempted') return !isAttempted;
+    return true;
+  });
+
   return (
     <div className="tests-dashboard">
       <div className="tests-header">
@@ -302,14 +329,14 @@ const Tests = () => {
           <div className="mini-stat">
             <span className="icon">📝</span>
             <div>
-              <span className="value">12</span>
+              <span className="value">{testsCompletedCount}</span>
               <span className="label">Tests Completed</span>
             </div>
           </div>
           <div className="mini-stat">
             <span className="icon">🎯</span>
             <div>
-              <span className="value">82%</span>
+              <span className="value">{avgScore}%</span>
               <span className="label">Average Score</span>
             </div>
           </div>
@@ -317,32 +344,51 @@ const Tests = () => {
       </div>
 
       <div className="filter-bar">
-        <button className="filter-btn active">All Tests</button>
-        <button className="filter-btn">Attempted</button>
-        <button className="filter-btn">Not Attempted</button>
+        {['All Tests', 'Attempted', 'Not Attempted'].map(tab => (
+          <button 
+            key={tab} 
+            className={`filter-btn ${filterTab === tab ? 'active' : ''}`}
+            onClick={() => setFilterTab(tab)}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       <div className="tests-grid">
         {loading && <p>Loading tests...</p>}
-        {!loading && tests.length === 0 && <p>No tests available at the moment.</p>}
-        {tests.map((test) => (
-          <div key={test.id} className="test-card-alt">
-            <div className="test-card-top">
-              <span className={`difficulty-tag medium`}>
-                Medium
-              </span>
-              <span className="category-tag">{test.category}</span>
+        {!loading && filteredTests.length === 0 && <p style={{ color: '#64748b' }}>No tests available in this category.</p>}
+        {filteredTests.map((test) => {
+          const isAttempted = attemptedTestIds[test.id] !== undefined;
+          const score = attemptedTestIds[test.id];
+
+          return (
+            <div key={test.id} className="test-card-alt" style={{ position: 'relative' }}>
+              <div className="test-card-top">
+                <span className={`difficulty-tag medium`}>
+                  Medium
+                </span>
+                <span className="category-tag">{test.category}</span>
+              </div>
+              <h3>{test.title}</h3>
+              <div className="test-meta">
+                <span>📋 {test.total_questions || 0} Questions</span>
+                <span>⏱️ {test.duration_mins} mins</span>
+              </div>
+              
+              {isAttempted && (
+                <div style={{ padding: '0.4rem 0.75rem', background: '#dcfce7', color: '#166534', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', margin: '0.5rem 0', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>✓ Attempted</span>
+                  <span>High Score: {score.toFixed(0)}%</span>
+                </div>
+              )}
+
+              <button className="start-test-btn" onClick={() => startTest(test)} style={{ marginTop: isAttempted ? '0.5rem' : '1.5rem', background: isAttempted ? '#f1f5f9' : undefined, color: isAttempted ? '#3b82f6' : undefined, border: isAttempted ? '1px solid #cbd5e1' : undefined }}>
+                {isAttempted ? 'Retake Test' : 'Start Test'}
+              </button>
             </div>
-            <h3>{test.title}</h3>
-            <div className="test-meta">
-              <span>📋 {test.total_questions || 0} Questions</span>
-              <span>⏱️ {test.duration_mins} mins</span>
-            </div>
-            <button className="start-test-btn" onClick={() => startTest(test)}>
-              Start Test
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

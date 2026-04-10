@@ -10,6 +10,7 @@ import Interview from './Interview';
 import StudyMaterials from './StudyMaterials';
 import StudentProfile from './StudentProfile';
 import Settings from './Settings';
+import AIDoubtSolver from './AIDoubtSolver';
 import logo from '../images/logo.png';
 
 const Dashboard = ({ user, onLogout, onUserUpdate }) => {
@@ -114,6 +115,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return <PsychometricTest user={user} />;
       case 'Live Classes':
         return <LiveClasses user={user} />;
+      case 'AI Doubt Solver':
+        return <AIDoubtSolver user={user} />;
       case 'Profile':
         return <StudentProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setCurrentView('Dashboard')} />;
       case 'Settings':
@@ -305,7 +308,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         {renderContent()}
       </main>
 
-      {/* Floating AI Mentor */}
+      {/* Floating Platform Guide */}
       <div className="mentor-fab-container">
         {isMentorToggle && (
           <div className="mentor-floating-window">
@@ -315,9 +318,9 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         <button
           className={`mentor-fab ${isMentorToggle ? 'active' : ''}`}
           onClick={() => setIsMentorToggle(!isMentorToggle)}
-          title="Talk to AI Mentor"
+          title="Platform Guide AI"
         >
-          {isMentorToggle ? '✕' : '🎓'}
+          {isMentorToggle ? '✕' : '🤖'}
         </button>
       </div>
     </div>

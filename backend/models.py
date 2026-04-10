@@ -135,3 +135,12 @@ class FavoriteMaterial(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     material_id = Column(Integer, index=True)
+
+class DoubtSolverChat(Base):
+    __tablename__ = "doubt_solver_chats"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    title = Column(String, nullable=True) # First question or summary
+    messages_json = Column(Text, nullable=False) # List of chat messages
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

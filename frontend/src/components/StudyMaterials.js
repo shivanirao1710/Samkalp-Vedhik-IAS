@@ -197,39 +197,99 @@ const StudyMaterials = ({ user }) => {
                 ))}
             </div>
 
-            <div className="materials-grid">
+            <div className="materials-container-grouped">
                 {loading ? (
                     <div className="no-materials">Loading materials...</div>
                 ) : materials.length > 0 ? (
-                    materials.map(mat => (
-                        <div key={mat.id} className="material-card">
-                            <button
-                                className={`fav-btn ${mat.is_favorite ? 'favorited' : ''}`}
-                                onClick={() => toggleFavorite(mat.id)}
-                                title={mat.is_favorite ? "Remove from Favorites" : "Add to Favorites"}
-                            >
-                                {mat.is_favorite ? '❤️' : '🤍'}
-                            </button>
+                    (() => {
+                        const groups = {
+                            'Videos': [],
+                            'Images': [],
+                            'E-books': [],
+                            'Documents': [],
+                            'Other': []
+                        };
+                        
+                        materials.forEach(mat => {
+                            const type = String(mat.file_type || '').toLowerCase();
+                            if (type === 'video') groups['Videos'].push(mat);
+                            else if (type === 'image') groups['Images'].push(mat);
+                            else if (type === 'ebook') groups['E-books'].push(mat);
+                            else if (['pdf', 'word', 'presentation', 'txt', 'document'].includes(type)) groups['Documents'].push(mat);
+                            else groups['Other'].push(mat);
+                        });
 
-                            <div className={`material-icon ${getIconClass(mat.file_type)}`}>
-                                {getIcon(mat.file_type)}
-                            </div>
-                            <div className="material-category">{mat.category}</div>
-                            <h3 className="material-title">{mat.title}</h3>
-                            <p className="material-desc">{mat.description || 'No description provided.'}</p>
+                        return Object.entries(groups).map(([groupName, mats]) => {
+                            if (mats.length === 0) return null;
+                            const rowId = `scroll-row-${groupName.replace(/\s+/g, '-')}`;
+                            
+                            const scrollRow = (direction) => {
+                                const container = document.getElementById(rowId);
+                                if (container) {
+                                    const scrollAmount = 350;
+                                    container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+                                }
+                            };
 
-                            <div className="material-actions">
-                                <button className="material-action view-btn" onClick={() => handlePreview(mat)}>
-                                    <span>{mat.file_type === 'ebook' ? '📖 Read' : '👁️ Preview'}</span>
-                                </button>
-                                {mat.file_type !== 'ebook' && (
-                                    <button className="material-action" onClick={() => handleDownload(mat)}>
-                                        <span>↓</span> Download
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))
+                            return (
+                                <div key={groupName} className="material-group">
+                                    <div className="material-group-header">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <h2 className="material-group-title">{groupName}</h2>
+                                            <span className="material-group-count">{mats.length} Item{mats.length !== 1 ? 's' : ''}</span>
+                                        </div>
+                                        {mats.length > 4 && (
+                                            <button className="see-all-btn" onClick={() => {
+                                                const container = document.getElementById(rowId);
+                                                if (container) {
+                                                    container.classList.toggle('expanded');
+                                                }
+                                            }}>See All</button>
+                                        )}
+                                    </div>
+                                    <div className="materials-row-container">
+                                        {mats.length > 4 && (
+                                            <button className="scroll-arrow left" onClick={() => scrollRow('left')}>‹</button>
+                                        )}
+                                        <div id={rowId} className="materials-row">
+                                            {mats.map(mat => (
+                                                <div key={mat.id} className="material-card">
+                                                    <button
+                                                        className={`fav-btn ${mat.is_favorite ? 'favorited' : ''}`}
+                                                        onClick={() => toggleFavorite(mat.id)}
+                                                        title={mat.is_favorite ? "Remove from Favorites" : "Add to Favorites"}
+                                                    >
+                                                        {mat.is_favorite ? '❤️' : '🤍'}
+                                                    </button>
+
+                                                    <div className={`material-icon ${getIconClass(mat.file_type)}`}>
+                                                        {getIcon(mat.file_type)}
+                                                    </div>
+                                                    <div className="material-category">{mat.category}</div>
+                                                    <h3 className="material-title">{mat.title}</h3>
+                                                    <p className="material-desc">{mat.description || 'No description provided.'}</p>
+
+                                                    <div className="material-actions">
+                                                        <button className="material-action view-btn" onClick={() => handlePreview(mat)}>
+                                                            <span>{mat.file_type === 'ebook' ? '📖 Read' : '👁️ Preview'}</span>
+                                                        </button>
+                                                        {mat.file_type !== 'ebook' && (
+                                                            <button className="material-action" onClick={() => handleDownload(mat)}>
+                                                                <span>↓</span> Download
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {mats.length > 4 && (
+                                            <button className="scroll-arrow right" onClick={() => scrollRow('right')}>›</button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        });
+                    })()
                 ) : (
                     <div className="no-materials">
                         <div className="no-materials-icon">📚</div>

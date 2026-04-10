@@ -4,60 +4,30 @@ import '../styles/AIMentor.css';
 const API = 'http://localhost:8000';
 
 const QUICK_PROMPTS = [
-  "What are my biggest strengths for UPSC?",
-  "How should I improve my weak areas?",
-  "Create a study plan based on my profile",
-  "How do I manage exam stress better?",
-  "Which optional subject suits my personality?",
-  "How many hours should I study daily?",
-  "What books should I read for GS Paper 1?",
-  "How can I improve my answer writing?",
+  "How do I join a live class?",
+  "Where can I find study materials?",
+  "How do mock tests work?",
+  "Who are the faculty members?",
+  "How can I track my progress?",
 ];
 
 const AIMentor = ({ user, isFloating = false, onClose }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [reportContext, setReportContext] = useState('');
-  const [hasReport, setHasReport] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    // Fetch user's psychometric report for context
-    if (user?.id) {
-      fetch(`${API}/psychometric/report/${user.id}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.report) {
-            setHasReport(true);
-            const r = data.report;
-            const ctx = `
-Student: ${data.user_name}
-Overall Profile: ${r.overall_profile}
-UPSC Readiness: ${r.upsc_readiness?.level} (${r.upsc_readiness?.score}/100)
-Strengths: ${(r.strengths || []).join(', ')}
-Areas for Improvement: ${(r.areas_for_improvement || []).join(', ')}
-Learning Style: ${r.scores?.learning_style?.style}
-Motivation: ${r.scores?.motivation?.rating}
-Stress Management: ${r.scores?.stress_management?.rating}
-            `.trim();
-            setReportContext(ctx);
-          }
-        })
-        .catch(() => {});
-    }
-
     // Welcome message
     setMessages([
       {
         role: 'mentor',
-        content: `👋 Hello, ${user?.name || user?.email?.split('@')[0] || 'Student'}! I'm **Samkalp Mentor AI**, your personal UPSC guide.\n\nI can help you with:\n• 📊 Understanding your psychometric profile\n• 📚 UPSC preparation strategies\n• 🧠 Personalized study advice\n• 💪 Motivation & goal setting\n\nWhat would you like to know today?`,
+        content: `👋 Hello, ${user?.name || user?.email?.split('@')[0] || 'Student'}! I'm the **Samkalp Platform Guide**.\n\nI can help you navigate:\n• 📺 Live Classes\n• 📝 Practice Tests\n• 📚 Study Materials\n• ⚙️ General LMS usage\n\nHow can I help you today?`,
         id: Date.now()
       }
     ]);
   }, [user]);
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -79,7 +49,6 @@ Stress Management: ${r.scores?.stress_management?.rating}
           user_id: user?.id || 1,
           user_name: user?.name || user?.email?.split('@')[0] || 'Student',
           message: msgText,
-          report_context: reportContext || null,
         }),
       });
 
@@ -120,27 +89,18 @@ Stress Management: ${r.scores?.stress_management?.rating}
       {!isFloating && (
         <div className="mentor-sidebar">
           <div className="mentor-avatar-card">
-            <div className="mentor-avatar">🎓</div>
-            <h3>Samkalp Mentor AI</h3>
-            <div className={`mentor-status ${hasReport ? 'status-active' : 'status-default'}`}>
+            <div className="mentor-avatar">🤖</div>
+            <h3>Samkalp Platform Guide</h3>
+            <div className={`mentor-status status-active`}>
               <span className="status-dot"></span>
-              {hasReport ? 'Profile Loaded' : 'Ready to Help'}
+              Ready to Help
             </div>
           </div>
 
-          {hasReport && (
-            <div className="mentor-profile-badge">
-              <h4>📊 Profile Active</h4>
-              <p>Your psychometric report has been loaded. I'll give personalized advice based on your profile.</p>
-            </div>
-          )}
-
-          {!hasReport && (
-            <div className="mentor-no-profile">
-              <h4>💡 Tip</h4>
-              <p>Complete the <strong>Psychometric Assessment</strong> first for more personalized mentoring!</p>
-            </div>
-          )}
+          <div className="mentor-profile-badge">
+            <h4>💡 Platform Tips</h4>
+            <p>I can assist you with finding documents, understanding course structures, or debugging technical issues.</p>
+          </div>
 
           <div className="mentor-quick-prompts">
             <h4>Quick Questions</h4>
@@ -157,9 +117,9 @@ Stress Management: ${r.scores?.stress_management?.rating}
       <div className="mentor-chat-area">
         <div className="mentor-chat-header">
           <div className="mentor-header-left">
-            <div className="mentor-header-avatar">🎓</div>
+            <div className="mentor-header-avatar">🤖</div>
             <div>
-              <h3>Samkalp Mentor AI</h3>
+              <h3>Platform Guide AI</h3>
               <span className="mentor-online">● Online</span>
             </div>
           </div>
@@ -168,6 +128,7 @@ Stress Management: ${r.scores?.stress_management?.rating}
               role: 'mentor',
               content: `New conversation started! How can I help you today, ${user?.name || 'Student'}?`,
               id: Date.now()
+
             }])}>
               🗑️
             </button>
@@ -180,7 +141,7 @@ Stress Management: ${r.scores?.stress_management?.rating}
         <div className="mentor-messages">
           {messages.map((msg) => (
             <div key={msg.id} className={`mentor-message ${msg.role === 'user' ? 'msg-user' : 'msg-mentor'} ${msg.isError ? 'msg-error' : ''}`}>
-              {msg.role === 'mentor' && <div className="msg-avatar mentor-msg-avatar">🎓</div>}
+              {msg.role === 'mentor' && <div className="msg-avatar mentor-msg-avatar">🤖</div>}
               <div className="msg-bubble">
                 <div
                   className="msg-content"
@@ -197,7 +158,7 @@ Stress Management: ${r.scores?.stress_management?.rating}
 
           {loading && (
             <div className="mentor-message msg-mentor">
-              <div className="msg-avatar mentor-msg-avatar">🎓</div>
+              <div className="msg-avatar mentor-msg-avatar">🤖</div>
               <div className="msg-bubble">
                 <div className="mentor-typing">
                   <span></span><span></span><span></span>
