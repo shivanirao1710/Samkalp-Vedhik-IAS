@@ -10,6 +10,7 @@ import Interview from './Interview';
 import StudyMaterials from './StudyMaterials';
 import StudentProfile from './StudentProfile';
 import Settings from './Settings';
+import AIDoubtSolver from './AIDoubtSolver';
 import logo from '../images/logo.png';
 
 const Dashboard = ({ user, onLogout, onUserUpdate }) => {
@@ -48,6 +49,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return <PsychometricTest user={user} />;
       case 'Live Classes':
         return <LiveClasses user={user} />;
+      case 'AI Doubt Solver':
+        return <AIDoubtSolver user={user} />;
       case 'Profile':
         return <StudentProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setCurrentView('Dashboard')} />;
       case 'Settings':
