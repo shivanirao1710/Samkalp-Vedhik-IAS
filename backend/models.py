@@ -143,4 +143,13 @@ class DoubtSolverChat(Base):
     title = Column(String, nullable=True) # First question or summary
     messages_json = Column(Text, nullable=False) # List of chat messages
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class InterviewResult(Base):
+    __tablename__ = "interview_results"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    overall_score = Column(Integer)
+    report_json = Column(Text, nullable=False) # Store the full analysis object
+    created_at = Column(DateTime, default=datetime.utcnow)

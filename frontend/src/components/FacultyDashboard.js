@@ -1114,6 +1114,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           questions: [],
           status: 'Draft'
         });
+        // REFRESH DATA IMMEDIATELY
+        fetchTests();
+        fetchGeneralStats();
       } else {
         const err = await response.json();
         alert("Error: " + (err.detail || "Failed to create test"));
