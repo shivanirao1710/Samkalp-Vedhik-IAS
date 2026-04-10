@@ -79,10 +79,48 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', message: '', type: 'info' });
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
 
+  // Admin Contact State
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [adminRequests, setAdminRequests] = useState([]);
+  const [newRequest, setNewRequest] = useState({ subject: '', message: '' });
+  const [isSendingRequest, setIsSendingRequest] = useState(false);
+
   useEffect(() => {
     fetchStudents();
     fetchAnnouncements();
+    fetchAdminRequests();
   }, []);
+
+  const fetchAdminRequests = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/admin/requests/faculty/${user.id}`);
+      if (res.ok) setAdminRequests(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const handleSendRequest = async (e) => {
+    e.preventDefault();
+    if (!newRequest.subject || !newRequest.message) return alert("Please fill all fields");
+    
+    setIsSendingRequest(true);
+    try {
+      const res = await fetch('http://localhost:8000/admin/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          ...newRequest, 
+          faculty_id: user.id, 
+          faculty_name: user.name || user.email.split('@')[0] 
+        })
+      });
+      if (res.ok) {
+        alert("Request sent to Admin!");
+        setNewRequest({ subject: '', message: '' });
+        fetchAdminRequests();
+      }
+    } catch (err) { console.error(err); }
+    finally { setIsSendingRequest(false); }
+  };
 
   const fetchAnnouncements = async () => {
     try {
@@ -2276,25 +2314,25 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)', resize: 'vertical' }}
               />
             </div>
-            <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                    <label style={{ color: 'var(--text-muted)' }}>Urgency Level</label>
+            <div className="form-row" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+                    <label style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem' }}>Urgency Level</label>
                     <select 
                         value={newAnnouncement.type}
                         onChange={e => setNewAnnouncement({...newAnnouncement, type: e.target.value})}
-                        style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
+                        style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)', height: '48px' }}
                     >
                         <option value="info">Information (Blue)</option>
                         <option value="success">Important (Green)</option>
                         <option value="warning">Urgent (Orange/Red)</option>
                     </select>
                 </div>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
                     <button 
                         type="submit" 
                         className="admin-submit-btn" 
                         disabled={isSendingAnnouncement}
-                        style={{ margin: 0, height: '48px', width: '100%', background: 'var(--bg-gradient)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer' }}
+                        style={{ margin: 0, height: '48px', width: '100%', background: 'var(--bg-gradient)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem' }}
                     >
                         {isSendingAnnouncement ? 'Sending...' : '📢 Broadcast Message'}
                     </button>
@@ -2413,7 +2451,13 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
           <div className="profile-wrapper admin-profile-section" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
-            <span className="adm-noti">🔔</span>
+            <button 
+              className="adm-header-btn" 
+              onClick={() => setIsAdminModalOpen(true)}
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600, color: 'var(--text-main)' }}
+            >
+              <span>🛡️</span> Contact Admin
+            </button>
             <div className="user-profile" onClick={() => setIsProfileOpen(!isProfileOpen)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}>
               <div className="adm-user-meta">
                 <div className="adm-name">{user.name || user.email.split('@')[0]}</div>
@@ -2439,6 +2483,83 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           {renderContent()}
         </section>
       </main>
+
+      {/* Admin Contact Modal */}
+      {isAdminModalOpen && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '700px' }}>
+            <div className="adm-modal-header">
+              <h2>Contact System Administrator</h2>
+              <button className="close-modal" onClick={() => setIsAdminModalOpen(false)}>×</button>
+            </div>
+            
+            <div className="adm-modal-body" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem', padding: '2rem' }}>
+              {/* Send Form */}
+              <div style={{ borderRight: '1px solid #f1f5f9', paddingRight: '1.5rem' }}>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>New Request</h3>
+                <form onSubmit={handleSendRequest} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label>Subject</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Access issue, Test deletion" 
+                      value={newRequest.subject}
+                      onChange={e => setNewRequest({...newRequest, subject: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Message</label>
+                    <textarea 
+                      rows="4" 
+                      placeholder="Describe your request..." 
+                      value={newRequest.message}
+                      onChange={e => setNewRequest({...newRequest, message: e.target.value})}
+                      required
+                      style={{ width: '100%', padding: '0.85rem', borderRadius: '10px', border: '1.5px solid #e2e8f0' }}
+                    />
+                  </div>
+                  <button type="submit" className="admin-submit-btn" disabled={isSendingRequest} style={{ margin: 0 }}>
+                    {isSendingRequest ? 'Sending...' : '📬 Send to Admin'}
+                  </button>
+                </form>
+              </div>
+
+              {/* History */}
+              <div>
+                <h3 style={{ marginBottom: '1.5rem', fontSize: '1.1rem' }}>Inquiry History</h3>
+                <div style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {adminRequests.length === 0 ? (
+                    <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: '0.9rem' }}>No previous requests.</p>
+                  ) : (
+                    adminRequests.map(req => (
+                      <div key={req.id} style={{ padding: '1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.subject}</span>
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            padding: '2px 8px', 
+                            borderRadius: '10px',
+                            background: req.status === 'replied' ? '#dcfce7' : '#fee2e2',
+                            color: req.status === 'replied' ? '#10b981' : '#ef4444'
+                          }}>{req.status}</span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem' }}>{req.message}</p>
+                        {req.reply && (
+                          <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'white', borderRadius: '8px', borderLeft: '3px solid #10b981' }}>
+                            <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#10b981', marginBottom: '0.25rem' }}>Admin Reply:</span>
+                            <p style={{ fontSize: '0.85rem', color: '#1e293b' }}>{req.reply}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

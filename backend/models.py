@@ -153,3 +153,14 @@ class Notification(Base):
     type = Column(String, default="info") # info, warning, success
     sender_id = Column(Integer, nullable=True) # ID of faculty/admin who sent it
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class AdminRequest(Base):
+    __tablename__ = "admin_requests"
+    id = Column(Integer, primary_key=True, index=True)
+    faculty_id = Column(Integer, index=True)
+    faculty_name = Column(String)
+    subject = Column(String)
+    message = Column(Text)
+    status = Column(String, default="pending") # pending, seen, replied
+    reply = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
