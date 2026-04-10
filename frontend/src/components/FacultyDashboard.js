@@ -45,12 +45,14 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Study Materials', icon: '📚' },
     { name: 'Interviews', icon: '📹' },
     { name: 'Reports', icon: '📊' },
+    { name: 'Announcements', icon: '🔔' },
   ];
 
   const actions = [
     { title: 'Add Course', subtitle: 'Create new course', icon: '＋', target: 'Courses', trigger: () => setIsCreateModalOpen(true) },
     { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
     { title: 'Create Test', subtitle: 'Add new test', icon: '＋', target: 'Tests', trigger: () => setIsTestModalOpen(true) },
+    { title: 'Send Announcement', subtitle: 'Message all students', icon: '🔔', target: 'Announcements' },
     { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews', target: 'Interviews' },
   ];
 
@@ -72,9 +74,50 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Announcements State
+  const [announcements, setAnnouncements] = useState([]);
+  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', message: '', type: 'info' });
+  const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
+
   useEffect(() => {
     fetchStudents();
+    fetchAnnouncements();
   }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/notifications/');
+      if (res.ok) setAnnouncements(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const handleSendAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!newAnnouncement.title || !newAnnouncement.message) return alert("Please fill all fields");
+    
+    setIsSendingAnnouncement(true);
+    try {
+      const res = await fetch('http://localhost:8000/notifications/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newAnnouncement, sender_id: user.id })
+      });
+      if (res.ok) {
+        alert("Announcement sent to all students!");
+        setNewAnnouncement({ title: '', message: '', type: 'info' });
+        fetchAnnouncements();
+      }
+    } catch (err) { console.error(err); }
+    finally { setIsSendingAnnouncement(false); }
+  };
+
+  const handleDeleteAnnouncement = async (id) => {
+    if (!window.confirm("Delete this announcement?")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/notifications/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchAnnouncements();
+    } catch (err) { console.error(err); }
+  };
 
   const fetchStudents = async () => {
     setLoadingStudents(true);
@@ -2200,6 +2243,112 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
+  const renderAnnouncements = () => (
+    <div className="announcements-management-page">
+      <div className="admin-dash-header">
+        <div>
+          <h1>Global Announcements</h1>
+          <p>Send messages to all enrolled students instantly</p>
+        </div>
+      </div>
+
+      <div className="admin-management-section">
+        <div className="adm-card" style={{ padding: '2rem', marginBottom: '2rem', background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+          <h3 style={{ color: 'var(--text-main)' }}>Send New Announcement</h3>
+          <form onSubmit={handleSendAnnouncement} style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="form-group">
+              <label style={{ color: 'var(--text-muted)' }}>Announcement Title</label>
+              <input 
+                type="text" 
+                placeholder="e.g. Test Schedule Updated" 
+                value={newAnnouncement.title}
+                onChange={e => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
+                style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
+              />
+            </div>
+            <div className="form-group">
+              <label style={{ color: 'var(--text-muted)' }}>Message Content</label>
+              <textarea 
+                rows="4" 
+                placeholder="Write your message here..." 
+                value={newAnnouncement.message}
+                onChange={e => setNewAnnouncement({...newAnnouncement, message: e.target.value})}
+                style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)', resize: 'vertical' }}
+              />
+            </div>
+            <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                    <label style={{ color: 'var(--text-muted)' }}>Urgency Level</label>
+                    <select 
+                        value={newAnnouncement.type}
+                        onChange={e => setNewAnnouncement({...newAnnouncement, type: e.target.value})}
+                        style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
+                    >
+                        <option value="info">Information (Blue)</option>
+                        <option value="success">Important (Green)</option>
+                        <option value="warning">Urgent (Orange/Red)</option>
+                    </select>
+                </div>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                    <button 
+                        type="submit" 
+                        className="admin-submit-btn" 
+                        disabled={isSendingAnnouncement}
+                        style={{ margin: 0, height: '48px', width: '100%', background: 'var(--bg-gradient)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer' }}
+                    >
+                        {isSendingAnnouncement ? 'Sending...' : '📢 Broadcast Message'}
+                    </button>
+                </div>
+            </div>
+          </form>
+        </div>
+
+        <div className="adm-card" style={{ background: 'var(--bg-card)', borderRadius: '16px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+          <div className="table-header-row" style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+            <h3 style={{ color: 'var(--text-main)' }}>Previous Announcements</h3>
+          </div>
+          <div style={{ padding: '1.5rem' }}>
+            {announcements.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>No announcements sent yet.</p>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {announcements.map(ann => (
+                        <div key={ann.id} style={{ padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                                    <span style={{ 
+                                        padding: '4px 10px', 
+                                        borderRadius: '20px', 
+                                        fontSize: '0.7rem', 
+                                        fontWeight: '800', 
+                                        textTransform: 'uppercase',
+                                        background: ann.type === 'warning' ? '#fee2e2' : (ann.type === 'success' ? '#dcfce7' : '#e0f2fe'),
+                                        color: ann.type === 'warning' ? '#ef4444' : (ann.type === 'success' ? '#10b981' : '#3b82f6')
+                                    }}>
+                                        {ann.type}
+                                    </span>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(ann.created_at).toLocaleString()}</span>
+                                </div>
+                                <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{ann.title}</h4>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>{ann.message}</p>
+                            </div>
+                            <button 
+                                onClick={() => handleDeleteAnnouncement(ann.id)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem', color: 'var(--text-muted)' }}
+                                title="Delete announcement"
+                            >
+                                🗑️
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'Dashboard':
@@ -2220,6 +2369,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         return renderSettings();
       case 'Profile':
         return renderProfile();
+      case 'Announcements':
+        return renderAnnouncements();
       default:
         return renderDashboard();
     }

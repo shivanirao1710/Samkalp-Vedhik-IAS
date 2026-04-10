@@ -68,19 +68,19 @@ const Settings = ({ user, onBack }) => {
         <aside className="profile-main-card-wrapper">
           <div className="profile-card profile-main-card" style={{ padding: '0', overflow: 'hidden' }}>
             <div style={{ display: 'flex', flexDirection: 'column', width: '100%', textAlign: 'left' }}>
-              <button 
+              <button
                 className={`settings-tab-btn ${activeTab === 'Security' ? 'active' : ''}`}
                 onClick={() => setActiveTab('Security')}
               >
                 🔒 Security & Password
               </button>
-              <button 
+              <button
                 className={`settings-tab-btn ${activeTab === 'Notifications' ? 'active' : ''}`}
                 onClick={() => setActiveTab('Notifications')}
               >
                 🔔 Notification Preferences
               </button>
-              <button 
+              <button
                 className={`settings-tab-btn ${activeTab === 'Appearance' ? 'active' : ''}`}
                 onClick={() => setActiveTab('Appearance')}
               >
@@ -100,31 +100,31 @@ const Settings = ({ user, onBack }) => {
               <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div className="info-group">
                   <label>Current Password</label>
-                  <input 
-                    type="password" 
-                    className="info-field editable" 
-                    value={passwordData.current} 
-                    onChange={e => setPasswordData({...passwordData, current: e.target.value})}
+                  <input
+                    type="password"
+                    className="info-field editable"
+                    value={passwordData.current}
+                    onChange={e => setPasswordData({ ...passwordData, current: e.target.value })}
                     required
                   />
                 </div>
                 <div className="info-group">
                   <label>New Password</label>
-                  <input 
-                    type="password" 
-                    className="info-field editable" 
-                    value={passwordData.new} 
-                    onChange={e => setPasswordData({...passwordData, new: e.target.value})}
+                  <input
+                    type="password"
+                    className="info-field editable"
+                    value={passwordData.new}
+                    onChange={e => setPasswordData({ ...passwordData, new: e.target.value })}
                     required
                   />
                 </div>
                 <div className="info-group">
                   <label>Confirm New Password</label>
-                  <input 
-                    type="password" 
-                    className="info-field editable" 
-                    value={passwordData.confirm} 
-                    onChange={e => setPasswordData({...passwordData, confirm: e.target.value})}
+                  <input
+                    type="password"
+                    className="info-field editable"
+                    value={passwordData.confirm}
+                    onChange={e => setPasswordData({ ...passwordData, confirm: e.target.value })}
                     required
                   />
                 </div>
@@ -187,25 +187,25 @@ const Settings = ({ user, onBack }) => {
                   <div className="pref-info">
                     <h4>Application Theme</h4>
                     <p>Customize the visual layout of Samkalp Vedhik</p>
-                    
+
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                      <div 
+                      <div
                         onClick={() => handleThemeChange('light')}
-                        style={{ 
-                          border: !isDarkMode ? '2px solid #f97316' : '2px solid #e2e8f0', 
-                          padding: '1rem', borderRadius: '8px', 
+                        style={{
+                          border: !isDarkMode ? '2px solid #f97316' : '2px solid #e2e8f0',
+                          padding: '1rem', borderRadius: '8px',
                           cursor: 'pointer', background: '#fff', color: '#1e293b', fontWeight: '600',
                           opacity: !isDarkMode ? 1 : 0.6
                         }}
                       >
                         ☀️ Light Mode
                       </div>
-                      <div 
+                      <div
                         onClick={() => handleThemeChange('dark')}
-                        style={{ 
-                          border: isDarkMode ? '2px solid #f97316' : '2px solid #e2e8f0', 
-                          padding: '1rem', borderRadius: '8px', 
-                          cursor: 'pointer', background: '#0f172a', color: '#f1f5f9', fontWeight: '600', 
+                        style={{
+                          border: isDarkMode ? '2px solid #f97316' : '2px solid #e2e8f0',
+                          padding: '1rem', borderRadius: '8px',
+                          cursor: 'pointer', background: '#0f172a', color: '#f1f5f9', fontWeight: '600',
                           opacity: isDarkMode ? 1 : 0.6
                         }}
                       >

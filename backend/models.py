@@ -144,3 +144,12 @@ class DoubtSolverChat(Base):
     messages_json = Column(Text, nullable=False) # List of chat messages
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    type = Column(String, default="info") # info, warning, success
+    sender_id = Column(Integer, nullable=True) # ID of faculty/admin who sent it
+    created_at = Column(DateTime, default=datetime.utcnow)

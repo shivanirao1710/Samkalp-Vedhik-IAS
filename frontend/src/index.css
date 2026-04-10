@@ -1,11 +1,16 @@
 :root {
-  --primary: #F2921D;           /* Orange */
-  --primary-hover: #D93425;     /* Dark Orange/Red */
-  --accent-red: #F23054;        /* Pinkish Red */
-  --accent-yellow: #F2EB80;     /* Yellow */
-  --black: #0D0D0D;             /* Black */
+  --primary: #F2921D;
+  /* Orange */
+  --primary-hover: #D93425;
+  /* Dark Orange/Red */
+  --accent-red: #F23054;
+  /* Pinkish Red */
+  --accent-yellow: #F2EB80;
+  /* Yellow */
+  --black: #0D0D0D;
+  /* Black */
   --bg-gradient: linear-gradient(135deg, #F2921D 0%, #D93425 100%);
-  
+
   /* Light Theme Variables (Default) */
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
@@ -14,21 +19,27 @@
   --text-muted: #64748b;
   --border-color: #e2e8f0;
   --glass-bg: rgba(255, 255, 255, 0.95);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 /* Dark Theme Variables */
 body.dark-mode {
-  --bg-main: #0f172a;      /* Deep Slate */
-  --bg-card: #1e293b;      /* Slate 800 */
-  --bg-sidebar: #1e293b;   /* Slate 800 */
-  --text-main: #f1f5f9;    /* Light Slate */
-  --text-muted: #94a3b8;   /* Slate 400 */
-  --border-color: #334155; /* Slate 700 */
+  --bg-main: #0f172a;
+  /* Deep Slate */
+  --bg-card: #1e293b;
+  /* Slate 800 */
+  --bg-sidebar: #1e293b;
+  /* Slate 800 */
+  --text-main: #f1f5f9;
+  /* Light Slate */
+  --text-muted: #94a3b8;
+  /* Slate 400 */
+  --border-color: #334155;
+  /* Slate 700 */
   --glass-bg: rgba(30, 41, 59, 0.95);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-  --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.5);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -45,7 +56,12 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: var(--text-main);
   transition: color 0.3s ease;
 }

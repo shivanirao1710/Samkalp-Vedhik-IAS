@@ -99,3 +99,18 @@ class LiveClassResponse(LiveClassBase):
     status: str
     class Config:
         from_attributes = True
+
+class NotificationBase(BaseModel):
+    title: str
+    message: str
+    type: str = "info"
+
+class NotificationCreate(NotificationBase):
+    sender_id: Optional[int] = None
+
+class NotificationResponse(NotificationBase):
+    id: int
+    sender_id: Optional[int]
+    created_at: datetime
+    class Config:
+        from_attributes = True
