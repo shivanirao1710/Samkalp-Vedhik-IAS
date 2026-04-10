@@ -21,12 +21,29 @@ class UserResponse(BaseModel):
     email: EmailStr
     name: Optional[str] = None
     role: str
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    target_exam: Optional[str] = None
+    profile_image: Optional[str] = None
+    member_since: Optional[str] = None
 
     class Config:
         from_attributes = True
 
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    target_exam: Optional[str] = None
+    preferences_json: Optional[str] = None
+
 class PasswordReset(BaseModel):
     user_id: int
+    new_password: str
+
+class PasswordUpdate(BaseModel):
+    current_password: str
     new_password: str
 
 class UserAdminResponse(BaseModel):
