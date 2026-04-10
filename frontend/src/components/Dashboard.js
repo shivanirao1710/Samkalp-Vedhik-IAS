@@ -15,22 +15,72 @@ import logo from '../images/logo.png';
 const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
   const [isMentorToggle, setIsMentorToggle] = useState(false);
+  
+  // Live Data States
+  const [dashboardStats, setDashboardStats] = useState({
+    overallProgress: '0%',
+    learningHours: '0h',
+    testsCompleted: '0/0',
+    dayStreak: '0'
+  });
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [upcomingTests, setUpcomingTests] = useState([]);
+  const [liveSessions, setLiveSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
-    // Sync profile data on mount
-    const fetchProfile = async () => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
       try {
-        const response = await fetch(`http://localhost:8000/users/me/${user.id}`);
-        if (response.ok) {
-          const updatedUser = await response.json();
+        // 1. Sync profile
+        const profileResp = await fetch(`http://localhost:8000/users/me/${user.id}`);
+        if (profileResp.ok) {
+          const updatedUser = await profileResp.json();
           onUserUpdate(updatedUser);
         }
+
+        // 2. Fetch Stats
+        const statsResp = await fetch(`http://localhost:8000/users/stats/${user.id}`);
+        if (statsResp.ok) {
+          const statsData = await statsResp.json();
+          setDashboardStats({
+            overallProgress: '0%', // Calculate if needed, for now placeholder 0
+            learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h', // Dynamic mock hours based on streak
+            testsCompleted: `${statsData.tests_taken}/20`,
+            dayStreak: statsData.study_streak.toString()
+          });
+        }
+
+        // 3. Fetch Enrolled Courses
+        const courseResp = await fetch(`http://localhost:8000/courses/student/${user.id}`);
+        if (courseResp.ok) {
+          const courses = await courseResp.json();
+          setEnrolledCourses(courses.filter(c => c.is_enrolled));
+        }
+
+        // 4. Fetch Tests
+        const testsResp = await fetch(`http://localhost:8000/tests/`);
+        if (testsResp.ok) {
+          const tests = await testsResp.json();
+          setUpcomingTests(tests.slice(0, 2)); // Just top 2 for mini view
+        }
+
+        // 5. Fetch Live Sessions
+        const liveResp = await fetch(`http://localhost:8000/live-classes/`);
+        if (liveResp.ok) {
+          const sessions = await liveResp.json();
+          setLiveSessions(sessions.slice(0, 1)); // Next session
+        }
+
       } catch (err) {
-        console.error("Failed to sync profile:", err);
+        console.error("Dashboard data sync error:", err);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProfile();
-  }, []);
+    
+    fetchDashboardData();
+  }, [user.id]);
 
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
@@ -43,11 +93,11 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'AI Doubt Solver', icon: '❓' },
   ];
 
-  const stats = [
-    { label: 'Overall Progress', value: '75%', change: '+12%', icon: '🎯', color: '#fff7ed' },
-    { label: 'Learning Hours', value: '42.5h', change: '+8h', icon: '⏱️', color: '#fff7ed' },
-    { label: 'Tests Completed', value: '12/18', change: '+5', icon: '📈', color: '#f0fdf4' },
-    { label: 'Day Streak', value: '24', change: 'Active', icon: '📅', color: '#f5f3ff' },
+  const statCards = [
+    { label: 'Overall Progress', value: dashboardStats.overallProgress, change: '+2%', icon: '🎯', color: '#fff7ed' },
+    { label: 'Learning Hours', value: dashboardStats.learningHours, change: '+1.5h', icon: '⏱️', color: '#fff7ed' },
+    { label: 'Tests Completed', value: dashboardStats.testsCompleted, change: 'total', icon: '📈', color: '#f0fdf4' },
+    { label: 'Day Streak', value: dashboardStats.dayStreak, change: 'Active', icon: '📅', color: '#f5f3ff' },
   ];
 
   const renderContent = () => {
@@ -70,20 +120,26 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return <Settings user={user} onBack={() => setCurrentView('Dashboard')} />;
       case 'Dashboard':
       default:
+        const mainCourse = enrolledCourses.length > 0 ? enrolledCourses[0] : null;
+
         return (
           <>
             <section className="hero-banner">
               <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
-              <p className="hero-subtitle" style={{ opacity: 0.9 }}>You're on track with your learning goals. Keep up the great work!</p>
+              <p className="hero-subtitle" style={{ opacity: 0.9 }}>
+                {enrolledCourses.length > 0 
+                  ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
+                  : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
+              </p>
             </section>
 
 
             <div className="stats-grid">
-              {stats.map((stat) => (
+              {statCards.map((stat) => (
                 <div key={stat.label} className="stat-card">
                   <div className="stat-header">
                     <div className="stat-icon" style={{ backgroundColor: stat.color }}>{stat.icon}</div>
-                    <span className="stat-change">{stat.change}</span>
+                    <span className="stat-change" style={{ color: '#F2921D' }}>{stat.change}</span>
                   </div>
                   <div className="stat-value">{stat.value}</div>
                   <div className="stat-label">{stat.label}</div>
@@ -98,26 +154,31 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                   <button onClick={() => setCurrentView('Courses')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
                 </div>
 
-                <div className="course-card">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h4 style={{ fontWeight: '700' }}>Indian Polity & Governance</h4>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>65%</span>
-
+                {mainCourse ? (
+                  <div className="course-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 style={{ fontWeight: '700' }}>{mainCourse.title}</h4>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>{mainCourse.progress || 0}%</span>
+                    </div>
+                    <div className="progress-bar">
+                      <div className="progress-inner" style={{ width: `${mainCourse.progress || 0}%` }}></div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
+                      <span>{mainCourse.modules} modules</span>
+                      <button
+                        onClick={() => setCurrentView('Courses')}
+                        style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600', border: 'none', background: 'none', cursor: 'pointer' }}
+                      >
+                        Continue →
+                      </button>
+                    </div>
                   </div>
-                  <div className="progress-bar">
-                    <div className="progress-inner" style={{ width: '65%' }}></div>
+                ) : (
+                  <div className="course-card" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p style={{ color: '#64748b', marginBottom: '1rem' }}>You haven't enrolled in any courses yet.</p>
+                    <button onClick={() => setCurrentView('Courses')} className="adm-submit-btn" style={{ width: 'auto', padding: '0.5rem 1.5rem' }}>Browse Courses</button>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
-                    <span>4 modules</span>
-                    <button
-                      onClick={() => setCurrentView('Courses')}
-                      style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600', border: 'none', background: 'none', cursor: 'pointer' }}
-                    >
-                      Continue →
-                    </button>
-
-                  </div>
-                </div>
+                )}
               </section>
 
               <aside>
@@ -127,41 +188,48 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                 </div>
 
                 <div className="test-list">
-                  <div className="test-item">
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>Prelims Mock Test - 1</h4>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                      100 Questions • 120 mins
-                    </div>
-                  </div>
-                  <div className="test-item">
-                    <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>CSAT Practice Test</h4>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                      50 Questions • 60 mins
-                    </div>
-                  </div>
+                  {upcomingTests.length > 0 ? (
+                    upcomingTests.map(test => (
+                      <div key={test.id} className="test-item">
+                        <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.25rem' }}>{test.title}</h4>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          {test.category} • {test.duration_mins} mins
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="test-item" style={{ opacity: 0.6 }}>No tests scheduled</div>
+                  )}
                 </div>
 
                 <div className="section-title" style={{ marginTop: '2rem' }}>
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Live Sessions</h3>
                   <button onClick={() => setCurrentView('Live Classes')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
                 </div>
-                <div className="live-item-mini" style={{ padding: '1.25rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #ffedd5' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <span style={{ fontSize: '1.25rem' }}>📺</span>
-                    <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Streaming Soon</span>
+                
+                {liveSessions.length > 0 ? (
+                  <div className="live-item-mini" style={{ padding: '1.25rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #ffedd5' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <span style={{ fontSize: '1.25rem' }}>📺</span>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '800', color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Streaming Soon</span>
+                    </div>
+                    <h4 style={{ fontSize: '1rem', fontWeight: '700', color: '#1e293b' }}>{liveSessions[0].title}</h4>
+                    <p style={{ fontSize: '0.8rem', color: '#7c2d12', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
+                      <span>📅 {liveSessions[0].date}</span>
+                      <span>⏰ {liveSessions[0].time}</span>
+                    </p>
+                    <button
+                      onClick={() => setCurrentView('Live Classes')}
+                      style={{ width: '100%', marginTop: '1rem', padding: '0.6rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer' }}
+                    >
+                      Join Waiting Room
+                    </button>
                   </div>
-                  <h4 style={{ fontSize: '1rem', fontWeight: '700', color: '#1e293b' }}>Ethics & Case Studies</h4>
-                  <p style={{ fontSize: '0.8rem', color: '#7c2d12', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
-                    <span>📅 Today</span>
-                    <span>⏰ 04:00 PM</span>
-                  </p>
-                  <button
-                    onClick={() => setCurrentView('Live Classes')}
-                    style={{ width: '100%', marginTop: '1rem', padding: '0.6rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '10px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer' }}
-                  >
-                    Join Waiting Room
-                  </button>
-                </div>
+                ) : (
+                  <div className="live-item-mini" style={{ padding: '1.25rem', opacity: 0.6, textAlign: 'center' }}>
+                    No upcoming live sessions
+                  </div>
+                )}
               </aside>
             </div>
           </>
