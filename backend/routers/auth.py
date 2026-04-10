@@ -48,7 +48,12 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.ge
         "id": user.id,
         "email": user.email, 
         "name": user.name,
-        "role": user.role
+        "role": user.role,
+        "phone": user.phone,
+        "location": user.location,
+        "target_exam": user.target_exam,
+        "profile_image": user.profile_image,
+        "member_since": user.member_since.isoformat() if user.member_since else None
     }
 
 

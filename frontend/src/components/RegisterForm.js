@@ -125,13 +125,13 @@ const RegisterForm = ({ onSwitch, onRegister }) => {
         </div>
 
         <div className="form-group">
-          <label>Location (City, State, Country)</label>
+          <label>Location</label>
           <div className="input-wrapper">
             <span className="input-icon">📍</span>
             <input 
               list="locations"
               type="text" 
-              placeholder="Search city..." 
+              placeholder="City, State, Country" 
               value={location}
               onChange={(e) => {
                 setLocation(e.target.value);

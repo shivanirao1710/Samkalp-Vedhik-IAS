@@ -16,6 +16,22 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
   const [isMentorToggle, setIsMentorToggle] = useState(false);
 
+  React.useEffect(() => {
+    // Sync profile data on mount
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/users/me/${user.id}`);
+        if (response.ok) {
+          const updatedUser = await response.json();
+          onUserUpdate(updatedUser);
+        }
+      } catch (err) {
+        console.error("Failed to sync profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
     { name: 'Courses', icon: '📖' },

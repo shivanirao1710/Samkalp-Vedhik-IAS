@@ -10,6 +10,22 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState('Students');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  useEffect(() => {
+    // Sync profile data on mount
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/users/me/${user.id}`);
+        if (response.ok) {
+          const updatedUser = await response.json();
+          onUserUpdate(updatedUser);
+        }
+      } catch (err) {
+        console.error("Failed to sync faculty profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   // Study Materials State
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [isStudyMaterialModalOpen, setIsStudyMaterialModalOpen] = useState(false);

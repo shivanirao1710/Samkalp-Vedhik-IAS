@@ -6,9 +6,9 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [editData, setEditData] = useState({
     name: user.name || '',
     email: user.email || '',
-    phone: user.phone || '+91 98765 43210',
-    location: user.location || 'New Delhi, India',
-    department: 'General Studies'
+    phone: user.phone || '',
+    location: user.location || '',
+    department: user.department || 'General Studies'
   });
   
   const [stats, setStats] = useState({
@@ -26,9 +26,9 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
       setEditData({
         name: user.name || '',
         email: user.email || '',
-        phone: user.phone || '+91 98765 43210',
-        location: user.location || 'New Delhi, India',
-        department: 'General Studies'
+        phone: user.phone || '',
+        location: user.location || '',
+        department: user.department || 'General Studies'
       });
     }
     setIsEditing(!isEditing);
@@ -235,7 +235,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.phone || '+91 98765 43210'}</div>
+                  <div className="info-field">{user.phone || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
                 )}
               </div>
               <div className="info-group">
@@ -244,11 +244,12 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                   <input
                     className="info-field editable"
                     name="location"
+                    placeholder="City, Country"
                     value={editData.location}
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.location || 'New Delhi, India'}</div>
+                  <div className="info-field">{user.location || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
                 )}
               </div>
             </div>
