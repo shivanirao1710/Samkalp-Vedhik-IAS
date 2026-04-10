@@ -221,7 +221,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         {renderContent()}
       </main>
 
-      {/* Floating AI Mentor */}
+      {/* Floating Platform Guide */}
       <div className="mentor-fab-container">
         {isMentorToggle && (
           <div className="mentor-floating-window">
@@ -231,9 +231,9 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         <button
           className={`mentor-fab ${isMentorToggle ? 'active' : ''}`}
           onClick={() => setIsMentorToggle(!isMentorToggle)}
-          title="Talk to AI Mentor"
+          title="Platform Guide AI"
         >
-          {isMentorToggle ? '✕' : '🎓'}
+          {isMentorToggle ? '✕' : '🤖'}
         </button>
       </div>
     </div>
