@@ -6,6 +6,7 @@ import FacultyProfile from './FacultyProfile';
 import logo from '../images/logo.png';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import '../styles/StudyMaterials.css';
 
 const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
@@ -1966,23 +1967,111 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         </button>
       </div>
 
-      <div className="admin-management-section">
-        <div className="table-header-row">
-          <h2>All Materials</h2>
-        </div>
-        <div className="admin-courses-grid">
-          {studyMaterials.length === 0 && <div style={{ padding: '2rem', color: '#64748b' }}>No materials found.</div>}
-          {studyMaterials.map(m => (
-            <div key={m.id} className="admin-course-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-              <h3>{m.title}</h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0.5rem 0', flex: 1 }}>{m.description}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-                <span className="status-badge published" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>{m.category}</span>
-                <button onClick={() => handleDeleteMaterial(m.id)} style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontWeight: 600 }}>🗑️ Delete</button>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="materials-container-grouped faculty-materials" style={{ marginTop: '2rem' }}>
+        {studyMaterials.length === 0 ? (
+          <div className="no-materials" style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', background: '#fff', borderRadius: '24px', border: '1px solid #e2e8f0', color: '#64748b' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+            <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>No Materials Found</h3>
+            <p>Upload your first study material to get started</p>
+          </div>
+        ) : (
+          Object.entries(
+            studyMaterials.reduce((acc, m) => {
+              acc[m.category] = acc[m.category] || [];
+              acc[m.category].push(m);
+              return acc;
+            }, {})
+          ).map(([groupName, mats]) => {
+            if (mats.length === 0) return null;
+            const rowId = `scroll-row-${groupName.replace(/\s+/g, '-')}`;
+            
+            const scrollRow = (direction) => {
+                const container = document.getElementById(rowId);
+                if (container) {
+                    const scrollAmount = 350;
+                    container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+                }
+            };
+
+            const getIconClass = (type) => {
+                const lowerProp = String(type || '').toLowerCase();
+                if (lowerProp.includes('pdf')) return 'icon-pdf';
+                if (lowerProp.includes('video') || lowerProp.includes('mp4')) return 'icon-video';
+                if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return 'icon-presentation';
+                if (lowerProp.includes('word') || lowerProp.includes('doc')) return 'icon-word';
+                if (lowerProp.includes('image') || lowerProp.includes('jpg') || lowerProp.includes('png')) return 'icon-image';
+                if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return 'icon-pdf';
+                return 'icon-document';
+            };
+
+            const getIcon = (type) => {
+                const lowerProp = String(type || '').toLowerCase();
+                if (lowerProp.includes('pdf')) return '📄';
+                if (lowerProp.includes('video') || lowerProp.includes('mp4')) return '▶️';
+                if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return '📊';
+                if (lowerProp.includes('word') || lowerProp.includes('doc')) return '📝';
+                if (lowerProp.includes('image') || lowerProp.includes('jpg') || lowerProp.includes('png')) return '🖼️';
+                if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return '📖';
+                return '📁';
+            };
+
+            return (
+                <div key={groupName} className="material-group" style={{ marginBottom: '3rem' }}>
+                    <div className="material-group-header">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <h2 className="material-group-title">{groupName}</h2>
+                            <span className="material-group-count">{mats.length} Item{mats.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        {mats.length > 4 && (
+                            <button className="see-all-btn" onClick={() => {
+                                const container = document.getElementById(rowId);
+                                if (container) {
+                                    container.classList.toggle('expanded');
+                                }
+                            }}>See All</button>
+                        )}
+                    </div>
+                    <div className="materials-row-container">
+                        {mats.length > 4 && (
+                            <button className="scroll-arrow left" onClick={() => scrollRow('left')}>‹</button>
+                        )}
+                        <div id={rowId} className="materials-row">
+                            {mats.map(mat => (
+                                <div key={mat.id} className="material-card" style={{ position: 'relative' }}>
+                                    <button 
+                                        className="delete-material-btn" 
+                                        onClick={() => handleDeleteMaterial(mat.id)} 
+                                        title="Delete Material"
+                                        style={{ 
+                                            position: 'absolute', top: '10px', right: '10px', 
+                                            background: '#fef2f2', border: '1px solid #fee2e2', 
+                                            color: '#ef4444', width: '32px', height: '32px', 
+                                            borderRadius: '50%', display: 'flex', 
+                                            alignItems: 'center', justifyContent: 'center', 
+                                            cursor: 'pointer', zIndex: 10,
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            fontSize: '1rem'
+                                        }}>
+                                        🗑️
+                                    </button>
+
+                                    <div className={`material-icon ${getIconClass(mat.file_type || mat.file_url || '')}`}>
+                                        {getIcon(mat.file_type || mat.file_url || '')}
+                                    </div>
+                                    <div className="material-category">{mat.category}</div>
+                                    <h3 className="material-title">{mat.title}</h3>
+                                    <p className="material-desc">{mat.description || 'No description provided.'}</p>
+                                </div>
+                            ))}
+                        </div>
+                        {mats.length > 4 && (
+                            <button className="scroll-arrow right" onClick={() => scrollRow('right')}>›</button>
+                        )}
+                    </div>
+                </div>
+            );
+          })
+        )}
       </div>
 
       {isStudyMaterialModalOpen && (
