@@ -56,7 +56,7 @@ const LiveClasses = ({ user }) => {
   return (
     <div className="live-classes-container" style={{ padding: '2rem' }}>
       <header style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>📺 Live Interactive Sessions</h2>
+        <h2 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>Live Interactive Sessions</h2>
         <p style={{ color: '#64748b' }}>Join our expert-led sessions and interact in real-time.</p>
       </header>
 

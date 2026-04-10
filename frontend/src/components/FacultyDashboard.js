@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/FacultyDashboardExtended.css'; // Using the consolidated dashboard styles
+import '../styles/shared-layout.css';
+import '../styles/FacultyDashboardExtended.css';
 import ThemeToggle from './ThemeToggle';
 import Settings from './Settings';
 import FacultyProfile from './FacultyProfile';

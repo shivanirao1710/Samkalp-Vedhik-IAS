@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import '../styles/shared-layout.css';
 import '../styles/AdminDashboard.css';
 import logo from '../images/logo.png';
-import '../styles/FacultyDashboardExtended.css'; // Use shared styles
+import '../styles/FacultyDashboardExtended.css';
 import ThemeToggle from './ThemeToggle';
 
 const AdminDashboard = ({ user, onLogout }) => {

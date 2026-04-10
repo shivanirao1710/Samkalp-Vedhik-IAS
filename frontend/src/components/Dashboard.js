@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../styles/shared-layout.css';
 import '../styles/Dashboard.css';
 import Courses from './Courses';
 import Tests from './Tests';
@@ -109,9 +110,9 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
     { name: 'Courses', icon: '📖' },
-    { name: 'Tests', icon: '📝' },
     { name: 'Study Materials', icon: '📚' },
-    { name: 'Interview', icon: '📹' },
+    { name: 'Mock Tests', icon: '📝' },
+    { name: 'Mock Interview', icon: '📹' },
     { name: 'Psychometric Test', icon: '🧠' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'AI Doubt Solver', icon: '❓' },
@@ -128,11 +129,11 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     switch (currentView) {
       case 'Courses':
         return <Courses user={user} />;
-      case 'Tests':
+      case 'Mock Tests':
         return <Tests />;
       case 'Study Materials':
         return <StudyMaterials user={user} />;
-      case 'Interview':
+      case 'Mock Interview':
         return <Interview user={user} />;
       case 'Psychometric Test':
         return <PsychometricTest user={user} />;
@@ -317,7 +318,14 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                 <div className="notifications-dropdown" onClick={(e) => e.stopPropagation()}>
                   <div className="notifications-header">
                     <h4>Notifications</h4>
-                    {notifications.length > 0 && <button onClick={() => setNotifications([])} className="clear-all">Clear All</button>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {notifications.length > 0 && <button onClick={() => setNotifications([])} className="clear-all">Clear All</button>}
+                      <button 
+                        onClick={() => setShowNotifications(false)} 
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#64748b', lineHeight: 1, padding: '2px 6px', borderRadius: '6px' }}
+                        title="Close"
+                      >✕</button>
+                    </div>
                   </div>
                   <div className="notifications-list">
                     {notifications.length > 0 ? (
