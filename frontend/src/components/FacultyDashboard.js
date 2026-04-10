@@ -1993,10 +1993,6 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 <button className="dropdown-item" onClick={() => { setActiveMenu('Settings'); setIsProfileOpen(false); }}>
                   <span className="icon">⚙️</span> Settings
                 </button>
-                <div className="dropdown-divider"></div>
-                <button className="dropdown-item logout-link" onClick={onLogout}>
-                  <span className="icon">↪</span> Logout
-                </button>
               </div>
             )}
           </div>
