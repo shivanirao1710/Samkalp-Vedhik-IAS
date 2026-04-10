@@ -5,7 +5,7 @@ import Settings from './Settings';
 import FacultyProfile from './FacultyProfile';
 import logo from '../images/logo.png';
 
-const FacultyDashboard = ({ user, onLogout }) => {
+const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [activeTab, setActiveTab] = useState('Students');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -25,7 +25,6 @@ const FacultyDashboard = ({ user, onLogout }) => {
     { name: 'Study Materials', icon: '📚' },
     { name: 'Interviews', icon: '📹' },
     { name: 'Reports', icon: '📊' },
-    { name: 'Settings', icon: '⚙️' },
   ];
 
   const dashboardStats = [
@@ -1840,7 +1839,7 @@ const FacultyDashboard = ({ user, onLogout }) => {
   );
   
   const renderProfile = () => (
-    <FacultyProfile user={user} onUserUpdate={() => {}} onLogout={onLogout} onBack={() => setActiveMenu('Dashboard')} />
+    <FacultyProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setActiveMenu('Dashboard')} />
   );
 
   const renderStudyMaterials = () => (
