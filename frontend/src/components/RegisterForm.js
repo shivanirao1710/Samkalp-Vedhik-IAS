@@ -64,22 +64,6 @@ const RegisterForm = ({ onSwitch, onRegister }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="role-toggle">
-        <button 
-          type="button" 
-          className={`role-btn ${role === 'student' ? 'active' : ''}`}
-          onClick={() => setRole('student')}
-        >
-          Student
-        </button>
-        <button 
-          type="button" 
-          className={`role-btn ${role === 'faculty' ? 'active' : ''}`}
-          onClick={() => setRole('faculty')}
-        >
-          Faculty
-        </button>
-      </div>
 
       <div className="form-grid">
         <div className="form-group">

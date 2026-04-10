@@ -14,6 +14,10 @@ from utils import hash_password, verify_password
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+    # Only students can sign up via public registration
+    if user.role != "student":
+        raise HTTPException(status_code=403, detail="Only student accounts can be created via public registration")
+    
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
