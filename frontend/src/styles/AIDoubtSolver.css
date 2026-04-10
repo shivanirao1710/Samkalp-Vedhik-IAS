@@ -6,10 +6,10 @@
 }
 
 .doubt-header {
-  background: white;
+  background: var(--bg-card);
   padding: 1.5rem 2rem;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .doubt-header h1 {
@@ -20,9 +20,9 @@
 }
 
 .clear-chat-btn {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #475569;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   border-radius: 8px;
   padding: 0.6rem 1rem;
   display: flex;
@@ -34,7 +34,8 @@
 }
 
 .clear-chat-btn:hover {
-  background: #e2e8f0;
+  background: var(--bg-card);
+  border-color: var(--primary);
 }
 
 .doubt-main-layout {
@@ -48,9 +49,9 @@
 /* Sidebar History */
 .doubt-sidebar {
   width: 280px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -59,8 +60,8 @@
 .sidebar-header {
   padding: 1.25rem;
   font-weight: 700;
-  color: #1e293b;
-  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border-color);
   font-size: 1rem;
 }
 
@@ -110,7 +111,7 @@
 
 .history-item .title {
   font-size: 0.85rem;
-  color: #334155;
+  color: var(--text-main);
   font-weight: 500;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -151,9 +152,9 @@
 
 .doubt-chat-container {
   flex: 1;
-  background: white;
+  background: var(--bg-card);
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -192,7 +193,7 @@
 }
 
 .doubt-avatar {
-  background: #f1f5f9;
+  background: var(--bg-main);
   width: 40px;
   height: 40px;
   display: flex;
@@ -201,7 +202,7 @@
   border-radius: 50%;
   font-size: 1.25rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .doubt-message-wrapper.user .doubt-avatar {
@@ -210,14 +211,14 @@
 }
 
 .doubt-bubble {
-  background: #f8fafc;
+  background: var(--bg-main);
   padding: 1rem 1.25rem;
   border-radius: 16px;
   border-top-left-radius: 0;
-  color: #334155;
+  color: var(--text-main);
   line-height: 1.6;
   font-size: 1rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .doubt-message-wrapper.user .doubt-bubble {
@@ -228,7 +229,7 @@
 }
 
 .doubt-bubble strong {
-  color: #1e293b;
+  color: var(--primary);
   font-weight: 700;
 }
 
@@ -294,19 +295,21 @@
 .suggestion-btn {
   white-space: nowrap;
   flex-shrink: 0;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .suggestion-btn:hover {
-  background: #dcfce7;
+  background: var(--bg-card);
+  border-color: var(--primary);
+  color: var(--primary);
   transform: translateY(-1px);
 }
 
@@ -314,19 +317,20 @@
   display: flex;
   gap: 1rem;
   padding: 1.5rem 2rem;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--bg-main);
+  border-top: 1px solid var(--border-color);
 }
 
 .doubt-textarea {
   flex: 1;
   padding: 1rem 1.25rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   font-family: inherit;
   font-size: 1rem;
   resize: none;
-  background: white;
+  background: var(--bg-card);
+  color: var(--text-main);
   transition: border-color 0.2s, box-shadow 0.2s;
   height: auto;
   max-height: 120px;
