@@ -6,6 +6,8 @@ class UserCreate(BaseModel):
     name: Optional[str] = None
     password: str
     role: str = "student"
+    phone: Optional[str] = None
+    location: Optional[str] = None
 
 
 class UserLogin(BaseModel):
