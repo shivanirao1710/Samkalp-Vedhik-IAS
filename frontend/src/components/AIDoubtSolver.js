@@ -64,7 +64,7 @@ const AIDoubtSolver = ({ user }) => {
   const deleteChat = async (e, chatId) => {
     e.stopPropagation(); // Prevent loading the chat when user intended to delete it
     if (!window.confirm("Are you sure you want to delete this doubt session?")) return;
-    
+
     try {
       const res = await fetch(`${API}/api/doubt-solver/chat/${chatId}?user_id=${user.id}`, {
         method: 'DELETE'
@@ -97,7 +97,7 @@ const AIDoubtSolver = ({ user }) => {
     // Filter out initial welcome message from the thread so it doesn't mess with the title
     const userPrompts = messages.filter(m => m.role === 'user');
     const newMsgs = [...userPrompts, { role: 'user', content: text }];
-    
+
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
     setLoading(true);
@@ -141,7 +141,7 @@ const AIDoubtSolver = ({ user }) => {
           <h1>AI Doubt Solver</h1>
           <p>Instant, precise answers for your UPSC preparation.</p>
         </div>
-        <button 
+        <button
           onClick={clearChat}
           className="clear-chat-btn"
         >
@@ -156,8 +156,8 @@ const AIDoubtSolver = ({ user }) => {
           <div className="history-list">
             {history.length === 0 && <div className="empty-history">No past chats</div>}
             {history.map(chat => (
-              <div 
-                key={chat.id} 
+              <div
+                key={chat.id}
                 className={`history-item ${currentChatId === chat.id ? 'active' : ''}`}
                 onClick={() => loadChat(chat.id)}
               >
@@ -165,7 +165,7 @@ const AIDoubtSolver = ({ user }) => {
                   <span className="icon">💬</span>
                   <span className="title">{chat.title}</span>
                 </div>
-                <button 
+                <button
                   className="item-delete-btn"
                   onClick={(e) => deleteChat(e, chat.id)}
                   title="Delete chat"
@@ -191,7 +191,7 @@ const AIDoubtSolver = ({ user }) => {
                   </div>
                 </div>
               ))}
-              
+
               {loading && (
                 <div className="doubt-message-wrapper ai">
                   <div className="doubt-avatar">🤖</div>
@@ -225,7 +225,7 @@ const AIDoubtSolver = ({ user }) => {
                 disabled={loading}
                 rows={1}
               />
-              <button 
+              <button
                 className={`doubt-send-btn ${loading || !input.trim() ? 'disabled' : ''}`}
                 onClick={() => handleSend()}
                 disabled={loading || !input.trim()}

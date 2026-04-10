@@ -29,6 +29,11 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [liveSessions, setLiveSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Notifications State
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   React.useEffect(() => {
     const fetchDashboardData = async () => {
       // Only fetch if we are actually viewing the main dashboard summary
@@ -74,6 +79,21 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         if (liveResp.ok) {
           const sessions = await liveResp.json();
           setLiveSessions(sessions.slice(0, 1)); 
+        }
+
+        // 6. Fetch Notifications
+        const notiResp = await fetch(`http://localhost:8000/notifications/`);
+        if (notiResp.ok) {
+          const notis = await notiResp.ok ? await notiResp.json() : [];
+          setNotifications(notis);
+          // For now, consider all of them "unread" until manually cleared or handled via local storage
+          const lastRead = localStorage.getItem('lastNotificationRead');
+          if (!lastRead) {
+            setUnreadCount(notis.length);
+          } else {
+            const count = notis.filter(n => new Date(n.created_at) > new Date(lastRead)).length;
+            setUnreadCount(count);
+          }
         }
 
       } catch (err) {
@@ -283,12 +303,44 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
           <div className="profile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
-            <div className="user-profile" onClick={() => setIsProfileOpen(!isProfileOpen)}>
-              <span className="notification-bell">🔔</span>
-              <div className="user-info-text">
+            <div className="user-profile">
+              <div className="notification-bell-wrapper" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); setUnreadCount(0); localStorage.setItem('lastNotificationRead', new Date().toISOString()); }}>
+                <span className="notification-bell">🔔</span>
+                {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+              </div>
+              <div className="user-info-text" onClick={() => setIsProfileOpen(!isProfileOpen)}>
                 <div className="user-name">{user.name || user.email.split('@')[0]}</div>
                 <div className="user-role">Student</div>
               </div>
+
+              {showNotifications && (
+                <div className="notifications-dropdown" onClick={(e) => e.stopPropagation()}>
+                  <div className="notifications-header">
+                    <h4>Notifications</h4>
+                    {notifications.length > 0 && <button onClick={() => setNotifications([])} className="clear-all">Clear All</button>}
+                  </div>
+                  <div className="notifications-list">
+                    {notifications.length > 0 ? (
+                      notifications.map(noti => (
+                        <div key={noti.id} className={`notification-item ${noti.type}`}>
+                          <div className="noti-icon">
+                            {noti.type === 'warning' ? '⚠️' : (noti.type === 'success' ? '✅' : '📢')}
+                          </div>
+                          <div className="noti-content">
+                            <h5>{noti.title}</h5>
+                            <p>{noti.message}</p>
+                            <span className="noti-time">{new Date(noti.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="no-notifications">
+                        <p>No new notifications</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="avatar">
                 {(user.name || user.email).substring(0, 2).toUpperCase()}

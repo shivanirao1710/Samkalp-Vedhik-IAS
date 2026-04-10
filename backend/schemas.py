@@ -99,3 +99,39 @@ class LiveClassResponse(LiveClassBase):
     status: str
     class Config:
         from_attributes = True
+
+class NotificationBase(BaseModel):
+    title: str
+    message: str
+    type: str = "info"
+
+class NotificationCreate(NotificationBase):
+    sender_id: Optional[int] = None
+
+class NotificationResponse(NotificationBase):
+    id: int
+    sender_id: Optional[int]
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class AdminRequestCreate(BaseModel):
+    subject: str
+    message: str
+    faculty_id: int
+    faculty_name: str
+
+class AdminRequestReply(BaseModel):
+    reply: str
+
+class AdminRequestResponse(BaseModel):
+    id: int
+    faculty_id: int
+    faculty_name: str
+    subject: str
+    message: str
+    status: str
+    reply: Optional[str] = None
+    created_at: datetime
+    class Config:
+        from_attributes = True

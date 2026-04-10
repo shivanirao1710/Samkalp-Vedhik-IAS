@@ -41,7 +41,7 @@ const LiveClasses = ({ user }) => {
       });
       if (response.ok) {
         alert("🎉 Spot booked successfully! See you in class.");
-        fetchLiveClasses(); 
+        fetchLiveClasses();
         fetchUserEnrollments();
       } else {
         const err = await response.json();
@@ -72,11 +72,11 @@ const LiveClasses = ({ user }) => {
                   {live.status}
                 </span>
               </div>
-              
+
               <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem', color: '#1e293b' }}>{live.title}</h3>
                 <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>with {live.instructor}</p>
-                
+
                 <div style={{ marginTop: 'auto' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
                     <span style={{ color: '#64748b' }}>📅 {live.date}</span>
@@ -86,18 +86,18 @@ const LiveClasses = ({ user }) => {
                     <span style={{ color: '#64748b' }}>⏱️ {live.duration} hours</span>
                     <span style={{ color: '#F2921D', fontWeight: '700' }}>👤 {live.registered}/{live.capacity} Spots</span>
                   </div>
-                  
-                  <button 
+
+                  <button
                     onClick={() => bookedClassIds.includes(live.id) ? (live.meeting_link ? window.open(live.meeting_link, '_blank') : alert("Meeting link not available yet")) : handleBookSpot(live.id)}
                     disabled={!bookedClassIds.includes(live.id) && live.registered >= live.capacity}
-                    style={{ 
-                      width: '100%', 
-                      padding: '0.85rem', 
-                      background: bookedClassIds.includes(live.id) ? '#10b981' : (live.registered >= live.capacity ? '#e2e8f0' : '#F2921D'), 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '12px', 
-                      fontWeight: '700', 
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem',
+                      background: bookedClassIds.includes(live.id) ? '#10b981' : (live.registered >= live.capacity ? '#e2e8f0' : '#F2921D'),
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontWeight: '700',
                       cursor: (!bookedClassIds.includes(live.id) && live.registered >= live.capacity) ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                       display: 'flex',

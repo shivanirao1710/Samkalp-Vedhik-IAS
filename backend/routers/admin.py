@@ -80,3 +80,39 @@ def get_students_detailed(db: Session = Depends(database.get_db)):
             "color": "#F2921D" # Placeholder color
         })
     return result
+
+@router.post("/requests", response_model=schemas.AdminRequestResponse)
+def create_admin_request(req: schemas.AdminRequestCreate, db: Session = Depends(database.get_db)):
+    """Faculty sends a request to Admin."""
+    db_req = models.AdminRequest(
+        faculty_id=req.faculty_id,
+        faculty_name=req.faculty_name,
+        subject=req.subject,
+        message=req.message
+    )
+    db.add(db_req)
+    db.commit()
+    db.refresh(db_req)
+    return db_req
+
+@router.get("/requests", response_model=list[schemas.AdminRequestResponse])
+def get_admin_requests(db: Session = Depends(database.get_db)):
+    """Admin fetches all requests."""
+    return db.query(models.AdminRequest).order_by(models.AdminRequest.created_at.desc()).all()
+
+@router.get("/requests/faculty/{faculty_id}", response_model=list[schemas.AdminRequestResponse])
+def get_faculty_requests(faculty_id: int, db: Session = Depends(database.get_db)):
+    """Faculty fetches their own requests."""
+    return db.query(models.AdminRequest).filter(models.AdminRequest.faculty_id == faculty_id).order_by(models.AdminRequest.created_at.desc()).all()
+
+@router.post("/requests/{request_id}/reply")
+def reply_to_request(request_id: int, reply: schemas.AdminRequestReply, db: Session = Depends(database.get_db)):
+    """Admin replies to a faculty request."""
+    db_req = db.query(models.AdminRequest).filter(models.AdminRequest.id == request_id).first()
+    if not db_req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    db_req.reply = reply.reply
+    db_req.status = "replied"
+    db.commit()
+    return {"message": "Reply sent successfully"}

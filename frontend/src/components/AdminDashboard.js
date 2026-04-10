@@ -19,9 +19,41 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [resetData, setResetData] = useState({ userId: null, newPassword: '' });
   const [showResetModal, setShowResetModal] = useState(false);
 
+
+
+  // Admin Requests State
+  const [requests, setRequests] = useState([]);
+  const [showRequestsModal, setShowRequestsModal] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState(null);
+
   useEffect(() => {
     fetchUsers();
+    fetchRequests();
   }, []);
+
+  const fetchRequests = async () => {
+    try {
+      const resp = await fetch('http://localhost:8000/admin/requests');
+      if (resp.ok) setRequests(await resp.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const handleReply = async (requestId) => {
+    if (!replyText) return;
+    try {
+      const resp = await fetch(`http://localhost:8000/admin/requests/${requestId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reply: replyText })
+      });
+      if (resp.ok) {
+        setReplyText('');
+        setSelectedRequest(null);
+        fetchRequests();
+      }
+    } catch (err) { console.error(err); }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -252,6 +284,16 @@ const AdminDashboard = ({ user, onLogout }) => {
           <div style={{ flex: 1 }}></div>
           <div className="admin-profile-section" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <ThemeToggle />
+            
+            <div className="admin-notification-bell" onClick={() => setShowRequestsModal(true)} style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '10px', width: '40px', height: '40px' }}>
+              <span style={{ fontSize: '1.2rem' }}>🔔</span>
+              {requests.filter(r => r.status === 'pending').length > 0 && (
+                <span style={{ position: 'absolute', top: '-5px', right: '-5px', padding: '2px 6px', background: '#ef4444', color: 'white', borderRadius: '20px', fontSize: '0.65rem', fontWeight: 800 }}>
+                  {requests.filter(r => r.status === 'pending').length}
+                </span>
+              )}
+            </div>
+
             <div className="adm-user-meta">
               <div className="adm-name">{user.name}</div>
               <div className="adm-role">Platform Admin</div>
@@ -282,6 +324,90 @@ const AdminDashboard = ({ user, onLogout }) => {
             <div className="modal-actions">
               <button onClick={() => setShowResetModal(false)} className="modal-btn-cancel">Cancel</button>
               <button onClick={handleResetPassword} className="modal-btn-confirm">Update Password</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Faculty Requests Modal */}
+      {showRequestsModal && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '800px', width: '90%' }}>
+            <div className="adm-modal-header">
+              <h2>Faculty Inquiry Requests</h2>
+              <button className="close-modal" onClick={() => setShowRequestsModal(false)}>×</button>
+            </div>
+            <div className="adm-modal-body" style={{ padding: '0', display: 'grid', gridTemplateColumns: '300px 1fr', height: '500px' }}>
+              {/* List */}
+              <div style={{ borderRight: '1px solid var(--border-color)', overflowY: 'auto', background: 'var(--bg-main)' }}>
+                {requests.length === 0 ? (
+                  <p style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No requests received.</p>
+                ) : (
+                  requests.map(req => (
+                    <div 
+                      key={req.id} 
+                      onClick={() => setSelectedRequest(req)}
+                      style={{ 
+                        padding: '1.25rem', 
+                        cursor: 'pointer', 
+                        borderBottom: '1px solid var(--border-color)',
+                        background: selectedRequest?.id === req.id ? 'var(--bg-card)' : 'transparent',
+                        borderLeft: selectedRequest?.id === req.id ? '4px solid #F2921D' : '4px solid transparent'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>{req.faculty_name}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(req.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.subject}</div>
+                      {req.status === 'pending' && <span style={{ display: 'inline-block', marginTop: '0.5rem', width: '8px', height: '8px', background: '#3b82f6', borderRadius: '50%' }}></span>}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Detail & Reply */}
+              <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
+                {selectedRequest ? (
+                  <>
+                    <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{selectedRequest.subject}</h3>
+                        <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>{selectedRequest.message}</p>
+                      </div>
+
+                      {selectedRequest.reply && (
+                        <div style={{ padding: '1.25rem', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                          <span style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#10b981', marginBottom: '0.5rem' }}>Your Reply:</span>
+                          <p style={{ fontSize: '0.9rem', color: 'var(--text-main)' }}>{selectedRequest.reply}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
+                      <textarea 
+                        placeholder={selectedRequest.reply ? "Update your reply..." : "Type your reply to faculty..."}
+                        value={replyText}
+                        onChange={e => setReplyText(e.target.value)}
+                        style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', resize: 'none', marginBottom: '1rem' }}
+                        rows="3"
+                      />
+                      <button 
+                        onClick={() => handleReply(selectedRequest.id)}
+                        disabled={!replyText}
+                        className="admin-submit-btn" 
+                        style={{ margin: 0, width: '100%' }}
+                      >
+                        Send Reply
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-muted)' }}>
+                    Select a request to view details
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

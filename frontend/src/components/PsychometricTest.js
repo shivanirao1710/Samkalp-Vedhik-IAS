@@ -25,7 +25,7 @@ const PsychometricTest = ({ user }) => {
 
     // Check if user already has a report → show results, else show landing
     console.log("PsychometricTest: Checking for report. User:", user);
-    
+
     if (user?.id) {
       setCheckingReport(true);
       fetch(`${API}/psychometric/report/${user.id}`)
@@ -41,9 +41,9 @@ const PsychometricTest = ({ user }) => {
             setView(prev => prev === 'loading' ? 'landing' : prev);
           }
         })
-        .catch((err) => { 
+        .catch((err) => {
           console.error("PsychometricTest: Error fetching report:", err);
-          setView('landing'); 
+          setView('landing');
         })
         .finally(() => setCheckingReport(false));
     } else {
@@ -576,11 +576,11 @@ const PsychometricTest = ({ user }) => {
 
   return (
     <div className="psychometric-container">
-      {view === 'landing'   && renderLanding()}
-      {view === 'table'     && renderTable()}
-      {view === 'testing'   && renderTesting()}
+      {view === 'landing' && renderLanding()}
+      {view === 'table' && renderTable()}
+      {view === 'testing' && renderTesting()}
       {view === 'analyzing' && renderAnalyzing()}
-      {view === 'results'   && renderResults()}
+      {view === 'results' && renderResults()}
       {view === 'video_counselling' && <VideoAvatarCounselling report={report} onEndSession={() => setView('results')} />}
     </div>
   );

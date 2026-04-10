@@ -220,10 +220,10 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
               >
                 {uploading ? 'Processing...' : (user.profile_image ? 'Change Photo' : 'Add Profile Photo')}
               </button>
-              
+
               {user.profile_image && (
-                <button 
-                  className="remove-photo-btn-secondary" 
+                <button
+                  className="remove-photo-btn-secondary"
                   onClick={handleRemovePhoto}
                   disabled={uploading}
                   title="Remove photo"
@@ -328,7 +328,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.phone || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
+                  <div className="info-field">{user.phone || <span style={{ color: '#94a3b8' }}>Not set</span>}</div>
                 )}
               </div>
               <div className="info-group">
@@ -342,7 +342,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.location || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
+                  <div className="info-field">{user.location || <span style={{ color: '#94a3b8' }}>Not set</span>}</div>
                 )}
               </div>
             </div>
@@ -362,7 +362,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                   onChange={handleInputChange}
                 />
               ) : (
-                <div className="info-field">{user.target_exam || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
+                <div className="info-field">{user.target_exam || <span style={{ color: '#94a3b8' }}>Not set</span>}</div>
               )}
             </div>
           </div>

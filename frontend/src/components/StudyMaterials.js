@@ -209,7 +209,7 @@ const StudyMaterials = ({ user }) => {
                             'Documents': [],
                             'Other': []
                         };
-                        
+
                         materials.forEach(mat => {
                             const type = String(mat.file_type || '').toLowerCase();
                             if (type === 'video') groups['Videos'].push(mat);
@@ -222,7 +222,7 @@ const StudyMaterials = ({ user }) => {
                         return Object.entries(groups).map(([groupName, mats]) => {
                             if (mats.length === 0) return null;
                             const rowId = `scroll-row-${groupName.replace(/\s+/g, '-')}`;
-                            
+
                             const scrollRow = (direction) => {
                                 const container = document.getElementById(rowId);
                                 if (container) {

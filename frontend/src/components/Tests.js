@@ -80,8 +80,8 @@ const Tests = () => {
   const [attemptedTestIds, setAttemptedTestIds] = useState(() => {
     try {
       const stored = localStorage.getItem('samkalp_student_attemptedTestsMap');
-      return stored ? JSON.parse(stored) : {}; 
-    } catch(e) { return {}; }
+      return stored ? JSON.parse(stored) : {};
+    } catch (e) { return {}; }
   });
 
   React.useEffect(() => {
@@ -105,7 +105,7 @@ const Tests = () => {
     try {
       const response = await fetch(`http://localhost:8000/tests/${test.id}/questions`);
       const questions = await response.json();
-      
+
       // Transform backend format to frontend format if needed
       const formattedQuestions = questions.map(q => ({
         id: q.id,
@@ -119,8 +119,8 @@ const Tests = () => {
       setShowResults(false);
       setCurrentQuestionIndex(0);
     } catch (error) {
-       console.error("Error fetching questions:", error);
-       alert("Failed to load test questions");
+      console.error("Error fetching questions:", error);
+      alert("Failed to load test questions");
     } finally {
       setLoading(false);
     }
@@ -148,12 +148,12 @@ const Tests = () => {
   const finishTest = () => {
     const score = calculateScore();
     const percentage = (score / activeTest.questions.length) * 100;
-    
+
     // Save attempt
     const newAttempts = { ...attemptedTestIds, [activeTest.id]: Math.max(percentage, attemptedTestIds[activeTest.id] || 0) };
     setAttemptedTestIds(newAttempts);
     localStorage.setItem('samkalp_student_attemptedTestsMap', JSON.stringify(newAttempts));
-    
+
     setShowResults(true);
   };
 
@@ -185,7 +185,7 @@ const Tests = () => {
               {percentage}%
             </div>
           </div>
-          
+
           <div className="stats-row">
             <div className="stat-box">
               <span className="label">Total Questions</span>
@@ -253,14 +253,14 @@ const Tests = () => {
 
         <div className="question-card">
           <div className="progress-bar-container">
-            <div 
-              className="progress-bar-fill" 
+            <div
+              className="progress-bar-fill"
               style={{ width: `${((currentQuestionIndex + 1) / activeTest.questions.length) * 100}%` }}
             ></div>
           </div>
-          
+
           <h3 className="question-title">{currentQuestion.question}</h3>
-          
+
           <div className="options-grid">
             {currentQuestion.options.map((option, idx) => (
               <button
@@ -275,25 +275,25 @@ const Tests = () => {
           </div>
 
           <div className="navigation-btns">
-            <button 
-              className="nav-btn prev" 
+            <button
+              className="nav-btn prev"
               onClick={prevQuestion}
               disabled={currentQuestionIndex === 0}
             >
               Previous
             </button>
-            
+
             {currentQuestionIndex === activeTest.questions.length - 1 ? (
-              <button 
-                className="finish-btn" 
+              <button
+                className="finish-btn"
                 onClick={finishTest}
                 disabled={userAnswers[currentQuestion.id] === undefined}
               >
                 Finish Test
               </button>
             ) : (
-              <button 
-                className="nav-btn next" 
+              <button
+                className="nav-btn next"
                 onClick={nextQuestion}
                 disabled={userAnswers[currentQuestion.id] === undefined}
               >
@@ -307,7 +307,7 @@ const Tests = () => {
   }
 
   const testsCompletedCount = Object.keys(attemptedTestIds).length;
-  const avgScore = testsCompletedCount > 0 
+  const avgScore = testsCompletedCount > 0
     ? (Object.values(attemptedTestIds).reduce((sum, s) => sum + s, 0) / testsCompletedCount).toFixed(0)
     : 0;
 
@@ -345,8 +345,8 @@ const Tests = () => {
 
       <div className="filter-bar">
         {['All Tests', 'Attempted', 'Not Attempted'].map(tab => (
-          <button 
-            key={tab} 
+          <button
+            key={tab}
             className={`filter-btn ${filterTab === tab ? 'active' : ''}`}
             onClick={() => setFilterTab(tab)}
           >
@@ -375,7 +375,7 @@ const Tests = () => {
                 <span>📋 {test.total_questions || 0} Questions</span>
                 <span>⏱️ {test.duration_mins} mins</span>
               </div>
-              
+
               {isAttempted && (
                 <div style={{ padding: '0.4rem 0.75rem', background: '#dcfce7', color: '#166534', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', margin: '0.5rem 0', display: 'flex', justifyContent: 'space-between' }}>
                   <span>✓ Attempted</span>
