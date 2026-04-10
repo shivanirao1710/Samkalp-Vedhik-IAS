@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import VideoAvatarCounselling from './VideoAvatarCounselling';
 import '../styles/PsychometricTest.css';
 
 const API = 'http://localhost:8000';
@@ -412,9 +413,12 @@ const PsychometricTest = ({ user }) => {
           </div>
         )}
 
-        <div className="psy-actions" style={{ marginTop: '2rem' }}>
+        <div className="psy-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button className="psy-btn-secondary" onClick={() => setView('landing')}>← Back to Landing</button>
-          <button className="psy-btn-primary" onClick={retakeAssessment}>🔄 Retake Assessment</button>
+          <button className="psy-btn-primary" onClick={retakeAssessment} style={{ background: '#f59e0b' }}>🔄 Retake Assessment</button>
+          <button className="psy-btn-primary" onClick={() => setView('video_counselling')} style={{ background: '#3b82f6' }}>
+            📹 Discuss with AI Mentor
+          </button>
         </div>
       </div>
     );
@@ -446,6 +450,7 @@ const PsychometricTest = ({ user }) => {
       {view === 'testing'   && renderTesting()}
       {view === 'analyzing' && renderAnalyzing()}
       {view === 'results'   && renderResults()}
+      {view === 'video_counselling' && <VideoAvatarCounselling report={report} onEndSession={() => setView('results')} />}
     </div>
   );
 };
