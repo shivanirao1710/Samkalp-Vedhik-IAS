@@ -27,7 +27,7 @@ function App() {
     if (user.role === 'faculty') {
       return <FacultyDashboard user={user} onLogout={() => setUser(null)} />;
     }
-    return <Dashboard user={user} onLogout={() => setUser(null)} />;
+    return <Dashboard user={user} onLogout={() => setUser(null)} onUserUpdate={setUser} />;
   }
 
 
