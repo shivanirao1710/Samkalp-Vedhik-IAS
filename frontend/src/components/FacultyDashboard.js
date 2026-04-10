@@ -4,6 +4,8 @@ import ThemeToggle from './ThemeToggle';
 import Settings from './Settings';
 import FacultyProfile from './FacultyProfile';
 import logo from '../images/logo.png';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
@@ -14,7 +16,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [isStudyMaterialModalOpen, setIsStudyMaterialModalOpen] = useState(false);
   const [studyMaterialForm, setStudyMaterialForm] = useState({ title: '', description: '', category: 'General Studies' });
-  const [studyMaterialFile, setStudyMaterialFile] = useState(null);
+  const [studyMaterialFiles, setStudyMaterialFiles] = useState([]);
+  const [isUploadingMaterials, setIsUploadingMaterials] = useState(false);
 
   const menuItems = [
     { name: 'Dashboard', icon: '⊞' },
@@ -266,27 +269,46 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const handleStudyMaterialSubmit = async (e) => {
     e.preventDefault();
-    if (!studyMaterialFile) {
-      alert("Please select a file.");
+    if (!studyMaterialFiles || studyMaterialFiles.length === 0) {
+      alert("Please select at least one file.");
       return;
     }
-    const fd = new FormData();
-    fd.append('title', studyMaterialForm.title);
-    fd.append('description', studyMaterialForm.description);
-    fd.append('category', studyMaterialForm.category);
-    fd.append('file', studyMaterialFile);
+    
+    setIsUploadingMaterials(true);
+    let successCount = 0;
+    
+    for (const file of studyMaterialFiles) {
+        const fd = new FormData();
+        const titleToUse = studyMaterialFiles.length === 1 && studyMaterialForm.title 
+            ? studyMaterialForm.title 
+            : file.name.split('.').slice(0, -1).join('.');
+            
+        fd.append('title', titleToUse);
+        fd.append('description', studyMaterialForm.description);
+        fd.append('category', studyMaterialForm.category);
+        fd.append('file', file);
 
-    try {
-      const res = await fetch('http://localhost:8000/study-materials/', { method: 'POST', body: fd });
-      if (res.ok) {
+        try {
+            const res = await fetch('http://localhost:8000/study-materials/', { method: 'POST', body: fd });
+            if (res.ok) {
+                successCount++;
+            }
+        } catch (err) {
+            console.error('Error uploading file:', err);
+        }
+    }
+    
+    setIsUploadingMaterials(false);
+    
+    if (successCount > 0) {
+        alert(`Successfully uploaded ${successCount} material(s)`);
         setIsStudyMaterialModalOpen(false);
-        setStudyMaterialFile(null);
+        setStudyMaterialFiles([]);
         setStudyMaterialForm({ title: '', description: '', category: 'General Studies' });
         fetchStudyMaterials();
-      } else {
-        alert("Failed to upload material");
-      }
-    } catch (err) { console.error(err); }
+    } else {
+        alert("Failed to upload materials. Please try again.");
+    }
   };
 
   const handleDeleteMaterial = async (id) => {
@@ -899,6 +921,71 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     });
   };
 
+  const handleBulkUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const parseData = (data) => {
+      let newQuestions = [];
+      data.forEach(row => {
+          const qText = row.Question || row.question || row['Question Text'];
+          const optA = row['Option A'] || row.OptionA || row.A;
+          const optB = row['Option B'] || row.OptionB || row.B;
+          const optC = row['Option C'] || row.OptionC || row.C;
+          const optD = row['Option D'] || row.OptionD || row.D;
+          const correctOpt = String(row['Correct Option'] || row.Correct || row.Answer || '').trim().toUpperCase();
+          const explanation = row.Explanation || row.explanation || '';
+          
+          if(qText && optA && optB) {
+              newQuestions.push({
+                  text: qText,
+                  explanation: explanation,
+                  options: [
+                      { text: optA, is_correct: correctOpt === 'A' || correctOpt === optA },
+                      { text: optB, is_correct: correctOpt === 'B' || correctOpt === optB },
+                      { text: optC, is_correct: correctOpt === 'C' || correctOpt === optC },
+                      { text: optD, is_correct: correctOpt === 'D' || correctOpt === optD }
+                  ].filter(o => o.text !== undefined && o.text !== "")
+              });
+          }
+      });
+      
+      if(newQuestions.length > 0) {
+          setTestFormData(prev => ({
+              ...prev,
+              questions: [...prev.questions, ...newQuestions]
+          }));
+          alert(`Successfully loaded ${newQuestions.length} questions!`);
+      } else {
+          alert('No valid questions found in file. Please ensure headings like "Question", "Option A", "Option B", "Correct Option" are present.');
+      }
+      e.target.value = null;
+    };
+
+    if (file.name.endsWith('.csv')) {
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                parseData(results.data);
+            }
+        });
+    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const bstr = evt.target.result;
+            const workbook = XLSX.read(bstr, { type: 'binary' });
+            const wsname = workbook.SheetNames[0];
+            const ws = workbook.Sheets[wsname];
+            const data = XLSX.utils.sheet_to_json(ws);
+            parseData(data);
+        };
+        reader.readAsBinaryString(file);
+    } else {
+        alert("Unsupported file format. Please upload a CSV or Excel file.");
+    }
+  };
+
   const handleTestSubmit = async (e) => {
     e.preventDefault();
 
@@ -1034,6 +1121,31 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   </button>
                 </div>
               ))}
+            </div>
+
+            <div className="bulk-upload-zone" style={{ border: '1.5px dashed #10b981', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#f0fdf4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h4 style={{ color: '#10b981', margin: '0 0 0.5rem 0' }}>Bulk Upload via Excel/CSV</h4>
+                    <p style={{ fontSize: '0.85rem', color: '#047857', margin: 0 }}>Easily upload many questions at once.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => {
+                        const csvContent = "data:text/csv;charset=utf-8,Question,Option A,Option B,Option C,Option D,Correct Option,Explanation\nSample Question 1?,Apple,Banana,Orange,Grape,A,Apple is correct\nSample Question 2?,Cat,Dog,Bird,Fish,B,Dog is correct";
+                        const encodedUri = encodeURI(csvContent);
+                        const link = document.createElement("a");
+                        link.setAttribute("href", encodedUri);
+                        link.setAttribute("download", "questions_template.csv");
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }} style={{ fontSize: '0.85rem', color: '#10b981', background: 'none', border: '1px solid #10b981', padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer' }}>
+                        Download Template
+                    </button>
+                    <label style={{ background: '#10b981', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                        Upload File
+                        <input type="file" accept=".csv, .xlsx, .xls" onChange={handleBulkUpload} style={{ display: 'none' }} />
+                    </label>
+                </div>
             </div>
 
             <div className="question-entry-zone" style={{ border: '1.5px dashed #F2921D', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#fffefc' }}>
@@ -1882,15 +1994,15 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </div>
             <form onSubmit={handleStudyMaterialSubmit} className="adm-modal-form">
               <div className="form-group">
-                <label>Title</label>
-                <input required type="text" value={studyMaterialForm.title} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, title: e.target.value })} />
+                <label>Title <span style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'normal'}}>(Optional for bulk max. Defaults to filename)</span></label>
+                <input type="text" value={studyMaterialForm.title} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, title: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>Description</label>
+                <label>Description <span style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'normal'}}>(Applied to all)</span></label>
                 <textarea rows="2" value={studyMaterialForm.description} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, description: e.target.value })} style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
               </div>
               <div className="form-group">
-                <label>Category</label>
+                <label>Category <span style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'normal'}}>(Applied to all)</span></label>
                 <select value={studyMaterialForm.category} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, category: e.target.value })}>
                   <option>General Studies</option>
                   <option>Polity</option>
@@ -1900,12 +2012,15 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 </select>
               </div>
               <div className="form-group">
-                <label>File (PDF, PPT, Videos, EPUB, MOBI, AZW3)</label>
-                <input required type="file" onChange={e => setStudyMaterialFile(e.target.files[0])} style={{ padding: '1rem', border: '1px dashed #ccc', width: '100%', borderRadius: '12px' }} />
+                <label>Files (Select Multiple)</label>
+                <input required type="file" multiple onChange={e => setStudyMaterialFiles(Array.from(e.target.files))} style={{ padding: '1rem', border: '1px dashed #ccc', width: '100%', borderRadius: '12px', background: '#f8fafc' }} />
+                {studyMaterialFiles.length > 0 && <p style={{fontSize:'0.85rem', color:'#10b981', marginTop:'0.5rem'}}>{studyMaterialFiles.length} file(s) selected.</p>}
               </div>
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={() => setIsStudyMaterialModalOpen(false)}>Cancel</button>
-                <button type="submit" className="submit-btn" style={{ background: 'var(--bg-gradient)' }}>Upload</button>
+                <button type="submit" className="submit-btn" disabled={isUploadingMaterials} style={{ background: 'var(--bg-gradient)' }}>
+                  {isUploadingMaterials ? 'Uploading...' : 'Upload Files'}
+                </button>
               </div>
             </form>
           </div>
