@@ -1900,7 +1900,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 </select>
               </div>
               <div className="form-group">
-                <label>File (PDF, PPT, Videos)</label>
+                <label>File (PDF, PPT, Videos, EPUB, MOBI, AZW3)</label>
                 <input required type="file" onChange={e => setStudyMaterialFile(e.target.files[0])} style={{ padding: '1rem', border: '1px dashed #ccc', width: '100%', borderRadius: '12px' }} />
               </div>
               <div className="modal-actions">

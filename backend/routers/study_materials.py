@@ -50,6 +50,8 @@ def upload_material(
         file_type = "word"
     elif ext in [".txt", ".csv"]:
         file_type = "txt"
+    elif ext in [".epub", ".mobi", ".azw3"]:
+        file_type = "ebook"
 
     db_material = models.StudyMaterial(
         title=title,

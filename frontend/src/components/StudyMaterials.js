@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as mammoth from 'mammoth';
+import { ReactReader } from 'react-reader';
 import '../styles/StudyMaterials.css';
 
 const DocxViewer = ({ url }) => {
@@ -76,6 +77,7 @@ const StudyMaterials = ({ user }) => {
             case 'presentation': return 'icon-presentation';
             case 'word': return 'icon-word';
             case 'image': return 'icon-image';
+            case 'ebook': return 'icon-pdf'; // Fallback style for ebooks
             default: return 'icon-document';
         }
     };
@@ -88,6 +90,7 @@ const StudyMaterials = ({ user }) => {
             case 'word': return '📝';
             case 'image': return '🖼️';
             case 'txt': return '📃';
+            case 'ebook': return '📖';
             default: return '📁';
         }
     };
@@ -129,15 +132,33 @@ const StudyMaterials = ({ user }) => {
         if (!previewMaterial) return null;
         const url = getAbsoluteUrl(previewMaterial.file_url);
         const type = previewMaterial.file_type;
+        const extMatch = previewMaterial.file_url.match(/\.[0-9a-z]+$/i);
+        const ext = extMatch ? extMatch[0].toLowerCase() : '';
 
         if (type === 'pdf' || type === 'txt') {
             return <iframe src={url} title="Preview" />;
         } else if (type === 'video') {
-            return <video src={url} controls autoPlay />;
+            return <video src={url} controls autoPlay controlsList="nodownload" />;
         } else if (type === 'image') {
             return <img src={url} alt="Preview" />;
         } else if (type === 'word') {
             return <DocxViewer url={url} />;
+        } else if (type === 'ebook') {
+            if (ext === '.epub') {
+                return (
+                    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+                        <ReactReader url={url} title={previewMaterial.title} locationChanged={(epubcifi) => console.log(epubcifi)} />
+                    </div>
+                );
+            } else {
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column', padding: '2rem', textAlign: 'center', justifyContent: 'center', height: '100%', background: '#fff' }}>
+                        <h2 style={{ color: '#F2921D' }}>Preview not natively supported</h2>
+                        <p>Web previews for {ext.toUpperCase()} files are currently not directly supported. We are working on integrating a generic cloud reader.</p>
+                        <p style={{ marginTop: '1rem', fontStyle: 'italic', color: '#64748b' }}>E-books are restricted from being downloaded directly to comply with copyright guidelines.</p>
+                    </div>
+                );
+            }
         } else if (type === 'presentation' || type === 'document') {
             const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
             const gviewer = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
@@ -199,11 +220,13 @@ const StudyMaterials = ({ user }) => {
 
                             <div className="material-actions">
                                 <button className="material-action view-btn" onClick={() => handlePreview(mat)}>
-                                    <span>👁️</span> Preview
+                                    <span>{mat.file_type === 'ebook' ? '📖 Read' : '👁️ Preview'}</span>
                                 </button>
-                                <button className="material-action" onClick={() => handleDownload(mat)}>
-                                    <span>↓</span> Download
-                                </button>
+                                {mat.file_type !== 'ebook' && (
+                                    <button className="material-action" onClick={() => handleDownload(mat)}>
+                                        <span>↓</span> Download
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))
@@ -223,9 +246,11 @@ const StudyMaterials = ({ user }) => {
                         <div className="preview-header">
                             <h3>{previewMaterial.title}</h3>
                             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                <button className="material-action" style={{ padding: '0.4rem 1rem', width: 'auto' }} onClick={() => handleDownload(previewMaterial)}>
-                                    <span>↓</span> Download
-                                </button>
+                                {previewMaterial.file_type !== 'ebook' && (
+                                    <button className="material-action" style={{ padding: '0.4rem 1rem', width: 'auto' }} onClick={() => handleDownload(previewMaterial)}>
+                                        <span>↓</span> Download
+                                    </button>
+                                )}
                                 <button className="close-preview-btn" onClick={() => setPreviewMaterial(null)}>×</button>
                             </div>
                         </div>

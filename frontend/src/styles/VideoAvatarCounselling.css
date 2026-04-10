@@ -1,0 +1,941 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+
+/* ── Root & Reset ─────────────────────────────────────────── */
+:root {
+  --c-void:       #080b10;
+  --c-surface:    #0e1420;
+  --c-panel:      #141b28;
+  --c-border:     rgba(255,255,255,0.07);
+  --c-border-hi:  rgba(255,255,255,0.14);
+  --c-gold:       #d4a853;
+  --c-gold-dim:   #8a6830;
+  --c-gold-glow:  rgba(212,168,83,0.18);
+  --c-blue:       #3b82f6;
+  --c-blue-dim:   rgba(59,130,246,0.15);
+  --c-green:      #22c55e;
+  --c-red:        #ef4444;
+  --c-text:       #e8e4dc;
+  --c-text-muted: #6b7280;
+  --c-text-dim:   #9ca3af;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --radius-lg:    20px;
+  --radius-md:    12px;
+  --radius-sm:    8px;
+  --radius-pill:  999px;
+  --shadow-gold:  0 0 40px rgba(212,168,83,0.12), 0 0 80px rgba(212,168,83,0.05);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Main Container ───────────────────────────────────────── */
+.vac-container {
+  font-family: var(--font-body);
+  background: var(--c-void);
+  color: var(--c-text);
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle grid texture */
+.vac-container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Layout ───────────────────────────────────────────────── */
+.vac-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  grid-template-rows: auto 1fr auto;
+  gap: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.vac-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--c-border);
+  background: rgba(8,11,16,0.8);
+  backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.vac-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vac-logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--c-gold) 0%, var(--c-gold-dim) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #080b10;
+  font-weight: 700;
+}
+
+.vac-logo-text {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+
+.vac-logo-text span {
+  color: var(--c-gold);
+}
+
+.vac-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.vac-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.vac-badge--live {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: #4ade80;
+}
+
+.vac-badge--live::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-green);
+  box-shadow: 0 0 8px var(--c-green);
+  animation: live-pulse 2s infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.vac-session-timer {
+  font-size: 0.875rem;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+/* ── Avatar Stage ─────────────────────────────────────────── */
+.vac-stage {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  background: var(--c-void);
+  min-height: 600px;
+  overflow: hidden;
+}
+
+/* Ensure the container holds the video properly */
+.vac-avatar-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.vac-avatar-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* This makes it look like a full-screen video call */
+  filter: contrast(1.05) brightness(0.9); /* Adds a cinematic touch */
+}
+
+/* Beyond Presence Iframe styling */
+.vac-bey-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  z-index: 3;
+}
+
+/* Subtle "Pulse" effect when the avatar is "Speaking" */
+.is-speaking .vac-avatar-video {
+  animation: avatar-subtle-zoom 4s ease-in-out infinite;
+}
+
+@keyframes avatar-subtle-zoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+/* cinematic vignette */
+.vac-stage-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(8,11,16,0.7) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* bottom scrim */
+.vac-stage-scrim {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  background: linear-gradient(to top, rgba(8,11,16,0.97) 0%, rgba(8,11,16,0.5) 60%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* gold accent glow when speaking */
+.vac-avatar-aura {
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--c-gold-glow);
+  filter: blur(40px);
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.is-speaking ~ .vac-avatar-aura,
+.vac-avatar-bg.is-speaking ~ .vac-avatar-aura {
+  opacity: 1;
+}
+
+/* ── Subtitles ─────────────────────────────────────────────── */
+.vac-subtitles {
+  position: absolute;
+  bottom: 120px;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 3rem;
+  gap: 0.75rem;
+}
+
+.vac-subtitle-box {
+  max-width: 760px;
+  width: 100%;
+  background: rgba(8, 11, 16, 0.72);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--c-border-hi);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.75rem;
+  text-align: center;
+  animation: sub-enter 0.45s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.vac-subtitle-box--user {
+  border-color: rgba(59,130,246,0.3);
+  background: rgba(14,20,40,0.8);
+}
+
+@keyframes sub-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.vac-subtitle-who {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.vac-subtitle-box--user .vac-subtitle-who {
+  color: #60a5fa;
+}
+
+.vac-subtitle-text {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: var(--c-text);
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ── Waveform ─────────────────────────────────────────────── */
+.vac-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+}
+
+.vac-wave-bar {
+  width: 3px;
+  background: var(--c-gold);
+  border-radius: 2px;
+  animation: wave-dance 1s ease-in-out infinite alternate;
+  transform-origin: bottom;
+}
+
+.vac-subtitle-box--user .vac-wave-bar {
+  background: #60a5fa;
+}
+
+.vac-wave-bar:nth-child(1) { animation-delay: 0.0s; height: 35%; }
+.vac-wave-bar:nth-child(2) { animation-delay: 0.15s; height: 75%; }
+.vac-wave-bar:nth-child(3) { animation-delay: 0.05s; height: 55%; }
+.vac-wave-bar:nth-child(4) { animation-delay: 0.2s; height: 90%; }
+.vac-wave-bar:nth-child(5) { animation-delay: 0.1s; height: 45%; }
+.vac-wave-bar:nth-child(6) { animation-delay: 0.3s; height: 65%; }
+
+@keyframes wave-dance {
+  0%   { transform: scaleY(0.25); }
+  100% { transform: scaleY(1); }
+}
+
+/* ── Controls Bar ─────────────────────────────────────────── */
+.vac-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding-bottom: 1.5rem;
+}
+
+.vac-ctrl-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--c-border-hi);
+  background: rgba(20,27,40,0.85);
+  backdrop-filter: blur(12px);
+  color: var(--c-text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.vac-ctrl-btn:hover {
+  background: rgba(30,40,60,0.95);
+  border-color: var(--c-border-hi);
+  color: var(--c-text);
+  transform: translateY(-2px);
+}
+
+.vac-ctrl-btn.is-active {
+  background: rgba(212,168,83,0.12);
+  border-color: var(--c-gold-dim);
+  color: var(--c-gold);
+}
+
+.vac-ctrl-btn--end {
+  width: 58px;
+  height: 58px;
+  background: var(--c-red) !important;
+  border-color: var(--c-red) !important;
+  color: white !important;
+}
+
+.vac-ctrl-btn--end:hover {
+  background: #dc2626 !important;
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* ── Status Bar ───────────────────────────────────────────── */
+.vac-status {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(8,11,16,0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 1rem;
+  font-size: 0.78rem;
+  color: var(--c-text-dim);
+}
+
+.vac-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  box-shadow: 0 0 8px var(--c-gold);
+  animation: live-pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+.vac-status-dot.is-listening {
+  background: var(--c-blue);
+  box-shadow: 0 0 8px var(--c-blue);
+}
+
+/* ── PiP User Camera ──────────────────────────────────────── */
+.vac-pip {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 120px;
+  height: 160px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--c-border-hi);
+  overflow: hidden;
+  z-index: 10;
+  background: var(--c-panel);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.vac-pip video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vac-pip-off {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--c-text-muted);
+  font-size: 0.75rem;
+}
+
+/* ── Connection Overlay ───────────────────────────────────── */
+.vac-connecting {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: var(--c-void);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.vac-connecting-ring {
+  width: 72px;
+  height: 72px;
+  position: relative;
+}
+
+.vac-connecting-ring::before,
+.vac-connecting-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.vac-connecting-ring::before {
+  border-top-color: var(--c-gold);
+  animation: spin 1.1s linear infinite;
+}
+
+.vac-connecting-ring::after {
+  inset: 8px;
+  border-top-color: rgba(212,168,83,0.35);
+  animation: spin 0.75s linear infinite reverse;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.vac-connecting h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--c-text);
+  margin: 0;
+}
+
+.vac-connecting p {
+  font-size: 0.875rem;
+  color: var(--c-text-muted);
+  margin: 0;
+}
+
+/* ── Right Panel ──────────────────────────────────────────── */
+.vac-panel {
+  grid-column: 2;
+  grid-row: 2;
+  background: var(--c-panel);
+  border-left: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vac-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+
+.vac-panel-tab {
+  flex: 1;
+  padding: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.vac-panel-tab.is-active {
+  color: var(--c-gold);
+  border-bottom-color: var(--c-gold);
+}
+
+.vac-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-border-hi) transparent;
+}
+
+/* ── Report View ──────────────────────────────────────────── */
+.vac-report-header {
+  margin-bottom: 1.5rem;
+}
+
+.vac-report-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin: 0 0 0.25rem;
+  color: var(--c-text);
+}
+
+.vac-report-sub {
+  font-size: 0.8rem;
+  color: var(--c-text-muted);
+  margin: 0;
+}
+
+/* Readiness Score Ring */
+.vac-score-ring {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: rgba(212,168,83,0.05);
+  border: 1px solid var(--c-gold-dim);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.vac-ring-svg {
+  flex-shrink: 0;
+}
+
+.vac-ring-track { fill: none; stroke: rgba(212,168,83,0.15); stroke-width: 5; }
+.vac-ring-fill  { fill: none; stroke: var(--c-gold); stroke-width: 5; stroke-linecap: round;
+                  transition: stroke-dashoffset 1.2s cubic-bezier(0.16,1,0.3,1); }
+
+
+.vac-score-label { font-size: 0.7rem; color: var(--c-gold); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+.vac-score-value { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; margin: 0.1rem 0; color: var(--c-text); }
+.vac-score-desc  { font-size: 0.78rem; color: var(--c-text-muted); line-height: 1.4; margin: 0; }
+
+/* Section blocks */
+.vac-section {
+  margin-bottom: 1.5rem;
+}
+
+.vac-section-title {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.vac-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.vac-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.vac-tag--strength {
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.2);
+  color: #4ade80;
+}
+
+.vac-tag--weakness {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  color: #f87171;
+}
+
+.vac-tag--trait {
+  background: rgba(212,168,83,0.07);
+  border: 1px solid var(--c-gold-dim);
+  color: var(--c-gold);
+}
+
+.vac-rec-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.vac-rec-item:last-child { border-bottom: none; }
+
+.vac-rec-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(212,168,83,0.1);
+  border: 1px solid var(--c-gold-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  color: var(--c-gold);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.vac-rec-text {
+  font-size: 0.83rem;
+  color: var(--c-text-dim);
+  line-height: 1.55;
+}
+
+/* ── Chat View ────────────────────────────────────────────── */
+.vac-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.vac-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--c-border-hi) transparent;
+}
+
+.vac-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  animation: msg-pop 0.35s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes msg-pop {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.vac-msg--ai  { align-items: flex-start; }
+.vac-msg--you { align-items: flex-end; }
+
+.vac-msg-who {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+  padding: 0 0.75rem;
+}
+
+.vac-msg--ai .vac-msg-who { color: var(--c-gold); }
+
+.vac-msg-bubble {
+  max-width: 90%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--c-text);
+}
+
+.vac-msg--ai  .vac-msg-bubble {
+  background: rgba(212,168,83,0.07);
+  border: 1px solid var(--c-gold-dim);
+  border-bottom-left-radius: 4px;
+}
+
+.vac-msg--you .vac-msg-bubble {
+  background: var(--c-blue-dim);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-bottom-right-radius: 4px;
+}
+
+.vac-msg-time {
+  font-size: 0.65rem;
+  color: var(--c-text-muted);
+  padding: 0 0.75rem;
+}
+
+/* Input area */
+.vac-chat-input {
+  flex-shrink: 0;
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.vac-chat-input textarea {
+  flex: 1;
+  background: rgba(14,20,40,0.8);
+  border: 1px solid var(--c-border-hi);
+  border-radius: var(--radius-md);
+  color: var(--c-text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  resize: none;
+  min-height: 44px;
+  max-height: 120px;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.vac-chat-input textarea::placeholder { color: var(--c-text-muted); }
+
+.vac-chat-input textarea:focus {
+  border-color: var(--c-gold-dim);
+}
+
+.vac-send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--c-gold);
+  border: none;
+  color: #080b10;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  font-size: 1.1rem;
+}
+
+.vac-send-btn:hover { background: #e0b565; transform: translateY(-1px); }
+.vac-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── Quick Actions ─────────────────────────────────────────── */
+.vac-quick-actions {
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.vac-quick-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(212,168,83,0.06);
+  border: 1px solid var(--c-gold-dim);
+  border-radius: var(--radius-sm);
+  color: var(--c-gold);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+  margin-bottom: 0;
+}
+
+.vac-quick-toggle:hover {
+  background: rgba(212,168,83,0.1);
+  border-color: var(--c-gold);
+}
+
+.vac-quick-list {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  animation: msg-pop 0.2s ease both;
+}
+
+.vac-quick-btn {
+  width: 100%;
+  text-align: left;
+  background: rgba(14,20,40,0.5);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-dim);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+
+.vac-quick-btn:hover {
+  border-color: var(--c-gold-dim);
+  color: var(--c-gold);
+  background: var(--c-gold-glow);
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.vac-footer {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  border-top: 1px solid var(--c-border);
+  padding: 0.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--c-text-muted);
+  background: rgba(8,11,16,0.6);
+}
+
+/* ── Typing indicator ─────────────────────────────────────── */
+.vac-typing {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+}
+
+.vac-typing span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  animation: typing-bounce 1.2s ease-in-out infinite;
+}
+
+.vac-typing span:nth-child(1) { animation-delay: 0s; }
+.vac-typing span:nth-child(2) { animation-delay: 0.2s; }
+.vac-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .vac-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto auto;
+  }
+
+  .vac-stage {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 420px;
+  }
+
+  .vac-panel {
+    grid-column: 1;
+    grid-row: 3;
+    border-left: none;
+    border-top: 1px solid var(--c-border);
+    max-height: 50vh;
+  }
+
+  .vac-footer {
+    grid-row: 4;
+  }
+}
