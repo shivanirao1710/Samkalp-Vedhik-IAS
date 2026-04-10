@@ -57,6 +57,9 @@ class UserAdminResponse(BaseModel):
     email: str
     name: Optional[str]
     role: str
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    member_since: Optional[datetime] = None
     class Config:
         from_attributes = True
 

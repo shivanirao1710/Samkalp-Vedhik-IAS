@@ -58,3 +58,25 @@ def delete_user(user_id: int, db: Session = Depends(database.get_db)):
     db.delete(user)
     db.commit()
     return {"message": "User deleted successfully"}
+
+@router.get("/students-detailed")
+def get_students_detailed(db: Session = Depends(database.get_db)):
+    """Fetch all students with extra metrics like course/test counts."""
+    students = db.query(models.User).filter(models.User.role == "student").all()
+    result = []
+    for s in students:
+        course_count = db.query(models.CourseEnrollment).filter(models.CourseEnrollment.user_id == s.id).count()
+        test_count = db.query(models.StudentTestAttempt).filter(models.StudentTestAttempt.user_id == s.id).count()
+        
+        result.append({
+            "id": s.id,
+            "name": s.name or s.email.split('@')[0],
+            "email": s.email,
+            "phone": s.phone or "N/A",
+            "enrolled_date": s.member_since.strftime("%Y-%m-%d") if s.member_since else "N/A",
+            "courses": f"{course_count} courses",
+            "tests": test_count,
+            "status": "Active", # Simplified
+            "color": "#F2921D" # Placeholder color
+        })
+    return result
