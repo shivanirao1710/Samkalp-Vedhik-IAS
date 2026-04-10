@@ -9,6 +9,7 @@ import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);
+  const [authPortal, setAuthPortal] = useState('student'); // 'student' or 'faculty'
   const [user, setUser] = useState(null);
 
   const handleLoginSuccess = (userData) => {
@@ -17,6 +18,7 @@ function App() {
 
   const handleRegisterSuccess = (data) => {
     setIsLogin(true);
+    setAuthPortal('student');
   };
 
 
@@ -35,13 +37,23 @@ function App() {
     <div className="App">
       {isLogin ? (
         <AuthLayout 
-          title="Welcome Back" 
-          subtitle="Sign in to continue your learning journey"
+          title={authPortal === 'student' ? "Student Sign In" : "Faculty Portal"} 
+          subtitle={authPortal === 'student' ? "Prepare for your success" : "Manage your courses and students"}
         >
           <LoginForm 
             onSwitch={() => setIsLogin(false)} 
             onLogin={handleLoginSuccess}
+            forcedRole={authPortal}
           />
+          
+          <div className="portal-switch-wrapper">
+             <button 
+               className="portal-switch-btn"
+               onClick={() => setAuthPortal(authPortal === 'student' ? 'faculty' : 'student')}
+             >
+               {authPortal === 'student' ? "Looking for Faculty Sign In? →" : "← Back to Student Sign In"}
+             </button>
+          </div>
         </AuthLayout>
       ) : (
         <AuthLayout 
@@ -49,7 +61,10 @@ function App() {
           subtitle="Join Samkalp Vedhik to start your UPSC preparation"
         >
           <RegisterForm 
-            onSwitch={() => setIsLogin(true)} 
+            onSwitch={() => {
+              setIsLogin(true);
+              setAuthPortal('student');
+            }} 
             onRegister={handleRegisterSuccess}
           />
         </AuthLayout>

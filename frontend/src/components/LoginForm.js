@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import '../styles/Auth.css';
 
 
-const LoginForm = ({ onSwitch, onLogin }) => {
-  const [role, setRole] = useState('student');
+const LoginForm = ({ onSwitch, onLogin, forcedRole = 'student' }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +17,7 @@ const LoginForm = ({ onSwitch, onLogin }) => {
       const response = await fetch('http://localhost:8000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password, role: forcedRole }),
       });
       
       const data = await response.json();
@@ -36,21 +35,10 @@ const LoginForm = ({ onSwitch, onLogin }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="role-toggle">
-        <button 
-          type="button" 
-          className={`role-btn ${role === 'student' ? 'active' : ''}`}
-          onClick={() => setRole('student')}
-        >
-          Student
-        </button>
-        <button 
-          type="button" 
-          className={`role-btn ${role === 'faculty' ? 'active' : ''}`}
-          onClick={() => setRole('faculty')}
-        >
-          Faculty
-        </button>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem', marginTop: '-0.5rem' }}>
+        <span className={`role-badge-plain ${forcedRole}`}>
+          {forcedRole.toUpperCase()} PORTAL
+        </span>
       </div>
 
       <div className="form-group">
@@ -83,21 +71,16 @@ const LoginForm = ({ onSwitch, onLogin }) => {
 
       {error && <p style={{ color: 'red', fontSize: '0.8rem', marginBottom: '1rem' }}>{error}</p>}
 
-      <div className="form-footer">
-        <div className="checkbox-group">
-          <input type="checkbox" id="remember" />
-          <label htmlFor="remember">Remember me</label>
-        </div>
-        <button type="button" className="forgot-link" style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem' }}>Forgot password?</button>
-      </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>
         {loading ? 'Signing in...' : 'Sign In →'}
       </button>
 
-      <div className="switch-auth">
-        Don't have an account? <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }} onClick={onSwitch}>Sign up now</span>
-      </div>
+      {forcedRole === 'student' && (
+        <div className="switch-auth">
+          Don't have an account? <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: '600' }} onClick={onSwitch}>Sign up now</span>
+        </div>
+      )}
     </form>
   );
 };

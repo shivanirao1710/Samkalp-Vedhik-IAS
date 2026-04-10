@@ -43,6 +43,15 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.ge
     if not user:
         raise HTTPException(status_code=403, detail="Invalid Credentials")
     
+    # Check if role matches the login portal used
+    # Admins are allowed to login through the faculty portal
+    is_admin_on_faculty = (user.role == 'admin' and user_credentials.role == 'faculty')
+    if user.role != user_credentials.role and not is_admin_on_faculty:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"This account is registered as a {user.role}. Please use the correct sign-in page."
+        )
+    
     if not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(status_code=403, detail="Invalid Credentials")
     
