@@ -19,6 +19,7 @@ class User(Base):
     phone = Column(String, nullable=True)
     location = Column(String, nullable=True)
     target_exam = Column(String, nullable=True)
+    department = Column(String, nullable=True)
     profile_image = Column(String, nullable=True)
     study_streak = Column(Integer, default=0)
     preferences_json = Column(Text, nullable=True)

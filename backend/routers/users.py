@@ -69,11 +69,20 @@ def update_profile(user_id: int, profile: schemas.ProfileUpdate, db: Session = D
         db_user.location = profile.location
     if profile.target_exam is not None:
         db_user.target_exam = profile.target_exam
+    if profile.department is not None:
+        db_user.department = profile.department
     if profile.preferences_json is not None:
         db_user.preferences_json = profile.preferences_json
         
-    db.commit()
-    db.refresh(db_user)
+    try:
+        db.commit()
+        db.refresh(db_user)
+    except Exception as e:
+        db.rollback()
+        if "unique constraint" in str(e).lower() or "already exists" in str(e).lower():
+            raise HTTPException(status_code=400, detail="Email already taken by another user")
+        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+        
     return db_user
 
 @router.put("/update-password/{user_id}")
