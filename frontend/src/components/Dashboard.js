@@ -166,19 +166,19 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
                       <span>{mainCourse.modules} modules</span>
                       <button
-                        onClick={() => setCurrentView('Courses')}
-                        style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '600', border: 'none', background: 'none', cursor: 'pointer' }}
-                      >
-                        Continue →
-                      </button>
-                    </div>
+                      onClick={() => setCurrentView('Courses')}
+                      style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}
+                    >
+                      Continue Learning →
+                    </button>
                   </div>
-                ) : (
-                  <div className="course-card" style={{ textAlign: 'center', padding: '2rem' }}>
-                    <p style={{ color: '#64748b', marginBottom: '1rem' }}>You haven't enrolled in any courses yet.</p>
-                    <button onClick={() => setCurrentView('Courses')} className="adm-submit-btn" style={{ width: 'auto', padding: '0.5rem 1.5rem' }}>Browse Courses</button>
-                  </div>
-                )}
+                </div>
+              ) : (
+                <div className="course-card" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>You haven't enrolled in any courses yet.</p>
+                  <button onClick={() => setCurrentView('Courses')} className="admin-submit-btn" style={{ width: 'auto', padding: '0.5rem 2rem' }}>Browse Courses</button>
+                </div>
+              )}
               </section>
 
               <aside>
