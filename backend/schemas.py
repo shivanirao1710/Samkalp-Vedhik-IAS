@@ -42,6 +42,10 @@ class PasswordReset(BaseModel):
     user_id: int
     new_password: str
 
+class PasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+
 class UserAdminResponse(BaseModel):
     id: int
     email: str

@@ -28,12 +28,29 @@ const Settings = ({ user, onBack }) => {
       return;
     }
     setLoading(true);
-    // Mimicking API response time since there's no backend route yet
-    setTimeout(() => {
-      alert("Password completely updated!");
-      setPasswordData({ current: '', new: '', confirm: '' });
+    try {
+      const res = await fetch(`http://localhost:8000/users/update-password/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          current_password: passwordData.current,
+          new_password: passwordData.new
+        }),
+      });
+
+      if (res.ok) {
+        alert("Password completely updated!");
+        setPasswordData({ current: '', new: '', confirm: '' });
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to update password: ${errorData.detail || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error connecting to server to change password.");
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
