@@ -28,11 +28,12 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           ###### Location Configurations ######
-          app_location: "/frontend"
+          app_location: "frontend"
           api_location: ""
           output_location: "build"
           ###### End of Location Configurations ######
         env:
+          CI: false
           REACT_APP_API_URL: https://samkalp-backend-hacrbsdmccdbcpfa.centralindia-01.azurewebsites.net
 
   close_pull_request_job:
