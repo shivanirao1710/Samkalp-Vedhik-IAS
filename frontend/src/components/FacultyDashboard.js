@@ -66,6 +66,11 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
     { title: 'Create Test', subtitle: 'Add new test', icon: '＋', target: 'Tests', trigger: () => setIsTestModalOpen(true) },
     { title: 'Send Announcement', subtitle: 'Message all students', icon: '🔔', target: 'Announcements' },
+    { title: 'Post Daily News', subtitle: 'Upload current affairs', icon: '🌍', target: 'Current Affairs', trigger: () => {
+        setCAForm({ title: getDefaultCATitle() });
+        setIsCAModalOpen(true);
+    }},
+    { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '📚', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
     { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews', target: 'Interviews' },
   ];
 
