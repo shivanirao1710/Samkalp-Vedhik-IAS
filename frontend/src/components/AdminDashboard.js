@@ -58,7 +58,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const fetchUsers = async () => {
     try {
-      const resp = await fetch('http://127.0.0.1:8000/admin/users');
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/admin/users`);
       const data = await resp.json();
       setUsers(data);
     } catch (err) {
@@ -72,7 +72,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     e.preventDefault();
     setFacultySuccess(null);
     try {
-      const resp = await fetch('http://127.0.0.1:8000/admin/faculty', {
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/admin/faculty`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newFaculty, role: 'faculty' })
@@ -92,7 +92,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const handleResetPassword = async () => {
     try {
-      const resp = await fetch('http://127.0.0.1:8000/admin/reset-password', {
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/admin/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: resetData.userId, new_password: resetData.newPassword })
@@ -109,7 +109,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Are you sure? This is permanent.")) return;
     try {
-      await fetch(`http://127.0.0.1:8000/admin/user/${id}`, { method: 'DELETE' });
+      await fetch(`${process.env.REACT_APP_API_URL}/admin/user/${id}`, { method: 'DELETE' });
       fetchUsers();
     } catch (err) {
       alert("Delete failed");
