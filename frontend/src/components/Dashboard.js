@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/shared-layout.css';
 import '../styles/Dashboard.css';
 import Courses from './Courses';
@@ -30,6 +30,33 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [upcomingTests, setUpcomingTests] = useState([]);
   const [liveSessions, setLiveSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [latestCA, setLatestCA] = useState(null);
+  const [showCAPopup, setShowCAPopup] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    fetchLatestCA();
+    return () => clearInterval(timer);
+  }, []);
+
+  const fetchLatestCA = async () => {
+    try {
+        const res = await fetch('http://localhost:8000/current-affairs/');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.length > 0) {
+                setLatestCA(data[0]);
+                // Show popup if it's from today or yesterday
+                const uploadDate = new Date(data[0].published_date);
+                const diffDays = Math.abs(new Date() - uploadDate) / (1000 * 60 * 60 * 24);
+                if (diffDays <= 2) {
+                    setTimeout(() => setShowCAPopup(true), 2000); // Wait 2s for login feel
+                }
+            }
+        }
+    } catch (err) { console.error(err); }
+  };
 
   // Notifications State
   const [notifications, setNotifications] = useState([]);
@@ -50,7 +77,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     } catch (err) { console.error(err); }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchDashboardData = async () => {
       // Only fetch if we are actually viewing the main dashboard summary
       if (currentView !== 'Dashboard') return;
@@ -314,7 +341,51 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
       {/* Main Content */}
       <main className="main-content">
         <header className="top-bar">
-          <div style={{ flex: 1 }}></div> {/* Spacer to keep profile on the right */}
+          <div className="live-clock-wrapper" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative' }}>
+            <div style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 8px #22c55e' }}></div>
+            <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-main)', letterSpacing: '0.02em' }}>
+              {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+              | {currentTime.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}
+            </span>
+
+            {showCAPopup && latestCA && (
+                <div className="ca-login-popup" style={{ 
+                    position: 'absolute', 
+                    top: '60px', 
+                    left: '0', 
+                    background: 'var(--bg-card)', 
+                    padding: '1rem 1.5rem', 
+                    borderRadius: '20px', 
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.15)', 
+                    border: '1.5px solid var(--primary)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1rem', 
+                    zIndex: 1000, 
+                    animation: 'slideDown 0.5s ease',
+                    minWidth: '350px',
+                    textAlign: 'left'
+                }}>
+                    <div style={{ fontSize: '1.5rem' }}>🌎</div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase' }}>Daily Briefing Ready</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-main)', display: 'block' }}>{latestCA.title}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <button 
+                            onClick={() => { setCurrentView('Current Affairs'); setShowCAPopup(false); }}
+                            style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: 'var(--bg-gradient)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                        >Read Now</button>
+                        <button 
+                            onClick={() => setShowCAPopup(false)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-muted)', padding: '0 5px' }}
+                        >✕</button>
+                    </div>
+                </div>
+            )}
+          </div>
 
           <div className="profile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
@@ -369,21 +440,24 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                 </div>
               )}
 
-              <div className="avatar">
+              <div className="avatar" onClick={() => setIsProfileOpen(!isProfileOpen)}>
                 {(user.name || user.email).substring(0, 2).toUpperCase()}
               </div>
-            </div>
 
-            {isProfileOpen && (
-              <div className="profile-dropdown">
-                <button className="dropdown-item" onClick={() => { setCurrentView('Profile'); setIsProfileOpen(false); }}>
-                  <span className="icon">👤</span> My Profile
-                </button>
-                <button className="dropdown-item" onClick={() => { setCurrentView('Settings'); setIsProfileOpen(false); }}>
-                  <span className="icon">⚙️</span> Settings
-                </button>
-              </div>
-            )}
+              {isProfileOpen && (
+                <div className="profile-dropdown" style={{ top: '60px' }}>
+                  <button className="dropdown-item" onClick={() => { setCurrentView('Profile'); setIsProfileOpen(false); }}>
+                    <span className="icon">👤</span> My Profile
+                  </button>
+                  <button className="dropdown-item" onClick={() => { setCurrentView('Settings'); setIsProfileOpen(false); }}>
+                    <span className="icon">⚙️</span> Settings
+                  </button>
+                  <button className="dropdown-item logout" onClick={onLogout} style={{ color: '#ef4444' }}>
+                    <span className="icon">↪</span> Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
