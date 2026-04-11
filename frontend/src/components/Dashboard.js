@@ -19,6 +19,13 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
   const [isMentorToggle, setIsMentorToggle] = useState(false);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   // Live Data States
   const [dashboardStats, setDashboardStats] = useState({
     overallProgress: '0%',
@@ -189,13 +196,49 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
         return (
           <>
-            <section className="hero-banner">
-              <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
-              <p className="hero-subtitle" style={{ opacity: 0.9 }}>
-                {enrolledCourses.length > 0
-                  ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
-                  : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
-              </p>
+            <section className="hero-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'visible' }}>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{getGreeting()}, {user.name || user.email.split('@')[0]}! 👋</h2>
+                <p className="hero-subtitle" style={{ opacity: 0.9, fontSize: '1.1rem' }}>
+                    {enrolledCourses.length > 0
+                    ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
+                    : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
+                </p>
+              </div>
+
+              {showCAPopup && latestCA && (
+                <div className="ca-hero-popup" style={{ 
+                    background: 'rgba(255, 255, 255, 0.2)', 
+                    backdropFilter: 'blur(12px)',
+                    padding: '1.25rem', 
+                    borderRadius: '24px', 
+                    border: '1px solid rgba(255, 255, 255, 0.4)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1.25rem', 
+                    animation: 'fadeInRight 0.6s ease',
+                    maxWidth: '420px',
+                    color: 'white',
+                    marginLeft: '2rem',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                }}>
+                    <div style={{ fontSize: '2.2rem' }}>🌍</div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>Daily Briefing Ready</div>
+                        <div style={{ fontSize: '1rem', fontWeight: '700', margin: '0.25rem 0' }}>{latestCA.title}</div>
+                        <button 
+                            onClick={() => { setCurrentView('Current Affairs'); setShowCAPopup(false); }}
+                            style={{ marginTop: '0.5rem', padding: '0.5rem 1.25rem', borderRadius: '12px', background: 'white', color: '#f97316', border: 'none', fontWeight: '800', cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s' }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >READ UPDATE</button>
+                    </div>
+                    <button 
+                        onClick={() => setShowCAPopup(false)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'white', opacity: 0.6, alignSelf: 'flex-start' }}
+                    >✕</button>
+                </div>
+              )}
             </section>
 
 
@@ -349,42 +392,6 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
               | {currentTime.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}
             </span>
-
-            {showCAPopup && latestCA && (
-                <div className="ca-login-popup" style={{ 
-                    position: 'absolute', 
-                    top: '60px', 
-                    left: '0', 
-                    background: 'var(--bg-card)', 
-                    padding: '1rem 1.5rem', 
-                    borderRadius: '20px', 
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.15)', 
-                    border: '1.5px solid var(--primary)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '1rem', 
-                    zIndex: 1000, 
-                    animation: 'slideDown 0.5s ease',
-                    minWidth: '350px',
-                    textAlign: 'left'
-                }}>
-                    <div style={{ fontSize: '1.5rem' }}>🌎</div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--primary)', textTransform: 'uppercase' }}>Daily Briefing Ready</div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-main)', display: 'block' }}>{latestCA.title}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <button 
-                            onClick={() => { setCurrentView('Current Affairs'); setShowCAPopup(false); }}
-                            style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: 'var(--bg-gradient)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
-                        >Read Now</button>
-                        <button 
-                            onClick={() => setShowCAPopup(false)}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-muted)', padding: '0 5px' }}
-                        >✕</button>
-                    </div>
-                </div>
-            )}
           </div>
 
           <div className="profile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
