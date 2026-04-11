@@ -12,12 +12,13 @@ import StudyMaterials from './StudyMaterials';
 import StudentProfile from './StudentProfile';
 import Settings from './Settings';
 import AIDoubtSolver from './AIDoubtSolver';
+import CurrentAffairs from './CurrentAffairs';
 import logo from '../images/logo.png';
 
 const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
   const [isMentorToggle, setIsMentorToggle] = useState(false);
-  
+
   // Live Data States
   const [dashboardStats, setDashboardStats] = useState({
     overallProgress: '0%',
@@ -53,7 +54,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     const fetchDashboardData = async () => {
       // Only fetch if we are actually viewing the main dashboard summary
       if (currentView !== 'Dashboard') return;
-      
+
       setLoading(true);
       try {
         // 1. Sync profile
@@ -68,8 +69,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         if (statsResp.ok) {
           const statsData = await statsResp.json();
           setDashboardStats({
-            overallProgress: '0%', 
-            learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h', 
+            overallProgress: '0%',
+            learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h',
             testsCompleted: `${statsData.tests_taken}/20`,
             dayStreak: statsData.study_streak.toString()
           });
@@ -86,14 +87,14 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         const testsResp = await fetch(`http://localhost:8000/tests/`);
         if (testsResp.ok) {
           const tests = await testsResp.json();
-          setUpcomingTests(tests.slice(0, 2)); 
+          setUpcomingTests(tests.slice(0, 2));
         }
 
         // 5. Fetch Live Sessions
         const liveResp = await fetch(`http://localhost:8000/live-classes/`);
         if (liveResp.ok) {
           const sessions = await liveResp.json();
-          setLiveSessions(sessions.slice(0, 1)); 
+          setLiveSessions(sessions.slice(0, 1));
         }
 
         // 6. Fetch Notifications
@@ -110,7 +111,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, [user.id, currentView]); // RE-FETCH WHEN USER CLICKS BACK ON DASHBOARD
 
@@ -122,6 +123,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Mock Interview', icon: '📹' },
     { name: 'Psychometric Test', icon: '🧠' },
     { name: 'Live Classes', icon: '📺' },
+    { name: 'Current Affairs', icon: '🌍' },
     { name: 'AI Doubt Solver', icon: '❓' },
   ];
 
@@ -148,6 +150,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return <LiveClasses user={user} />;
       case 'AI Doubt Solver':
         return <AIDoubtSolver user={user} />;
+      case 'Current Affairs':
+        return <CurrentAffairs user={user} />;
       case 'Profile':
         return <StudentProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setCurrentView('Dashboard')} />;
       case 'Settings':
@@ -161,7 +165,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
             <section className="hero-banner">
               <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
               <p className="hero-subtitle" style={{ opacity: 0.9 }}>
-                {enrolledCourses.length > 0 
+                {enrolledCourses.length > 0
                   ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
                   : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
               </p>
@@ -200,19 +204,19 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
                       <span>{mainCourse.modules} modules</span>
                       <button
-                      onClick={() => setCurrentView('Courses')}
-                      style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}
-                    >
-                      Continue Learning →
-                    </button>
+                        onClick={() => setCurrentView('Courses')}
+                        style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}
+                      >
+                        Continue Learning →
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="course-card" style={{ textAlign: 'center', padding: '2rem' }}>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>You haven't enrolled in any courses yet.</p>
-                  <button onClick={() => setCurrentView('Courses')} className="admin-submit-btn" style={{ width: 'auto', padding: '0.5rem 2rem' }}>Browse Courses</button>
-                </div>
-              )}
+                ) : (
+                  <div className="course-card" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>You haven't enrolled in any courses yet.</p>
+                    <button onClick={() => setCurrentView('Courses')} className="admin-submit-btn" style={{ width: 'auto', padding: '0.5rem 2rem' }}>Browse Courses</button>
+                  </div>
+                )}
               </section>
 
               <aside>
@@ -240,7 +244,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Live Sessions</h3>
                   <button onClick={() => setCurrentView('Live Classes')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
                 </div>
-                
+
                 {liveSessions.length > 0 ? (
                   <div className="live-item-mini" style={{ padding: '1.25rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #ffedd5' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -330,8 +334,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     <h4>Notifications</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {notifications.length > 0 && <button onClick={() => setNotifications([])} className="clear-all">Clear All</button>}
-                      <button 
-                        onClick={() => setShowNotifications(false)} 
+                      <button
+                        onClick={() => setShowNotifications(false)}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#64748b', lineHeight: 1, padding: '2px 6px', borderRadius: '6px' }}
                         title="Close"
                       >✕</button>
@@ -341,9 +345,9 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     {notifications.length > 0 ? (
                       notifications.map(noti => (
                         <div key={noti.id} className={`notification-item ${noti.type} ${noti.is_read ? 'read' : ''}`}>
-                          <div 
-                            className="noti-icon" 
-                            onClick={() => !noti.is_read && markAsRead(noti.id)} 
+                          <div
+                            className="noti-icon"
+                            onClick={() => !noti.is_read && markAsRead(noti.id)}
                             style={{ cursor: noti.is_read ? 'default' : 'pointer', transition: 'all 0.2s', filter: noti.is_read ? 'grayscale(0)' : 'none' }}
                             title={noti.is_read ? "Read" : "Mark as read"}
                           >

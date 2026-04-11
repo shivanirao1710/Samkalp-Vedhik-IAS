@@ -140,3 +140,15 @@ class AdminRequestResponse(BaseModel):
     created_at: datetime
     class Config:
         from_attributes = True
+
+class CurrentAffairsCreate(BaseModel):
+    title: str
+
+class CurrentAffairsResponse(BaseModel):
+    id: int
+    title: str
+    content_url: Optional[str]
+    file_type: str
+    published_date: datetime
+    class Config:
+        from_attributes = True

@@ -37,6 +37,14 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [studyMaterialFiles, setStudyMaterialFiles] = useState([]);
   const [isUploadingMaterials, setIsUploadingMaterials] = useState(false);
 
+  // Current Affairs State
+  const [currentAffairs, setCurrentAffairs] = useState([]);
+  const [isCAModalOpen, setIsCAModalOpen] = useState(false);
+  const [caForm, setCAForm] = useState({ title: '' });
+  const [caFile, setCAFile] = useState(null);
+  const [isUploadingCA, setIsUploadingCA] = useState(false);
+  const [caPreviewItem, setCAPreviewItem] = useState(null);
+
   const menuItems = [
     { name: 'Dashboard', icon: '⊞' },
     { name: 'Students', icon: '👥' },
@@ -47,6 +55,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Interviews', icon: '📹' },
     { name: 'Reports', icon: '📊' },
     { name: 'Announcements', icon: '🔔' },
+    { name: 'Current Affairs', icon: '🌍' },
   ];
 
   const actions = [
@@ -90,6 +99,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     fetchStudents();
     fetchAnnouncements();
     fetchAdminRequests();
+    fetchCurrentAffairs();
   }, []);
 
   const fetchAdminRequests = async () => {
@@ -102,16 +112,16 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleSendRequest = async (e) => {
     e.preventDefault();
     if (!newRequest.subject || !newRequest.message) return alert("Please fill all fields");
-    
+
     setIsSendingRequest(true);
     try {
       const res = await fetch('http://localhost:8000/admin/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          ...newRequest, 
-          faculty_id: user.id, 
-          faculty_name: user.name || user.email.split('@')[0] 
+        body: JSON.stringify({
+          ...newRequest,
+          faculty_id: user.id,
+          faculty_name: user.name || user.email.split('@')[0]
         })
       });
       if (res.ok) {
@@ -133,7 +143,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleSendAnnouncement = async (e) => {
     e.preventDefault();
     if (!newAnnouncement.title || !newAnnouncement.message) return alert("Please fill all fields");
-    
+
     setIsSendingAnnouncement(true);
     try {
       const res = await fetch('http://localhost:8000/notifications/', {
@@ -187,6 +197,46 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     } finally {
       setLoadingStudents(false);
     }
+  };
+
+  const fetchCurrentAffairs = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/current-affairs/');
+      if (res.ok) setCurrentAffairs(await res.json());
+    } catch (err) { console.error(err); }
+  };
+
+  const handleCASubmit = async (e) => {
+    e.preventDefault();
+    if (!caFile) return alert("Please select a file.");
+
+    setIsUploadingCA(true);
+    const fd = new FormData();
+    fd.append('title', caForm.title || caFile.name.split('.')[0]);
+    fd.append('file', caFile);
+
+    try {
+      const res = await fetch('http://localhost:8000/current-affairs/', { method: 'POST', body: fd });
+      if (res.ok) {
+        alert("Daily Current Affairs uploaded!");
+        setIsCAModalOpen(false);
+        setCAFile(null);
+        setCAForm({ title: '' });
+        fetchCurrentAffairs();
+      }
+    } catch (err) {
+      console.error('Error uploading CA:', err);
+    } finally {
+      setIsUploadingCA(false);
+    }
+  };
+
+  const handleDeleteCA = async (id) => {
+    if (!window.confirm("Delete this daily update?")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/current-affairs/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchCurrentAffairs();
+    } catch (err) { console.error(err); }
   };
 
   const fetchGeneralStats = async () => {
@@ -287,9 +337,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
       <div className="student-search-bar">
         <span>🔍</span>
-        <input 
-          type="text" 
-          placeholder="Search students by name, email, or phone..." 
+        <input
+          type="text"
+          placeholder="Search students by name, email, or phone..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -313,7 +363,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </thead>
           <tbody>
             {studentData
-              .filter(student => 
+              .filter(student =>
                 (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -346,17 +396,17 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   </td>
                 </tr>
               ))}
-            {studentData.filter(student => 
+            {studentData.filter(student =>
               (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
               (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
               (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
             ).length === 0 && (
-              <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                  No students found matching "{searchTerm}"
-                </td>
-              </tr>
-            )}
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                    No students found matching "{searchTerm}"
+                  </td>
+                </tr>
+              )}
           </tbody>
         </table>
 
@@ -438,41 +488,41 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       alert("Please select at least one file.");
       return;
     }
-    
+
     setIsUploadingMaterials(true);
     let successCount = 0;
-    
-    for (const file of studyMaterialFiles) {
-        const fd = new FormData();
-        const titleToUse = studyMaterialFiles.length === 1 && studyMaterialForm.title 
-            ? studyMaterialForm.title 
-            : file.name.split('.').slice(0, -1).join('.');
-            
-        fd.append('title', titleToUse);
-        fd.append('description', studyMaterialForm.description);
-        fd.append('category', studyMaterialForm.category);
-        fd.append('file', file);
 
-        try {
-            const res = await fetch('http://localhost:8000/study-materials/', { method: 'POST', body: fd });
-            if (res.ok) {
-                successCount++;
-            }
-        } catch (err) {
-            console.error('Error uploading file:', err);
+    for (const file of studyMaterialFiles) {
+      const fd = new FormData();
+      const titleToUse = studyMaterialFiles.length === 1 && studyMaterialForm.title
+        ? studyMaterialForm.title
+        : file.name.split('.').slice(0, -1).join('.');
+
+      fd.append('title', titleToUse);
+      fd.append('description', studyMaterialForm.description);
+      fd.append('category', studyMaterialForm.category);
+      fd.append('file', file);
+
+      try {
+        const res = await fetch('http://localhost:8000/study-materials/', { method: 'POST', body: fd });
+        if (res.ok) {
+          successCount++;
         }
+      } catch (err) {
+        console.error('Error uploading file:', err);
+      }
     }
-    
+
     setIsUploadingMaterials(false);
-    
+
     if (successCount > 0) {
-        alert(`Successfully uploaded ${successCount} material(s)`);
-        setIsStudyMaterialModalOpen(false);
-        setStudyMaterialFiles([]);
-        setStudyMaterialForm({ title: '', description: '', category: 'General Studies' });
-        fetchStudyMaterials();
+      alert(`Successfully uploaded ${successCount} material(s)`);
+      setIsStudyMaterialModalOpen(false);
+      setStudyMaterialFiles([]);
+      setStudyMaterialForm({ title: '', description: '', category: 'General Studies' });
+      fetchStudyMaterials();
     } else {
-        alert("Failed to upload materials. Please try again.");
+      alert("Failed to upload materials. Please try again.");
     }
   };
 
@@ -1093,61 +1143,61 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     const parseData = (data) => {
       let newQuestions = [];
       data.forEach(row => {
-          const qText = row.Question || row.question || row['Question Text'];
-          const optA = row['Option A'] || row.OptionA || row.A;
-          const optB = row['Option B'] || row.OptionB || row.B;
-          const optC = row['Option C'] || row.OptionC || row.C;
-          const optD = row['Option D'] || row.OptionD || row.D;
-          const correctOpt = String(row['Correct Option'] || row.Correct || row.Answer || '').trim().toUpperCase();
-          const explanation = row.Explanation || row.explanation || '';
-          
-          if(qText && optA && optB) {
-              newQuestions.push({
-                  text: qText,
-                  explanation: explanation,
-                  options: [
-                      { text: optA, is_correct: correctOpt === 'A' || correctOpt === optA },
-                      { text: optB, is_correct: correctOpt === 'B' || correctOpt === optB },
-                      { text: optC, is_correct: correctOpt === 'C' || correctOpt === optC },
-                      { text: optD, is_correct: correctOpt === 'D' || correctOpt === optD }
-                  ].filter(o => o.text !== undefined && o.text !== "")
-              });
-          }
+        const qText = row.Question || row.question || row['Question Text'];
+        const optA = row['Option A'] || row.OptionA || row.A;
+        const optB = row['Option B'] || row.OptionB || row.B;
+        const optC = row['Option C'] || row.OptionC || row.C;
+        const optD = row['Option D'] || row.OptionD || row.D;
+        const correctOpt = String(row['Correct Option'] || row.Correct || row.Answer || '').trim().toUpperCase();
+        const explanation = row.Explanation || row.explanation || '';
+
+        if (qText && optA && optB) {
+          newQuestions.push({
+            text: qText,
+            explanation: explanation,
+            options: [
+              { text: optA, is_correct: correctOpt === 'A' || correctOpt === optA },
+              { text: optB, is_correct: correctOpt === 'B' || correctOpt === optB },
+              { text: optC, is_correct: correctOpt === 'C' || correctOpt === optC },
+              { text: optD, is_correct: correctOpt === 'D' || correctOpt === optD }
+            ].filter(o => o.text !== undefined && o.text !== "")
+          });
+        }
       });
-      
-      if(newQuestions.length > 0) {
-          setTestFormData(prev => ({
-              ...prev,
-              questions: [...prev.questions, ...newQuestions]
-          }));
-          alert(`Successfully loaded ${newQuestions.length} questions!`);
+
+      if (newQuestions.length > 0) {
+        setTestFormData(prev => ({
+          ...prev,
+          questions: [...prev.questions, ...newQuestions]
+        }));
+        alert(`Successfully loaded ${newQuestions.length} questions!`);
       } else {
-          alert('No valid questions found in file. Please ensure headings like "Question", "Option A", "Option B", "Correct Option" are present.');
+        alert('No valid questions found in file. Please ensure headings like "Question", "Option A", "Option B", "Correct Option" are present.');
       }
       e.target.value = null;
     };
 
     if (file.name.endsWith('.csv')) {
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                parseData(results.data);
-            }
-        });
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          parseData(results.data);
+        }
+      });
     } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-            const bstr = evt.target.result;
-            const workbook = XLSX.read(bstr, { type: 'binary' });
-            const wsname = workbook.SheetNames[0];
-            const ws = workbook.Sheets[wsname];
-            const data = XLSX.utils.sheet_to_json(ws);
-            parseData(data);
-        };
-        reader.readAsBinaryString(file);
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const bstr = evt.target.result;
+        const workbook = XLSX.read(bstr, { type: 'binary' });
+        const wsname = workbook.SheetNames[0];
+        const ws = workbook.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws);
+        parseData(data);
+      };
+      reader.readAsBinaryString(file);
     } else {
-        alert("Unsupported file format. Please upload a CSV or Excel file.");
+      alert("Unsupported file format. Please upload a CSV or Excel file.");
     }
   };
 
@@ -1292,28 +1342,28 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </div>
 
             <div className="bulk-upload-zone" style={{ border: '1.5px dashed #10b981', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#f0fdf4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <h4 style={{ color: '#10b981', margin: '0 0 0.5rem 0' }}>Bulk Upload via Excel/CSV</h4>
-                    <p style={{ fontSize: '0.85rem', color: '#047857', margin: 0 }}>Easily upload many questions at once.</p>
-                </div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button type="button" onClick={() => {
-                        const csvContent = "data:text/csv;charset=utf-8,Question,Option A,Option B,Option C,Option D,Correct Option,Explanation\nSample Question 1?,Apple,Banana,Orange,Grape,A,Apple is correct\nSample Question 2?,Cat,Dog,Bird,Fish,B,Dog is correct";
-                        const encodedUri = encodeURI(csvContent);
-                        const link = document.createElement("a");
-                        link.setAttribute("href", encodedUri);
-                        link.setAttribute("download", "questions_template.csv");
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    }} style={{ fontSize: '0.85rem', color: '#10b981', background: 'none', border: '1px solid #10b981', padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer' }}>
-                        Download Template
-                    </button>
-                    <label style={{ background: '#10b981', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                        Upload File
-                        <input type="file" accept=".csv, .xlsx, .xls" onChange={handleBulkUpload} style={{ display: 'none' }} />
-                    </label>
-                </div>
+              <div>
+                <h4 style={{ color: '#10b981', margin: '0 0 0.5rem 0' }}>Bulk Upload via Excel/CSV</h4>
+                <p style={{ fontSize: '0.85rem', color: '#047857', margin: 0 }}>Easily upload many questions at once.</p>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => {
+                  const csvContent = "data:text/csv;charset=utf-8,Question,Option A,Option B,Option C,Option D,Correct Option,Explanation\nSample Question 1?,Apple,Banana,Orange,Grape,A,Apple is correct\nSample Question 2?,Cat,Dog,Bird,Fish,B,Dog is correct";
+                  const encodedUri = encodeURI(csvContent);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", encodedUri);
+                  link.setAttribute("download", "questions_template.csv");
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }} style={{ fontSize: '0.85rem', color: '#10b981', background: 'none', border: '1px solid #10b981', padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer' }}>
+                  Download Template
+                </button>
+                <label style={{ background: '#10b981', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                  Upload File
+                  <input type="file" accept=".csv, .xlsx, .xls" onChange={handleBulkUpload} style={{ display: 'none' }} />
+                </label>
+              </div>
             </div>
 
             <div className="question-entry-zone" style={{ border: '1.5px dashed #F2921D', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#fffefc' }}>
@@ -2151,91 +2201,91 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           ).map(([groupName, mats]) => {
             if (mats.length === 0) return null;
             const rowId = `scroll-row-${groupName.replace(/\s+/g, '-')}`;
-            
+
             const scrollRow = (direction) => {
-                const container = document.getElementById(rowId);
-                if (container) {
-                    const scrollAmount = 350;
-                    container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-                }
+              const container = document.getElementById(rowId);
+              if (container) {
+                const scrollAmount = 350;
+                container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+              }
             };
 
             const getIconClass = (type) => {
-                const lowerProp = String(type || '').toLowerCase();
-                if (lowerProp.includes('pdf')) return 'icon-pdf ebook-style';
-                if (lowerProp.includes('video') || lowerProp.includes('mp4')) return 'icon-video';
-                if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return 'icon-presentation';
-                if (lowerProp.includes('word') || lowerProp.includes('doc')) return 'icon-word';
-                if (lowerProp.includes('image') || lowerProp.includes('jpg') || lowerProp.includes('png')) return 'icon-image';
-                if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return 'icon-pdf ebook-style';
-                return 'icon-document';
+              const lowerProp = String(type || '').toLowerCase();
+              if (lowerProp.includes('pdf')) return 'icon-pdf ebook-style';
+              if (lowerProp.includes('video') || lowerProp.includes('mp4')) return 'icon-video';
+              if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return 'icon-presentation';
+              if (lowerProp.includes('word') || lowerProp.includes('doc')) return 'icon-word';
+              if (lowerProp.includes('image') || lowerProp.includes('jpg') || lowerProp.includes('png')) return 'icon-image';
+              if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return 'icon-pdf ebook-style';
+              return 'icon-document';
             };
 
             const getIcon = (type) => {
-                const lowerProp = String(type || '').toLowerCase();
-                if (lowerProp.includes('pdf')) return '📖';
-                if (lowerProp.includes('video') || lowerProp.includes('mp4')) return '▶️';
-                if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return '📊';
-                if (lowerProp.includes('word') || lowerProp.includes('doc')) return '📝';
-                if (lowerProp.includes('image') || lowerProp.includes('jpg') || lowerProp.includes('png')) return '🖼️';
-                if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return '📖';
-                return '📁';
+              const lowerProp = String(type || '').toLowerCase();
+              if (lowerProp.includes('pdf')) return '📖';
+              if (lowerProp.includes('video') || lowerProp.includes('mp4')) return '▶️';
+              if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return '📊';
+              if (lowerProp.includes('word') || lowerProp.includes('doc')) return '📝';
+              if (lowerProp.includes('image') || lowerProp.includes('jpg') || lowerProp.includes('png')) return '🖼️';
+              if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return '📖';
+              return '📁';
             };
 
             return (
-                <div key={groupName} className="material-group" style={{ marginBottom: '3rem' }}>
-                    <div className="material-group-header">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <h2 className="material-group-title">{groupName}</h2>
-                            <span className="material-group-count">{mats.length} Item{mats.length !== 1 ? 's' : ''}</span>
-                        </div>
-                        {mats.length > 4 && (
-                            <button className="see-all-btn" onClick={() => {
-                                const container = document.getElementById(rowId);
-                                if (container) {
-                                    container.classList.toggle('expanded');
-                                }
-                            }}>See All</button>
-                        )}
-                    </div>
-                    <div className="materials-row-container">
-                        {mats.length > 4 && (
-                            <button className="scroll-arrow left" onClick={() => scrollRow('left')}>‹</button>
-                        )}
-                        <div id={rowId} className="materials-row">
-                            {mats.map(mat => (
-                                <div key={mat.id} className="material-card" style={{ position: 'relative' }}>
-                                    <button 
-                                        className="delete-material-btn" 
-                                        onClick={() => handleDeleteMaterial(mat.id)} 
-                                        title="Delete Material"
-                                        style={{ 
-                                            position: 'absolute', top: '10px', right: '10px', 
-                                            background: '#fef2f2', border: '1px solid #fee2e2', 
-                                            color: '#ef4444', width: '32px', height: '32px', 
-                                            borderRadius: '50%', display: 'flex', 
-                                            alignItems: 'center', justifyContent: 'center', 
-                                            cursor: 'pointer', zIndex: 10,
-                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                            fontSize: '1rem'
-                                        }}>
-                                        🗑️
-                                    </button>
-
-                                    <div className={`material-icon ${getIconClass(mat.file_type || mat.file_url || '')}`}>
-                                        {getIcon(mat.file_type || mat.file_url || '')}
-                                    </div>
-                                    <div className="material-category">{mat.category}</div>
-                                    <h3 className="material-title">{mat.title}</h3>
-                                    <p className="material-desc">{mat.description || 'No description provided.'}</p>
-                                </div>
-                            ))}
-                        </div>
-                        {mats.length > 4 && (
-                            <button className="scroll-arrow right" onClick={() => scrollRow('right')}>›</button>
-                        )}
-                    </div>
+              <div key={groupName} className="material-group" style={{ marginBottom: '3rem' }}>
+                <div className="material-group-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <h2 className="material-group-title">{groupName}</h2>
+                    <span className="material-group-count">{mats.length} Item{mats.length !== 1 ? 's' : ''}</span>
+                  </div>
+                  {mats.length > 4 && (
+                    <button className="see-all-btn" onClick={() => {
+                      const container = document.getElementById(rowId);
+                      if (container) {
+                        container.classList.toggle('expanded');
+                      }
+                    }}>See All</button>
+                  )}
                 </div>
+                <div className="materials-row-container">
+                  {mats.length > 4 && (
+                    <button className="scroll-arrow left" onClick={() => scrollRow('left')}>‹</button>
+                  )}
+                  <div id={rowId} className="materials-row">
+                    {mats.map(mat => (
+                      <div key={mat.id} className="material-card" style={{ position: 'relative' }}>
+                        <button
+                          className="delete-material-btn"
+                          onClick={() => handleDeleteMaterial(mat.id)}
+                          title="Delete Material"
+                          style={{
+                            position: 'absolute', top: '10px', right: '10px',
+                            background: '#fef2f2', border: '1px solid #fee2e2',
+                            color: '#ef4444', width: '32px', height: '32px',
+                            borderRadius: '50%', display: 'flex',
+                            alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', zIndex: 10,
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            fontSize: '1rem'
+                          }}>
+                          🗑️
+                        </button>
+
+                        <div className={`material-icon ${getIconClass(mat.file_type || mat.file_url || '')}`}>
+                          {getIcon(mat.file_type || mat.file_url || '')}
+                        </div>
+                        <div className="material-category">{mat.category}</div>
+                        <h3 className="material-title">{mat.title}</h3>
+                        <p className="material-desc">{mat.description || 'No description provided.'}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {mats.length > 4 && (
+                    <button className="scroll-arrow right" onClick={() => scrollRow('right')}>›</button>
+                  )}
+                </div>
+              </div>
             );
           })
         )}
@@ -2250,15 +2300,15 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </div>
             <form onSubmit={handleStudyMaterialSubmit} className="adm-modal-form">
               <div className="form-group">
-                <label>Title <span style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'normal'}}>(Optional for bulk max. Defaults to filename)</span></label>
+                <label>Title <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional for bulk max. Defaults to filename)</span></label>
                 <input type="text" value={studyMaterialForm.title} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, title: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>Description <span style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'normal'}}>(Applied to all)</span></label>
+                <label>Description <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Applied to all)</span></label>
                 <textarea rows="2" value={studyMaterialForm.description} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, description: e.target.value })} style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
               </div>
               <div className="form-group">
-                <label>Category <span style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'normal'}}>(Applied to all)</span></label>
+                <label>Category <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Applied to all)</span></label>
                 <select value={studyMaterialForm.category} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, category: e.target.value })}>
                   <option>General Studies</option>
                   <option>Polity</option>
@@ -2270,7 +2320,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               <div className="form-group">
                 <label>Files (Select Multiple)</label>
                 <input required type="file" multiple onChange={e => setStudyMaterialFiles(Array.from(e.target.files))} style={{ padding: '1rem', border: '1px dashed #ccc', width: '100%', borderRadius: '12px', background: '#f8fafc' }} />
-                {studyMaterialFiles.length > 0 && <p style={{fontSize:'0.85rem', color:'#10b981', marginTop:'0.5rem'}}>{studyMaterialFiles.length} file(s) selected.</p>}
+                {studyMaterialFiles.length > 0 && <p style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.5rem' }}>{studyMaterialFiles.length} file(s) selected.</p>}
               </div>
               <div className="modal-actions">
                 <button type="button" className="cancel-btn" onClick={() => setIsStudyMaterialModalOpen(false)}>Cancel</button>
@@ -2300,47 +2350,47 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           <form onSubmit={handleSendAnnouncement} style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="form-group">
               <label style={{ color: 'var(--text-muted)' }}>Announcement Title</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Test Schedule Updated" 
+              <input
+                type="text"
+                placeholder="e.g. Test Schedule Updated"
                 value={newAnnouncement.title}
-                onChange={e => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
+                onChange={e => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
                 style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
               />
             </div>
             <div className="form-group">
               <label style={{ color: 'var(--text-muted)' }}>Message Content</label>
-              <textarea 
-                rows="4" 
-                placeholder="Write your message here..." 
+              <textarea
+                rows="4"
+                placeholder="Write your message here..."
                 value={newAnnouncement.message}
-                onChange={e => setNewAnnouncement({...newAnnouncement, message: e.target.value})}
+                onChange={e => setNewAnnouncement({ ...newAnnouncement, message: e.target.value })}
                 style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)', resize: 'vertical' }}
               />
             </div>
             <div className="form-row" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-                <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
-                    <label style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem' }}>Urgency Level</label>
-                    <select 
-                        value={newAnnouncement.type}
-                        onChange={e => setNewAnnouncement({...newAnnouncement, type: e.target.value})}
-                        style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)', height: '48px' }}
-                    >
-                        <option value="info">Information (Blue)</option>
-                        <option value="success">Important (Green)</option>
-                        <option value="warning">Urgent (Orange/Red)</option>
-                    </select>
-                </div>
-                <div style={{ flex: 1 }}>
-                    <button 
-                        type="submit" 
-                        className="admin-submit-btn" 
-                        disabled={isSendingAnnouncement}
-                        style={{ margin: 0, height: '48px', width: '100%', background: 'var(--bg-gradient)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem' }}
-                    >
-                        {isSendingAnnouncement ? 'Sending...' : '📢 Broadcast Message'}
-                    </button>
-                </div>
+              <div className="form-group" style={{ flex: 2, marginBottom: 0 }}>
+                <label style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem' }}>Urgency Level</label>
+                <select
+                  value={newAnnouncement.type}
+                  onChange={e => setNewAnnouncement({ ...newAnnouncement, type: e.target.value })}
+                  style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)', height: '48px' }}
+                >
+                  <option value="info">Information (Blue)</option>
+                  <option value="success">Important (Green)</option>
+                  <option value="warning">Urgent (Orange/Red)</option>
+                </select>
+              </div>
+              <div style={{ flex: 1 }}>
+                <button
+                  type="submit"
+                  className="admin-submit-btn"
+                  disabled={isSendingAnnouncement}
+                  style={{ margin: 0, height: '48px', width: '100%', background: 'var(--bg-gradient)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.9rem' }}
+                >
+                  {isSendingAnnouncement ? 'Sending...' : '📢 Broadcast Message'}
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -2351,57 +2401,153 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
           <div style={{ padding: '1.5rem' }}>
             {announcements.length === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>No announcements sent yet.</p>
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>No announcements sent yet.</p>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {announcements.map(ann => (
-                        <div key={ann.id} style={{ padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                    <span style={{ 
-                                        padding: '4px 10px', 
-                                        borderRadius: '20px', 
-                                        fontSize: '0.7rem', 
-                                        fontWeight: '800', 
-                                        textTransform: 'uppercase',
-                                        background: ann.type === 'warning' ? '#fee2e2' : (ann.type === 'success' ? '#dcfce7' : '#e0f2fe'),
-                                        color: ann.type === 'warning' ? '#ef4444' : (ann.type === 'success' ? '#10b981' : '#3b82f6')
-                                    }}>
-                                        {ann.type}
-                                    </span>
-                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(ann.created_at).toLocaleString()}</span>
-                                    <span style={{ 
-                                        fontSize: '0.75rem', 
-                                        color: '#10b981', 
-                                        fontWeight: '800', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '0.25rem',
-                                        background: '#dcfce7',
-                                        padding: '4px 10px',
-                                        borderRadius: '20px',
-                                        marginLeft: '0.5rem'
-                                    }}>
-                                        📖 Read by {ann.read_count || 0}
-                                    </span>
-                                </div>
-                                <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{ann.title}</h4>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>{ann.message}</p>
-                            </div>
-                            <button 
-                                onClick={() => handleDeleteAnnouncement(ann.id)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem', color: 'var(--text-muted)' }}
-                                title="Delete announcement"
-                            >
-                                🗑️
-                            </button>
-                        </div>
-                    ))}
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {announcements.map(ann => (
+                  <div key={ann.id} style={{ padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <span style={{
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          fontSize: '0.7rem',
+                          fontWeight: '800',
+                          textTransform: 'uppercase',
+                          background: ann.type === 'warning' ? '#fee2e2' : (ann.type === 'success' ? '#dcfce7' : '#e0f2fe'),
+                          color: ann.type === 'warning' ? '#ef4444' : (ann.type === 'success' ? '#10b981' : '#3b82f6')
+                        }}>
+                          {ann.type}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(ann.created_at).toLocaleString()}</span>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          color: '#10b981',
+                          fontWeight: '800',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          background: '#dcfce7',
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          marginLeft: '0.5rem'
+                        }}>
+                          📖 Read by {ann.read_count || 0}
+                        </span>
+                      </div>
+                      <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{ann.title}</h4>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>{ann.message}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteAnnouncement(ann.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0.5rem', color: 'var(--text-muted)' }}
+                      title="Delete announcement"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  const renderCurrentAffairsManagement = () => (
+    <div className="current-affairs-management">
+      <div className="view-page-header">
+        <div style={{ flex: 1 }}>
+          <h1>Daily Current Affairs</h1>
+          <p>Upload daily news updates and exam insights for students</p>
+        </div>
+        <button className="create-course-main-btn" onClick={() => setIsCAModalOpen(true)}>
+          <span>+</span> Post Daily Update
+        </button>
+      </div>
+
+      <div className="admin-management-section" style={{ marginTop: '2rem' }}>
+        <div className="adm-card" style={{ background: 'var(--bg-card)', borderRadius: '24px', border: '1px solid var(--border-color)', padding: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-main)' }}>Recent Daily Updates</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {currentAffairs.length === 0 ? (
+              <p style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>No updates posted yet.</p>
+            ) : (
+              currentAffairs.map(item => (
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem', background: 'var(--bg-main)', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <div style={{ fontSize: '1.5rem' }}>🌍</div>
+                    <div>
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-main)' }}>{item.title}</h4>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Posted on: {new Date(item.published_date).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button onClick={() => setCAPreviewItem(item)} style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontSize: '0.85rem', cursor: 'pointer' }}>View</button>
+                    <button onClick={() => handleDeleteCA(item.id)} style={{ padding: '0.5rem', borderRadius: '10px', background: '#fee2e2', border: 'none', color: '#ef4444', cursor: 'pointer' }}>🗑️</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isCAModalOpen && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '500px' }}>
+            <div className="adm-modal-header">
+              <h2>Post Daily Update</h2>
+              <button className="close-modal" onClick={() => setIsCAModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleCASubmit} className="adm-modal-form" style={{ padding: '2rem' }}>
+              <div className="form-group">
+                <label>Update Title</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Daily News - April 11, 2026"
+                  value={caForm.title}
+                  onChange={e => setCAForm({ ...caForm, title: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label>File (PDF Preferred)</label>
+                <input
+                  type="file"
+                  onChange={e => setCAFile(e.target.files[0])}
+                  required
+                  style={{ padding: '0.8rem', border: '1.5px dashed var(--border-color)', borderRadius: '12px', width: '100%' }}
+                />
+              </div>
+              <div className="modal-actions" style={{ marginTop: '2rem' }}>
+                <button type="button" className="cancel-btn" onClick={() => setIsCAModalOpen(false)}>Cancel</button>
+                <button type="submit" className="submit-btn" disabled={isUploadingCA} style={{ background: 'var(--bg-gradient)' }}>
+                  {isUploadingCA ? 'Uploading...' : '🚀 Post Update'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {caPreviewItem && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '96%', height: '96vh', display: 'flex', flexDirection: 'column', padding: 0 }}>
+            <div className="adm-modal-header" style={{ padding: '1rem 2rem' }}>
+              <h2>Preview: {caPreviewItem.title}</h2>
+              <button className="close-modal" onClick={() => setCAPreviewItem(null)}>×</button>
+            </div>
+            <div style={{ flex: 1, background: '#f8fafc', borderRadius: '0 0 24px 24px', overflow: 'hidden' }}>
+              <iframe
+                src={`http://localhost:8000${caPreviewItem.content_url}#toolbar=0`}
+                title="CA Preview"
+                style={{ width: '100%', height: '100%', border: 'none' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -2427,6 +2573,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         return renderProfile();
       case 'Announcements':
         return renderAnnouncements();
+      case 'Current Affairs':
+        return renderCurrentAffairsManagement();
       default:
         return renderDashboard();
     }
@@ -2472,8 +2620,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
           <div className="profile-wrapper admin-profile-section" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
-            <button 
-              className="adm-header-btn" 
+            <button
+              className="adm-header-btn"
               onClick={() => setIsAdminModalOpen(true)}
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 600, color: 'var(--text-main)' }}
             >
@@ -2513,7 +2661,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               <h2>Contact System Administrator</h2>
               <button className="close-modal" onClick={() => setIsAdminModalOpen(false)}>×</button>
             </div>
-            
+
             <div className="adm-modal-body" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem', padding: '2rem' }}>
               {/* Send Form */}
               <div style={{ borderRight: '1px solid #f1f5f9', paddingRight: '1.5rem' }}>
@@ -2521,21 +2669,21 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 <form onSubmit={handleSendRequest} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div className="form-group">
                     <label>Subject</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Access issue, Test deletion" 
+                    <input
+                      type="text"
+                      placeholder="e.g. Access issue, Test deletion"
                       value={newRequest.subject}
-                      onChange={e => setNewRequest({...newRequest, subject: e.target.value})}
+                      onChange={e => setNewRequest({ ...newRequest, subject: e.target.value })}
                       required
                     />
                   </div>
                   <div className="form-group">
                     <label>Message</label>
-                    <textarea 
-                      rows="4" 
-                      placeholder="Describe your request..." 
+                    <textarea
+                      rows="4"
+                      placeholder="Describe your request..."
                       value={newRequest.message}
-                      onChange={e => setNewRequest({...newRequest, message: e.target.value})}
+                      onChange={e => setNewRequest({ ...newRequest, message: e.target.value })}
                       required
                       style={{ width: '100%', padding: '0.85rem', borderRadius: '10px', border: '1.5px solid #e2e8f0' }}
                     />
@@ -2557,9 +2705,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                       <div key={req.id} style={{ padding: '1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #f1f5f9' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                           <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.subject}</span>
-                          <span style={{ 
-                            fontSize: '0.7rem', 
-                            padding: '2px 8px', 
+                          <span style={{
+                            fontSize: '0.7rem',
+                            padding: '2px 8px',
                             borderRadius: '10px',
                             background: req.status === 'replied' ? '#dcfce7' : '#fee2e2',
                             color: req.status === 'replied' ? '#10b981' : '#ef4444'
