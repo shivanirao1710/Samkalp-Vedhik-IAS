@@ -8,7 +8,7 @@ on:
 
 env:
   # This silences the Node.js 20 deprecation warning
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
 
 jobs:
   build:
