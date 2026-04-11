@@ -40,7 +40,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   // Current Affairs State
   const [currentAffairs, setCurrentAffairs] = useState([]);
   const [isCAModalOpen, setIsCAModalOpen] = useState(false);
-  const [caForm, setCAForm] = useState({ title: '' });
+  
+  const getDefaultCATitle = () => `Daily News - ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+  
+  const [caForm, setCAForm] = useState({ title: getDefaultCATitle() });
   const [caFile, setCAFile] = useState(null);
   const [isUploadingCA, setIsUploadingCA] = useState(false);
   const [caPreviewItem, setCAPreviewItem] = useState(null);
@@ -221,7 +224,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         alert("Daily Current Affairs uploaded!");
         setIsCAModalOpen(false);
         setCAFile(null);
-        setCAForm({ title: '' });
+        setCAForm({ title: getDefaultCATitle() });
         fetchCurrentAffairs();
       }
     } catch (err) {
@@ -2462,7 +2465,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           <h1>Daily Current Affairs</h1>
           <p>Upload daily news updates and exam insights for students</p>
         </div>
-        <button className="create-course-main-btn" onClick={() => setIsCAModalOpen(true)}>
+        <button className="create-course-main-btn" onClick={() => {
+            setCAForm({ title: getDefaultCATitle() }); 
+            setIsCAModalOpen(true);
+        }}>
           <span>+</span> Post Daily Update
         </button>
       </div>
