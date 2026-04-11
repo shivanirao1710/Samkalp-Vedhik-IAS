@@ -68,7 +68,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   // Notifications State
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const markAsRead = async (notiId) => {
     try {
@@ -79,7 +79,6 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
       });
       if (resp.ok) {
         setNotifications(prev => prev.map(n => n.id === notiId ? { ...n, is_read: true } : n));
-        setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (err) { console.error(err); }
   };
@@ -136,7 +135,6 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         if (notiResp.ok) {
           const notis = await notiResp.json();
           setNotifications(notis);
-          setUnreadCount(notis.filter(n => !n.is_read).length);
         }
 
       } catch (err) {
