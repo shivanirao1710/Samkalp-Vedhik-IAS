@@ -2446,7 +2446,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           {menuItems.map((item) => (
             <button
               key={item.name}
-              onClick={() => setActiveMenu(item.name)}
+              onClick={() => {
+                setActiveMenu(item.name);
+                setIsProfileOpen(false);
+              }}
               className={`adm-nav-item ${activeMenu === item.name ? 'active' : ''}`}
             >
               <span className="adm-icon">{item.icon}</span>
@@ -2497,7 +2500,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
         </header>
 
-        <section className="admin-content-inner">
+        <section className="admin-content-inner" onClick={() => setIsProfileOpen(false)}>
           {renderContent()}
         </section>
       </main>

@@ -287,7 +287,10 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           {menuItems.map((item) => (
             <button
               key={item.name}
-              onClick={() => setCurrentView(item.name)}
+              onClick={() => {
+                setCurrentView(item.name);
+                setIsProfileOpen(false);
+              }}
               className={`nav-item ${currentView === item.name ? 'active' : ''}`}
               style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
             >
@@ -380,7 +383,9 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
         </header>
 
-        {renderContent()}
+        <div onClick={() => setIsProfileOpen(false)} style={{ minHeight: 'calc(100vh - 80px)' }}>
+          {renderContent()}
+        </div>
       </main>
 
       {/* Floating Platform Guide */}
