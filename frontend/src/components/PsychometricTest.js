@@ -581,7 +581,7 @@ const PsychometricTest = ({ user }) => {
       {view === 'testing' && renderTesting()}
       {view === 'analyzing' && renderAnalyzing()}
       {view === 'results' && renderResults()}
-      {view === 'video_counselling' && <VideoAvatarCounselling report={report} onEndSession={() => setView('results')} />}
+      {view === 'video_counselling' && <VideoAvatarCounselling report={report} candidateName={user?.name || user?.email?.split('@')[0]} onEndSession={() => setView('results')} />}
     </div>
   );
 };

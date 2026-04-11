@@ -6,6 +6,7 @@ import os
 import google.generativeai as genai
 from groq import Groq
 from typing import List, Optional
+from datetime import datetime
 from database import get_db
 import models
 
@@ -53,6 +54,42 @@ class AnswerPayload(BaseModel):
 class InterviewAnalysisRequest(BaseModel):
     user_id: int
     answers: List[AnswerPayload]
+
+class SaveResultRequest(BaseModel):
+    user_id: int
+    analysis: dict
+    timestamp: Optional[str] = None # Support candidate's system time
+
+@router.post("/save")
+async def save_interview_result(req: SaveResultRequest):
+    db = next(get_db())
+    try:
+        # Use provided timestamp if available, else use UTC
+        created_dt = datetime.now() # Default to server local for now
+        if req.timestamp:
+            try:
+                # Expecting format from frontend like '11 Apr 2026, 11:23 AM'
+                # But safer to just store as provided if it's a string, 
+                # or parse it if we want it in a DateTime column.
+                # However, InterviewResult.created_at is a DateTime column.
+                # Let's try to parse a standard ISO string or use current if it fails.
+                created_dt = datetime.fromisoformat(req.timestamp.replace('Z', '+00:00'))
+            except:
+                created_dt = datetime.now()
+
+        db_result = models.InterviewResult(
+            user_id=req.user_id,
+            overall_score=req.analysis.get("overall_score", 0),
+            report_json=json.dumps(req.analysis),
+            created_at=created_dt
+        )
+        db.add(db_result)
+        db.commit()
+        db.refresh(db_result)
+        return {"status": "success", "id": db_result.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/questions")
 async def generate_questions(level: str = "Medium"):
@@ -130,24 +167,40 @@ async def analyze_interview(req: InterviewAnalysisRequest):
             text = text[start:end]
             
         analysis = json.loads(text)
-        
-        # Save results to DB
-        db = next(get_db())
-        try:
-            db_result = models.InterviewResult(
-                user_id=req.user_id,
-                overall_score=analysis.get("overall_score", 0),
-                report_json=json.dumps(analysis)
-            )
-            db.add(db_result)
-            db.commit()
-            db.refresh(db_result)
-        except Exception as db_err:
-            print(f"DB Save Error: {db_err}")
-            
         return analysis
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/{result_id}")
+async def delete_interview_result(result_id: int):
+    db = next(get_db())
+    try:
+        result = db.query(models.InterviewResult).filter(models.InterviewResult.id == result_id).first()
+        if not result:
+            raise HTTPException(status_code=404, detail="Result not found")
+        db.delete(result)
+        db.commit()
+        return {"status": "success", "message": "Interview result deleted"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/all")
+async def get_all_interview_results():
+    db = next(get_db())
+    # Join with User table to get names
+    results = db.query(models.InterviewResult, models.User).join(models.User, models.User.id == models.InterviewResult.user_id).order_by(models.InterviewResult.created_at.desc()).all()
+    
+    formatted_results = []
+    for r, u in results:
+        report = json.loads(r.report_json)
+        report["id"] = r.id
+        report["candidate_name"] = u.name or u.email
+        report["user_id"] = r.user_id
+        report["date"] = r.created_at.strftime("%d %b %Y, %I:%M %p")
+        formatted_results.append(report)
+        
+    return formatted_results
 
 @router.get("/history/{user_id}")
 async def get_interview_history(user_id: int):

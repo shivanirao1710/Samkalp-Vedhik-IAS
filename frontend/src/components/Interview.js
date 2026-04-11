@@ -44,14 +44,45 @@ const Interview = ({ user }) => {
         }
     };
 
-    const handleInterviewComplete = (data) => {
+    const handleInterviewComplete = async (data) => {
         setAnalysis(data);
         setPhase('results');
+        
+        // Store the result in the database
+        if (user?.id) {
+            try {
+                await fetch(`http://localhost:8000/api/interview/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: user.id,
+                        analysis: data,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                fetchStats(); // Refresh stats on dashboard
+            } catch (err) {
+                console.error("Failed to store interview result:", err);
+            }
+        }
     };
 
     const viewPastReport = (report) => {
         setAnalysis(report);
         setPhase('results');
+    };
+
+    const deleteResult = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this interview result?")) return;
+        try {
+            const res = await fetch(`http://localhost:8000/api/interview/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                fetchHistory(); // Refresh list
+                fetchStats();   // Refresh dashboard stats
+            }
+        } catch (err) {
+            console.error("Delete Error:", err);
+        }
     };
 
     if (phase === 'interview') {
@@ -274,7 +305,20 @@ const Interview = ({ user }) => {
                     {history.length > 0 ? (
                         <div className="history-grid">
                             {history.map(item => (
-                                <div key={item.id} className="history-card">
+                                <div key={item.id} className="history-card" style={{ position: 'relative' }}>
+                                    <button 
+                                        onClick={() => deleteResult(item.id)}
+                                        style={{ 
+                                            position: 'absolute', top: '-10px', right: '-10px', 
+                                            background: 'white', color: '#dc2626', border: '1px solid #fee2e2',
+                                            width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', zIndex: 10,
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                        }}
+                                        title="Delete Result"
+                                    >
+                                        🗑️
+                                    </button>
                                     <div className="card-header">
                                         <div className="card-date">{item.date}</div>
                                         <div className="card-score">{item.overall_score}%</div>

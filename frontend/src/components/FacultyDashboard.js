@@ -102,12 +102,19 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [adminRequests, setAdminRequests] = useState([]);
   const [newRequest, setNewRequest] = useState({ subject: '', message: '' });
   const [isSendingRequest, setIsSendingRequest] = useState(false);
+  
+  // Interview Results State
+  const [allInterviewResults, setAllInterviewResults] = useState([]);
+  const [loadingInterviews, setLoadingInterviews] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   useEffect(() => {
     fetchStudents();
     fetchAnnouncements();
     fetchAdminRequests();
     fetchCurrentAffairs();
+    fetchInterviews();
   }, []);
 
   const fetchAdminRequests = async () => {
@@ -146,6 +153,24 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       const res = await fetch('http://localhost:8000/notifications/');
       if (res.ok) setAnnouncements(await res.json());
     } catch (err) { console.error(err); }
+  };
+
+  const fetchInterviews = async () => {
+    setLoadingInterviews(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/interview/all');
+      if (res.ok) {
+        const data = await res.json();
+        setAllInterviewResults(data);
+        
+        // Update dashboard stats
+        setDashboardStats(prev => prev.map(s => {
+          if (s.label === 'Interviews Conducted') return { ...s, value: data.length.toString() };
+          return s;
+        }));
+      }
+    } catch (err) { console.error(err); }
+    finally { setLoadingInterviews(false); }
   };
 
   const handleSendAnnouncement = async (e) => {
@@ -1609,6 +1634,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             marginRight: '1.5rem',
             display: 'inline-flex',
             alignItems: 'center',
+            width: 'fit-content',
+            flex: '0 0 auto',
             fontWeight: 'bold',
             color: '#ffffff',
             boxShadow: '0 2px 4px rgba(242, 146, 29, 0.2)',
@@ -2172,6 +2199,188 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
+  const renderInterviews = () => (
+    <div className="interview-management-page">
+      <div className="view-page-header">
+        <div style={{ flex: 1 }}>
+          <h1>Candidate Interview Reports</h1>
+          <p>Review and analyze student mock interview performances</p>
+        </div>
+        <button className="global-search-btn" onClick={fetchInterviews}>
+          🔄 Refresh Results
+        </button>
+      </div>
+
+      <div className="admin-stats-grid">
+        <div className="adm-stat-card">
+          <div className="adm-stat-top">
+            <div className="adm-stat-icon-wrap" style={{ backgroundColor: '#f5f3ff' }}>📹</div>
+          </div>
+          <div className="adm-stat-info">
+            <div className="adm-stat-value">{allInterviewResults.length}</div>
+            <div className="adm-stat-label">Total Interviews</div>
+          </div>
+        </div>
+        <div className="adm-stat-card">
+          <div className="adm-stat-top">
+            <div className="adm-stat-icon-wrap" style={{ backgroundColor: '#f0fdf4' }}>📈</div>
+          </div>
+          <div className="adm-stat-info">
+            <div className="adm-stat-value">
+              {allInterviewResults.length > 0 
+                ? Math.round(allInterviewResults.reduce((acc, r) => acc + (r.overall_score || 0), 0) / allInterviewResults.length)
+                : 0}%
+            </div>
+            <div className="adm-stat-label">Average Score</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="admin-management-section">
+        <div className="table-header-row">
+          <h2>Latest Submissions</h2>
+        </div>
+
+        <table className="adm-table">
+          <thead>
+            <tr>
+              <th>CANDIDATE</th>
+              <th>DATE & TIME</th>
+              <th>OVERALL SCORE</th>
+              <th>SUMMARY</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loadingInterviews ? (
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>Loading reports...</td></tr>
+            ) : allInterviewResults.length === 0 ? (
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>No interview reports found.</td></tr>
+            ) : (
+              allInterviewResults.map((result) => (
+                <tr key={result.id}>
+                  <td>
+                    <div style={{ fontWeight: '700', color: '#1e293b' }}>{result.candidate_name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>ID: #{result.user_id}</div>
+                  </td>
+                  <td>{result.date}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ 
+                        fontWeight: '800', 
+                        color: result.overall_score >= 70 ? '#10b981' : (result.overall_score >= 40 ? '#f59e0b' : '#ef4444') 
+                      }}>
+                        {result.overall_score}%
+                      </span>
+                      <div style={{ width: '60px', height: '6px', background: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ 
+                          width: `${result.overall_score}%`, 
+                          height: '100%', 
+                          background: result.overall_score >= 70 ? '#10b981' : (result.overall_score >= 40 ? '#f59e0b' : '#ef4444') 
+                        }}></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ maxWidth: '300px' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {result.feedback}
+                    </p>
+                  </td>
+                  <td>
+                    <button 
+                      className="view-btn"
+                      onClick={() => {
+                        setSelectedReport(result);
+                        setIsReportModalOpen(true);
+                      }}
+                      style={{ background: '#fff7ed', border: '1px solid #F2921D', color: '#F2921D', padding: '0.4rem 0.75rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}
+                    >
+                      View Report
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {isReportModalOpen && selectedReport && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="adm-modal-header" style={{ borderBottom: '1px solid #f1f5f9', padding: '1.5rem 2rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#1e293b' }}>Detailed Interview Analysis</h2>
+                <p style={{ fontSize: '0.9rem', color: '#64748b' }}>Candidate: <strong>{selectedReport.candidate_name}</strong> • {selectedReport.date}</p>
+              </div>
+              <button className="close-modal" onClick={() => setIsReportModalOpen(false)}>×</button>
+            </div>
+            
+            <div className="report-modal-body" style={{ padding: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                <div style={{ textAlign: 'center', padding: '1.5rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #fed7aa' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#9a3412', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Communication</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#F2921D' }}>{selectedReport.communication_skills}/100</div>
+                </div>
+                <div style={{ textAlign: 'center', padding: '1.5rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #fed7aa' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#9a3412', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Knowledge</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#F2921D' }}>{selectedReport.knowledge_depth}/100</div>
+                </div>
+                <div style={{ textAlign: 'center', padding: '1.5rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #fed7aa' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#9a3412', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Analytical</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#F2921D' }}>{selectedReport.analytical_ability}/100</div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span>📋</span> Faculty Feedback
+                </h3>
+                <p style={{ color: '#475569', lineHeight: '1.6', background: '#fff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
+                  {selectedReport.feedback}
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '1.5rem', borderRadius: '16px' }}>
+                  <h4 style={{ color: '#166534', marginBottom: '0.75rem', fontWeight: '700' }}>💪 Strengths</h4>
+                  <ul style={{ paddingLeft: '1.25rem', color: '#166534' }}>
+                    {selectedReport.strengths && selectedReport.strengths.length > 0 
+                      ? selectedReport.strengths.map((s, i) => <li key={i} style={{ marginBottom: '0.4rem' }}>{s}</li>)
+                      : <li>No major strengths noted</li>}
+                  </ul>
+                </div>
+                <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', padding: '1.5rem', borderRadius: '16px' }}>
+                  <h4 style={{ color: '#9a3412', marginBottom: '0.75rem', fontWeight: '700' }}>🎯 Areas for Improvement</h4>
+                  <ul style={{ paddingLeft: '1.25rem', color: '#9a3412' }}>
+                    {selectedReport.areas_for_improvement && selectedReport.areas_for_improvement.length > 0 
+                      ? selectedReport.areas_for_improvement.map((a, i) => <li key={i} style={{ marginBottom: '0.4rem' }}>{a}</li>)
+                      : <li>No major improvements noted</li>}
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '1.5rem', borderRadius: '16px' }}>
+                <h4 style={{ color: '#1e40af', marginBottom: '0.5rem', fontWeight: '700' }}>⚖️ Panel Verdict</h4>
+                <p style={{ color: '#1e40af', lineHeight: '1.5' }}>{selectedReport.verdict}</p>
+              </div>
+            </div>
+
+            <div className="modal-actions" style={{ padding: '1.5rem 2rem', background: '#f8fafc', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                className="submit-btn" 
+                onClick={() => setIsReportModalOpen(false)}
+                style={{ background: '#F2921D', color: 'white', border: 'none', padding: '0.75rem 2rem', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', width: '100%' }}
+              >
+                Close Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const renderSettings = () => (
     <Settings user={user} onBack={() => setActiveMenu('Dashboard')} />
   );
@@ -2586,6 +2795,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         return renderAnnouncements();
       case 'Current Affairs':
         return renderCurrentAffairsManagement();
+      case 'Interviews':
+        return renderInterviews();
       default:
         return renderDashboard();
     }

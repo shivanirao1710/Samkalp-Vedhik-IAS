@@ -56,17 +56,11 @@ You MUST:
 
     try:
         ag_payload = {
-            "name": f"Aryan Mentor - {name}",
+            "name": "Aryan Mentor",
             "avatar_id": "2ed7477f-3961-4ce1-b331-5e4530c55a57",  # Awais - Stock avatar V2 (South Asian male with glasses)
             "system_prompt": system_prompt,
             "greeting": greeting,
-            "max_session_length_minutes": 30,
-            # Google TTS — en-IN-Neural2-B is a clear male Indian English Neural voice
-            # Field must be "voice" (not "voice_id") per Beyond Presence API schema
-            "tts": {
-                "type": "google_tts",
-                "voice": "en-IN-Neural2-B"
-            }
+            "max_session_length_minutes": 30
         }
         ag_resp = requests.post(f"{BEY_API_BASE}/agents", headers=headers, json=ag_payload)
         if not ag_resp.ok:
@@ -113,15 +107,11 @@ Instructions:
 
     try:
         ag_payload = {
-            "name": f"UPSC Interviewer - {name}",
+            "name": "UPSC Interviewer",
             "avatar_id": "2ed7477f-3961-4ce1-b331-5e4530c55a57", 
             "system_prompt": system_prompt,
             "greeting": greeting,
-            "max_session_length_minutes": 30,
-            "tts": {
-                "type": "google_tts",
-                "voice": "en-IN-Neural2-B"
-            }
+            "max_session_length_minutes": 30
         }
         ag_resp = requests.post(f"{BEY_API_BASE}/agents", headers=headers, json=ag_payload)
         if not ag_resp.ok:
