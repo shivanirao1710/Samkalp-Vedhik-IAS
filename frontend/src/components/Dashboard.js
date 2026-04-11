@@ -40,6 +40,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [latestCA, setLatestCA] = useState(null);
   const [showCAPopup, setShowCAPopup] = useState(false);
+  const [showPsyInvite, setShowPsyInvite] = useState(false);
+
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -64,6 +66,30 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         }
     } catch (err) { console.error(err); }
   };
+  
+  useEffect(() => {
+    // Check if user has taken psychometric test
+    const checkPsyStatus = async () => {
+      if (!user?.id) return;
+      
+      // Check if already dismissed in this session
+      if (sessionStorage.getItem('psy_invite_dismissed')) return;
+
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/psychometric/report/${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          // If no report exists
+          if (!data.report) {
+            setTimeout(() => setShowPsyInvite(true), 3500); 
+          }
+        }
+      } catch (err) { console.error("Psy check failed:", err); }
+    };
+    
+    checkPsyStatus();
+  }, [user.id]);
+
 
   // Notifications State
   const [notifications, setNotifications] = useState([]);
@@ -486,6 +512,51 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           {isMentorToggle ? '✕' : '🤖'}
         </button>
       </div>
+
+      {showPsyInvite && (
+        <div className="psy-invite-overlay" onClick={() => { setShowPsyInvite(false); sessionStorage.setItem('psy_invite_dismissed', 'true'); }}>
+          <div className="psy-invite-modal" onClick={e => e.stopPropagation()}>
+            <div className="psy-invite-header">
+              <span className="psy-invite-icon">🧠</span>
+              <div style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.9 }}>AI Diagnostic Tool</div>
+            </div>
+            <div className="psy-invite-body">
+              <h2>Unlock Your UPSC Profile</h2>
+              <p>Welcome to the mission! Before you dive in, let our AI analyze your cognitive strengths and learning patterns to build your path.</p>
+              
+              <div className="psy-invite-features">
+                <div className="psy-feat"><span>🎯</span> Personalized UPSC Study Plan</div>
+                <div className="psy-feat"><span>🧠</span> Cognitive & Memory Analysis</div>
+                <div className="psy-feat"><span>🚀</span> AI-Powered Readiness Score</div>
+              </div>
+
+              <div className="psy-invite-actions">
+                <button 
+                  className="psy-btn-primary psy-mentor-btn-premium" 
+                  style={{ width: '100%', padding: '1.2rem', fontSize: '1.05rem', border: 'none' }}
+                  onClick={() => {
+                    setCurrentView('Psychometric Test');
+                    setShowPsyInvite(false);
+                    sessionStorage.setItem('psy_invite_dismissed', 'true');
+                  }}
+                >
+                  Start My Assessment →
+                </button>
+                <button 
+                  className="psy-btn-secondary" 
+                  style={{ width: '100%', border: 'none', background: 'none', color: '#64748b', fontSize: '0.9rem', fontWeight: '700', padding: '0.5rem', cursor: 'pointer', marginTop: '0.5rem' }}
+                  onClick={() => {
+                    setShowPsyInvite(false);
+                    sessionStorage.setItem('psy_invite_dismissed', 'true');
+                  }}
+                >
+                  I'll do it later
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

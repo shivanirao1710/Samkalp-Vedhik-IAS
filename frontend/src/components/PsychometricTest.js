@@ -537,19 +537,45 @@ const PsychometricTest = ({ user }) => {
 
         <div className="psy-actions no-print" style={{ 
             marginTop: '3.5rem', 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', 
-            gap: '0.75rem',
+            display: 'flex', 
+            flexDirection: 'column',
+            gap: '1rem',
             width: '100%'
         }}>
-          <button className="psy-btn-secondary" style={{ padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={() => setView('landing')}>← Back</button>
-          <button className="psy-btn-primary" style={{ background: '#10b981', padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={downloadPDF}>
-            📥 Download PDF
+          {/* Main Prominent Action - Brand Orange Gradient with Pop Styling */}
+          <button 
+            className="psy-btn-primary psy-mentor-btn-premium" 
+            style={{ 
+              padding: '1.2rem', 
+              fontSize: '1.1rem', 
+              fontWeight: '800',
+              borderRadius: '16px',
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.75rem',
+              color: 'white',
+              cursor: 'pointer'
+            }} 
+            onClick={() => setView('video_counselling')}
+          >
+            <span style={{ fontSize: '1.5rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>📹</span> 
+            <span>Chat with AI Mentor</span>
           </button>
-          <button className="psy-btn-primary" style={{ background: '#f59e0b', padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={retakeAssessment}>🔄 Retake Test</button>
-          <button className="psy-btn-primary" style={{ background: '#3b82f6', padding: '0.8rem 0.5rem', fontSize: '0.85rem' }} onClick={() => setView('video_counselling')}>
-            📹 AI Mentor
-          </button>
+
+          {/* Secondary Actions Row */}
+          <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(3, 1fr)', 
+              gap: '0.75rem' 
+          }}>
+            <button className="psy-btn-secondary" style={{ padding: '0.8rem 0.5rem', fontSize: '0.85rem', borderRadius: '10px', background: 'white', color: 'var(--text-main)', border: '1.5px solid var(--border-color)' }} onClick={() => setView('landing')}>← Back</button>
+            <button className="psy-btn-primary" style={{ background: 'var(--primary-hover)', color: 'white', padding: '0.8rem 0.5rem', fontSize: '0.85rem', border: 'none', borderRadius: '10px', fontWeight: '700' }} onClick={downloadPDF}>
+              📥 Download PDF
+            </button>
+            <button className="psy-btn-primary" style={{ background: 'var(--accent-yellow)', color: '#854d0e', padding: '0.8rem 0.5rem', fontSize: '0.85rem', border: '1px solid #fde047', borderRadius: '10px', fontWeight: '700' }} onClick={retakeAssessment}>🔄 Retake Test</button>
+          </div>
         </div>
       </div>
     );

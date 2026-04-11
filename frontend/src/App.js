@@ -27,7 +27,9 @@ function App() {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('samkalp_user');
+    sessionStorage.clear(); // Clear all session-specific flags
   };
+
 
   const handleRegisterSuccess = (data) => {
     setIsLogin(true);
