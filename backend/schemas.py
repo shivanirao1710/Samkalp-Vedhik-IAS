@@ -112,8 +112,13 @@ class NotificationResponse(NotificationBase):
     id: int
     sender_id: Optional[int]
     created_at: datetime
+    is_read: Optional[bool] = False
+    read_count: Optional[int] = 0
     class Config:
         from_attributes = True
+
+class NotificationReadMark(BaseModel):
+    user_id: int
 
 class AdminRequestCreate(BaseModel):
     subject: str
@@ -133,5 +138,17 @@ class AdminRequestResponse(BaseModel):
     status: str
     reply: Optional[str] = None
     created_at: datetime
+    class Config:
+        from_attributes = True
+
+class CurrentAffairsCreate(BaseModel):
+    title: str
+
+class CurrentAffairsResponse(BaseModel):
+    id: int
+    title: str
+    content_url: Optional[str]
+    file_type: str
+    published_date: datetime
     class Config:
         from_attributes = True

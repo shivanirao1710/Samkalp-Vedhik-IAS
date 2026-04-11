@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/shared-layout.css';
 import '../styles/Dashboard.css';
 import Courses from './Courses';
@@ -12,12 +12,20 @@ import StudyMaterials from './StudyMaterials';
 import StudentProfile from './StudentProfile';
 import Settings from './Settings';
 import AIDoubtSolver from './AIDoubtSolver';
+import CurrentAffairs from './CurrentAffairs';
 import logo from '../images/logo.png';
 
 const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
   const [isMentorToggle, setIsMentorToggle] = useState(false);
-  
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   // Live Data States
   const [dashboardStats, setDashboardStats] = useState({
     overallProgress: '0%',
@@ -29,17 +37,58 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [upcomingTests, setUpcomingTests] = useState([]);
   const [liveSessions, setLiveSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [latestCA, setLatestCA] = useState(null);
+  const [showCAPopup, setShowCAPopup] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    fetchLatestCA();
+    return () => clearInterval(timer);
+  }, []);
+
+  const fetchLatestCA = async () => {
+    try {
+        const res = await fetch('http://localhost:8000/current-affairs/');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.length > 0) {
+                setLatestCA(data[0]);
+                // Show popup if it's from today or yesterday
+                const uploadDate = new Date(data[0].published_date);
+                const diffDays = Math.abs(new Date() - uploadDate) / (1000 * 60 * 60 * 24);
+                if (diffDays <= 2) {
+                    setTimeout(() => setShowCAPopup(true), 2000); // Wait 2s for login feel
+                }
+            }
+        }
+    } catch (err) { console.error(err); }
+  };
 
   // Notifications State
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  React.useEffect(() => {
+  const markAsRead = async (notiId) => {
+    try {
+      const resp = await fetch(`http://localhost:8000/notifications/${notiId}/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id })
+      });
+      if (resp.ok) {
+        setNotifications(prev => prev.map(n => n.id === notiId ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => {
     const fetchDashboardData = async () => {
       // Only fetch if we are actually viewing the main dashboard summary
       if (currentView !== 'Dashboard') return;
-      
+
       setLoading(true);
       try {
         // 1. Sync profile
@@ -54,8 +103,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         if (statsResp.ok) {
           const statsData = await statsResp.json();
           setDashboardStats({
-            overallProgress: '0%', 
-            learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h', 
+            overallProgress: '0%',
+            learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h',
             testsCompleted: `${statsData.tests_taken}/20`,
             dayStreak: statsData.study_streak.toString()
           });
@@ -72,29 +121,22 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         const testsResp = await fetch(`http://localhost:8000/tests/`);
         if (testsResp.ok) {
           const tests = await testsResp.json();
-          setUpcomingTests(tests.slice(0, 2)); 
+          setUpcomingTests(tests.slice(0, 2));
         }
 
         // 5. Fetch Live Sessions
         const liveResp = await fetch(`http://localhost:8000/live-classes/`);
         if (liveResp.ok) {
           const sessions = await liveResp.json();
-          setLiveSessions(sessions.slice(0, 1)); 
+          setLiveSessions(sessions.slice(0, 1));
         }
 
         // 6. Fetch Notifications
-        const notiResp = await fetch(`http://localhost:8000/notifications/`);
+        const notiResp = await fetch(`http://localhost:8000/notifications/?user_id=${user.id}`);
         if (notiResp.ok) {
-          const notis = await notiResp.ok ? await notiResp.json() : [];
+          const notis = await notiResp.json();
           setNotifications(notis);
-          // For now, consider all of them "unread" until manually cleared or handled via local storage
-          const lastRead = localStorage.getItem('lastNotificationRead');
-          if (!lastRead) {
-            setUnreadCount(notis.length);
-          } else {
-            const count = notis.filter(n => new Date(n.created_at) > new Date(lastRead)).length;
-            setUnreadCount(count);
-          }
+          setUnreadCount(notis.filter(n => !n.is_read).length);
         }
 
       } catch (err) {
@@ -103,7 +145,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, [user.id, currentView]); // RE-FETCH WHEN USER CLICKS BACK ON DASHBOARD
 
@@ -115,6 +157,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Mock Interview', icon: '📹' },
     { name: 'Psychometric Test', icon: '🧠' },
     { name: 'Live Classes', icon: '📺' },
+    { name: 'Current Affairs', icon: '🌍' },
     { name: 'AI Doubt Solver', icon: '❓' },
   ];
 
@@ -141,6 +184,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return <LiveClasses user={user} />;
       case 'AI Doubt Solver':
         return <AIDoubtSolver user={user} />;
+      case 'Current Affairs':
+        return <CurrentAffairs user={user} />;
       case 'Profile':
         return <StudentProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setCurrentView('Dashboard')} />;
       case 'Settings':
@@ -151,13 +196,49 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
         return (
           <>
-            <section className="hero-banner">
-              <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Good Morning, {user.name || user.email.split('@')[0]}! 👋</h2>
-              <p className="hero-subtitle" style={{ opacity: 0.9 }}>
-                {enrolledCourses.length > 0 
-                  ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
-                  : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
-              </p>
+            <section className="hero-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'visible' }}>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{getGreeting()}, {user.name || user.email.split('@')[0]}! 👋</h2>
+                <p className="hero-subtitle" style={{ opacity: 0.9, fontSize: '1.1rem' }}>
+                    {enrolledCourses.length > 0
+                    ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
+                    : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
+                </p>
+              </div>
+
+              {showCAPopup && latestCA && (
+                <div className="ca-hero-popup" style={{ 
+                    background: 'rgba(255, 255, 255, 0.2)', 
+                    backdropFilter: 'blur(12px)',
+                    padding: '1.25rem', 
+                    borderRadius: '24px', 
+                    border: '1px solid rgba(255, 255, 255, 0.4)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '1.25rem', 
+                    animation: 'fadeInRight 0.6s ease',
+                    maxWidth: '420px',
+                    color: 'white',
+                    marginLeft: '2rem',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+                }}>
+                    <div style={{ fontSize: '2.2rem' }}>🌍</div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>Daily Briefing Ready</div>
+                        <div style={{ fontSize: '1rem', fontWeight: '700', margin: '0.25rem 0' }}>{latestCA.title}</div>
+                        <button 
+                            onClick={() => { setCurrentView('Current Affairs'); setShowCAPopup(false); }}
+                            style={{ marginTop: '0.5rem', padding: '0.5rem 1.25rem', borderRadius: '12px', background: 'white', color: '#f97316', border: 'none', fontWeight: '800', cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s' }}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        >READ UPDATE</button>
+                    </div>
+                    <button 
+                        onClick={() => setShowCAPopup(false)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'white', opacity: 0.6, alignSelf: 'flex-start' }}
+                    >✕</button>
+                </div>
+              )}
             </section>
 
 
@@ -193,19 +274,19 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
                       <span>{mainCourse.modules} modules</span>
                       <button
-                      onClick={() => setCurrentView('Courses')}
-                      style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}
-                    >
-                      Continue Learning →
-                    </button>
+                        onClick={() => setCurrentView('Courses')}
+                        style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}
+                      >
+                        Continue Learning →
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="course-card" style={{ textAlign: 'center', padding: '2rem' }}>
-                  <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>You haven't enrolled in any courses yet.</p>
-                  <button onClick={() => setCurrentView('Courses')} className="admin-submit-btn" style={{ width: 'auto', padding: '0.5rem 2rem' }}>Browse Courses</button>
-                </div>
-              )}
+                ) : (
+                  <div className="course-card" style={{ textAlign: 'center', padding: '2rem' }}>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>You haven't enrolled in any courses yet.</p>
+                    <button onClick={() => setCurrentView('Courses')} className="admin-submit-btn" style={{ width: 'auto', padding: '0.5rem 2rem' }}>Browse Courses</button>
+                  </div>
+                )}
               </section>
 
               <aside>
@@ -233,7 +314,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                   <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Live Sessions</h3>
                   <button onClick={() => setCurrentView('Live Classes')} className="view-all" style={{ border: 'none', background: 'none', cursor: 'pointer' }}>View All</button>
                 </div>
-                
+
                 {liveSessions.length > 0 ? (
                   <div className="live-item-mini" style={{ padding: '1.25rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #ffedd5' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -280,7 +361,10 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           {menuItems.map((item) => (
             <button
               key={item.name}
-              onClick={() => setCurrentView(item.name)}
+              onClick={() => {
+                setCurrentView(item.name);
+                setIsProfileOpen(false);
+              }}
               className={`nav-item ${currentView === item.name ? 'active' : ''}`}
               style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
             >
@@ -300,12 +384,20 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
       {/* Main Content */}
       <main className="main-content">
         <header className="top-bar">
-          <div style={{ flex: 1 }}></div> {/* Spacer to keep profile on the right */}
+          <div className="live-clock-wrapper" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative' }}>
+            <div style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 8px #22c55e' }}></div>
+            <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-main)', letterSpacing: '0.02em' }}>
+              {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>
+              | {currentTime.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}
+            </span>
+          </div>
 
           <div className="profile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
             <div className="user-profile">
-              <div className="notification-bell-wrapper" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); setUnreadCount(0); localStorage.setItem('lastNotificationRead', new Date().toISOString()); }}>
+              <div className="notification-bell-wrapper" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); }}>
                 <span className="notification-bell">🔔</span>
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </div>
@@ -320,8 +412,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     <h4>Notifications</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {notifications.length > 0 && <button onClick={() => setNotifications([])} className="clear-all">Clear All</button>}
-                      <button 
-                        onClick={() => setShowNotifications(false)} 
+                      <button
+                        onClick={() => setShowNotifications(false)}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: '#64748b', lineHeight: 1, padding: '2px 6px', borderRadius: '6px' }}
                         title="Close"
                       >✕</button>
@@ -330,13 +422,18 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                   <div className="notifications-list">
                     {notifications.length > 0 ? (
                       notifications.map(noti => (
-                        <div key={noti.id} className={`notification-item ${noti.type}`}>
-                          <div className="noti-icon">
-                            {noti.type === 'warning' ? '⚠️' : (noti.type === 'success' ? '✅' : '📢')}
+                        <div key={noti.id} className={`notification-item ${noti.type} ${noti.is_read ? 'read' : ''}`}>
+                          <div
+                            className="noti-icon"
+                            onClick={() => !noti.is_read && markAsRead(noti.id)}
+                            style={{ cursor: noti.is_read ? 'default' : 'pointer', transition: 'all 0.2s', filter: noti.is_read ? 'grayscale(0)' : 'none' }}
+                            title={noti.is_read ? "Read" : "Mark as read"}
+                          >
+                            {noti.is_read ? '✅' : (noti.type === 'warning' ? '⚠️' : (noti.type === 'success' ? '✅' : '📢'))}
                           </div>
-                          <div className="noti-content">
-                            <h5>{noti.title}</h5>
-                            <p>{noti.message}</p>
+                          <div className="noti-content" onClick={() => !noti.is_read && markAsRead(noti.id)} style={{ cursor: noti.is_read ? 'default' : 'pointer' }}>
+                            <h5 style={{ textDecoration: noti.is_read ? 'none' : 'none', opacity: noti.is_read ? 0.7 : 1 }}>{noti.title}</h5>
+                            <p style={{ opacity: noti.is_read ? 0.6 : 1 }}>{noti.message}</p>
                             <span className="noti-time">{new Date(noti.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>
@@ -350,25 +447,30 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                 </div>
               )}
 
-              <div className="avatar">
+              <div className="avatar" onClick={() => setIsProfileOpen(!isProfileOpen)}>
                 {(user.name || user.email).substring(0, 2).toUpperCase()}
               </div>
-            </div>
 
-            {isProfileOpen && (
-              <div className="profile-dropdown">
-                <button className="dropdown-item" onClick={() => { setCurrentView('Profile'); setIsProfileOpen(false); }}>
-                  <span className="icon">👤</span> My Profile
-                </button>
-                <button className="dropdown-item" onClick={() => { setCurrentView('Settings'); setIsProfileOpen(false); }}>
-                  <span className="icon">⚙️</span> Settings
-                </button>
-              </div>
-            )}
+              {isProfileOpen && (
+                <div className="profile-dropdown" style={{ top: '60px' }}>
+                  <button className="dropdown-item" onClick={() => { setCurrentView('Profile'); setIsProfileOpen(false); }}>
+                    <span className="icon">👤</span> My Profile
+                  </button>
+                  <button className="dropdown-item" onClick={() => { setCurrentView('Settings'); setIsProfileOpen(false); }}>
+                    <span className="icon">⚙️</span> Settings
+                  </button>
+                  <button className="dropdown-item logout" onClick={onLogout} style={{ color: '#ef4444' }}>
+                    <span className="icon">↪</span> Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        {renderContent()}
+        <div onClick={() => setIsProfileOpen(false)} style={{ minHeight: 'calc(100vh - 80px)' }}>
+          {renderContent()}
+        </div>
       </main>
 
       {/* Floating Platform Guide */}
