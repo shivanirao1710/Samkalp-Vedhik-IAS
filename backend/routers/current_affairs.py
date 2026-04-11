@@ -7,14 +7,12 @@ from datetime import datetime
 import os
 import shutil
 
+from storage_utils import save_file, delete_file
+
 router = APIRouter(
     prefix="/current-affairs",
     tags=["current-affairs"]
 )
-
-UPLOAD_DIR = "static/current_affairs"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
 
 @router.post("/", response_model=schemas.CurrentAffairsResponse)
 async def create_current_affairs(
@@ -23,15 +21,9 @@ async def create_current_affairs(
     db: Session = Depends(get_db)
 ):
     # Save file
+    file_url = save_file(file, "current_affairs")
+    
     file_ext = os.path.splitext(file.filename)[1]
-    file_name = f"{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, file_name)
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
-    file_url = f"/static/current_affairs/{file_name}"
-    
     db_ca = models.CurrentAffairs(
         title=title,
         content_url=file_url,
@@ -53,14 +45,9 @@ def delete_current_affairs(ca_id: int, db: Session = Depends(get_db)):
     if not db_ca:
         raise HTTPException(status_code=404, detail="Current Affairs not found")
     
-    # Try to delete physical file
-    try:
-        if db_ca.content_url:
-            path = db_ca.content_url.lstrip("/")
-            if os.path.exists(path):
-                os.remove(path)
-    except Exception as e:
-        print(f"Error deleting file: {e}")
+    # Try to delete file
+    if db_ca.content_url:
+        delete_file(db_ca.content_url)
 
     db.delete(db_ca)
     db.commit()

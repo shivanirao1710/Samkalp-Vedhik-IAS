@@ -11,3 +11,4 @@ python-multipart
 google-generativeai
 google-genai
 groq
+azure-storage-blob

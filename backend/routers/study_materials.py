@@ -9,13 +9,12 @@ import shutil
 import uuid
 from datetime import datetime
 
+from storage_utils import save_file, delete_file
+
 router = APIRouter(
     prefix="/study-materials",
     tags=["study_materials"]
 )
-
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "materials")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/")
 def upload_material(
@@ -28,15 +27,9 @@ def upload_material(
     if not file or not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
     
+    file_url = save_file(file, "materials")
+    
     ext = os.path.splitext(file.filename)[-1].lower()
-    filename = f"mat_{uuid.uuid4().hex}{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-    with open(filepath, "wb") as f:
-        shutil.copyfileobj(file.file, f)
-    
-    file_url = f"/static/materials/{filename}"
-    
-    # Determine type
     file_type = "document"
     if ext in [".pdf"]:
         file_type = "pdf"
@@ -126,10 +119,8 @@ def delete_material(material_id: int, db: Session = Depends(get_db)):
     if not material:
         raise HTTPException(status_code=404, detail="Material not found")
     
-    if material.file_url and material.file_url.startswith("/static/materials/"):
-        old_path = os.path.join(os.path.dirname(__file__), "..", material.file_url.lstrip("/"))
-        if os.path.exists(old_path):
-            os.remove(old_path)
+    if material.file_url:
+        delete_file(material.file_url)
 
     db.delete(material)
     db.commit()

@@ -8,14 +8,13 @@ import schemas
 import os
 import shutil
 import uuid
+from storage_utils import save_file, delete_file
 
 router = APIRouter(
     prefix="/courses",
     tags=["courses"]
 )
 
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "thumbnails")
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @router.post("/", response_model=schemas.Course)
@@ -31,12 +30,7 @@ def create_course(
 ):
     image_url = None
     if thumbnail and thumbnail.filename:
-        ext = os.path.splitext(thumbnail.filename)[-1]
-        filename = f"thumb_{uuid.uuid4().hex}{ext}"
-        filepath = os.path.join(UPLOAD_DIR, filename)
-        with open(filepath, "wb") as f:
-            shutil.copyfileobj(thumbnail.file, f)
-        image_url = f"/static/thumbnails/{filename}"
+        image_url = save_file(thumbnail, "thumbnails")
 
     db_course = models.Course(
         title=title,
@@ -92,16 +86,9 @@ def update_course(
 
     # Only replace image if a new file is uploaded
     if thumbnail and thumbnail.filename:
-        if course.image_url and course.image_url.startswith("/static/thumbnails/"):
-            old_path = os.path.join(os.path.dirname(__file__), "..", course.image_url.lstrip("/"))
-            if os.path.exists(old_path):
-                os.remove(old_path)
-        ext = os.path.splitext(thumbnail.filename)[-1]
-        filename = f"thumb_{uuid.uuid4().hex}{ext}"
-        filepath = os.path.join(UPLOAD_DIR, filename)
-        with open(filepath, "wb") as f:
-            shutil.copyfileobj(thumbnail.file, f)
-        course.image_url = f"/static/thumbnails/{filename}"
+        if course.image_url:
+            delete_file(course.image_url)
+        course.image_url = save_file(thumbnail, "thumbnails")
 
     db.commit()
     db.refresh(course)
@@ -114,10 +101,8 @@ def delete_course(course_id: int, db: Session = Depends(get_db)):
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    if course.image_url and course.image_url.startswith("/static/thumbnails/"):
-        old_path = os.path.join(os.path.dirname(__file__), "..", course.image_url.lstrip("/"))
-        if os.path.exists(old_path):
-            os.remove(old_path)
+    if course.image_url:
+        delete_file(course.image_url)
 
     db.delete(course)
     db.commit()

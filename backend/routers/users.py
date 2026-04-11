@@ -6,6 +6,7 @@ import os
 import shutil
 from datetime import datetime
 from utils import hash_password, verify_password
+from storage_utils import save_file, delete_file
 
 router = APIRouter(
     prefix="/users",
@@ -104,20 +105,14 @@ async def upload_profile_image(user_id: int, file: UploadFile = File(...), db: S
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Ensure directory exists
-    static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "profiles")
-    os.makedirs(static_dir, exist_ok=True)
+    # Delete old image if exists
+    if db_user.profile_image:
+        delete_file(db_user.profile_image)
     
-    # Save file
-    file_extension = os.path.splitext(file.filename)[1]
-    filename = f"profile_{user_id}{file_extension}"
-    file_path = os.path.join(static_dir, filename)
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Save new file
+    image_url = save_file(file, "profiles")
     
     # Update user
-    image_url = f"http://localhost:8000/static/profiles/{filename}"
     db_user.profile_image = image_url
     db.commit()
     
@@ -129,6 +124,8 @@ def remove_profile_image(user_id: int, db: Session = Depends(database.get_db)):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    if db_user.profile_image:
+        delete_file(db_user.profile_image)
     db_user.profile_image = None
     db.commit()
     return {"message": "Profile image removed"}
