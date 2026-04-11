@@ -37,10 +37,10 @@ ensure_admin_exists()
 app = FastAPI(title="Samkalp Vedhik API")
 
 # CORS middleware
-frontend_url = os.getenv("FRONTEND_URL", "*")
+frontend_url = os.getenv("FRONTEND_URL")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url] if frontend_url != "*" else ["*"],
+    allow_origins=[frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
