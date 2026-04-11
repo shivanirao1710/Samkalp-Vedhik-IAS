@@ -34,12 +34,15 @@ def save_file(file: UploadFile, folder: str) -> str:
             blob_service_client = get_storage_client()
             blob_client = blob_service_client.get_blob_client(container=AZURE_CONTAINER_NAME, blob=f"{folder}/{filename}")
             
+            # Ensure we start reading from the beginning of the file
+            file.file.seek(0)
             # Read file content
             content = file.file.read()
             blob_client.upload_blob(content, overwrite=True)
             
-            # Reset file pointer for any further use
+            # Reset file pointer again for any further use
             file.file.seek(0)
+
             
             # Return the Azure URL
             return blob_client.url
