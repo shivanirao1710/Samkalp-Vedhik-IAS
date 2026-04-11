@@ -175,15 +175,16 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const menuItems = [
     { name: 'Dashboard', icon: '📊' },
+    { name: 'Psychometric Test', icon: '🧠' },
     { name: 'Courses', icon: '📖' },
     { name: 'Study Materials', icon: '📚' },
     { name: 'Mock Tests', icon: '📝' },
     { name: 'Mock Interview', icon: '📹' },
-    { name: 'Psychometric Test', icon: '🧠' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'Current Affairs', icon: '🌍' },
     { name: 'AI Doubt Solver', icon: '❓' },
   ];
+
 
   const statCards = [
     { label: 'Overall Progress', value: dashboardStats.overallProgress, change: '+2%', icon: '🎯', color: '#fff7ed' },

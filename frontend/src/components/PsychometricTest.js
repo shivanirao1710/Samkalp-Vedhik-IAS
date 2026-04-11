@@ -561,7 +561,7 @@ const PsychometricTest = ({ user }) => {
             onClick={() => setView('video_counselling')}
           >
             <span style={{ fontSize: '1.5rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>📹</span> 
-            <span>Chat with AI Mentor</span>
+            <span>Chat with Mentor</span>
           </button>
 
           {/* Secondary Actions Row */}

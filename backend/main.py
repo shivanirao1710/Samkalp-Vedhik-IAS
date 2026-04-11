@@ -46,10 +46,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve static files (uploaded thumbnails)
-STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+# Serve static files (uploaded thumbnails and materials)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
+# Ensure all needed subdirectories exist for Azure persistent storage
 os.makedirs(os.path.join(STATIC_DIR, "thumbnails"), exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, "materials"), exist_ok=True)
+
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
 
 # Include routers
 app.include_router(auth.router)
