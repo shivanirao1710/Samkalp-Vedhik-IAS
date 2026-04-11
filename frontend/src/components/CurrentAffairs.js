@@ -27,8 +27,12 @@ const CurrentAffairs = ({ user }) => {
 
     const getAbsoluteUrl = (url) => {
         if (!url) return '';
-        return url.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${url}` : url;
+        // If it's already a full URL (like Azure Blob Storage), return it as is
+        if (url.startsWith('http')) return url;
+        // Otherwise, it's a local static path, so prepend the API URL
+        return `${process.env.REACT_APP_API_URL}${url}`;
     };
+
 
     const formatDateTime = (dateStr) => {
         if (!dateStr) return '';

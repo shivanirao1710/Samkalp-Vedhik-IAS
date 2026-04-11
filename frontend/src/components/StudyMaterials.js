@@ -96,8 +96,13 @@ const StudyMaterials = ({ user }) => {
     };
 
     const getAbsoluteUrl = (url) => {
-        return url.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${url}` : url;
+        if (!url) return '';
+        // If it's already a full URL (like Azure Blob Storage), return it as is
+        if (url.startsWith('http')) return url;
+        // Otherwise, it's a local static path, so prepend the API URL
+        return `${process.env.REACT_APP_API_URL}${url}`;
     };
+
 
     const handleDownload = async (material) => {
         const url = getAbsoluteUrl(material.file_url);

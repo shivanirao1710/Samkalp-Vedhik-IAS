@@ -82,10 +82,11 @@ const Courses = ({ user }) => {
         {filteredCourses.length > 0 ? (
           filteredCourses.map(course => {
             const thumbSrc = course.image_url
-              ? (course.image_url.startsWith('/static')
-                ? `${process.env.REACT_APP_API_URL}${course.image_url}`
-                : course.image_url)
+              ? (course.image_url.startsWith('http')
+                ? course.image_url
+                : `${process.env.REACT_APP_API_URL}${course.image_url}`)
               : null;
+
             return (
               <div key={course.id} className="course-card-full">
                 <div
