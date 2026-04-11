@@ -36,6 +36,8 @@ jobs:
           api_location: ""               # Leave empty if using separate Backend App Service
           output_location: "build"       # Where React puts the build files (usually 'build' or 'dist')
           ###### End of Location Configurations ######
+        env:
+          REACT_APP_API_URL: https://samkalp-backend-hacrbsdmccdbcpfa.centralindia-01.azurewebsites.net
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
