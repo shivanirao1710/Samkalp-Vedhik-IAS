@@ -72,19 +72,19 @@ const StudyMaterials = ({ user }) => {
 
     const getIconClass = (type) => {
         switch (type) {
-            case 'pdf': return 'icon-pdf';
+            case 'pdf': return 'icon-pdf ebook-style';
             case 'video': return 'icon-video';
             case 'presentation': return 'icon-presentation';
             case 'word': return 'icon-word';
             case 'image': return 'icon-image';
-            case 'ebook': return 'icon-pdf'; // Fallback style for ebooks
+            case 'ebook': return 'icon-pdf ebook-style';
             default: return 'icon-document';
         }
     };
 
     const getIcon = (type) => {
         switch (type) {
-            case 'pdf': return '📄';
+            case 'pdf': return '📖';
             case 'video': return '▶️';
             case 'presentation': return '📊';
             case 'word': return '📝';
@@ -136,7 +136,8 @@ const StudyMaterials = ({ user }) => {
         const ext = extMatch ? extMatch[0].toLowerCase() : '';
 
         if (type === 'pdf' || type === 'txt') {
-            return <iframe src={url} title="Preview" />;
+            const finalUrl = type === 'pdf' ? `${url}#toolbar=0&navpanes=0&scrollbar=0` : url;
+            return <iframe src={finalUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
         } else if (type === 'video') {
             return <video src={url} controls autoPlay controlsList="nodownload" />;
         } else if (type === 'image') {
@@ -214,8 +215,8 @@ const StudyMaterials = ({ user }) => {
                             const type = String(mat.file_type || '').toLowerCase();
                             if (type === 'video') groups['Videos'].push(mat);
                             else if (type === 'image') groups['Images'].push(mat);
-                            else if (type === 'ebook') groups['E-books'].push(mat);
-                            else if (['pdf', 'word', 'presentation', 'txt', 'document'].includes(type)) groups['Documents'].push(mat);
+                            else if (type === 'ebook' || type === 'pdf') groups['E-books'].push(mat);
+                            else if (['word', 'presentation', 'txt', 'document'].includes(type)) groups['Documents'].push(mat);
                             else groups['Other'].push(mat);
                         });
 
@@ -271,9 +272,9 @@ const StudyMaterials = ({ user }) => {
 
                                                     <div className="material-actions">
                                                         <button className="material-action view-btn" onClick={() => handlePreview(mat)}>
-                                                            <span>{mat.file_type === 'ebook' ? '📖 Read' : '👁️ Preview'}</span>
+                                                            <span>{(mat.file_type === 'ebook' || mat.file_type === 'pdf') ? '📖 Read' : '👁️ Preview'}</span>
                                                         </button>
-                                                        {mat.file_type !== 'ebook' && (
+                                                        {(mat.file_type !== 'ebook' && mat.file_type !== 'pdf') && (
                                                             <button className="material-action" onClick={() => handleDownload(mat)}>
                                                                 <span>↓</span> Download
                                                             </button>
@@ -306,7 +307,7 @@ const StudyMaterials = ({ user }) => {
                         <div className="preview-header">
                             <h3>{previewMaterial.title}</h3>
                             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                {previewMaterial.file_type !== 'ebook' && (
+                                {previewMaterial.file_type !== 'ebook' && previewMaterial.file_type !== 'pdf' && (
                                     <button className="material-action" style={{ padding: '0.4rem 1rem', width: 'auto' }} onClick={() => handleDownload(previewMaterial)}>
                                         <span>↓</span> Download
                                     </button>

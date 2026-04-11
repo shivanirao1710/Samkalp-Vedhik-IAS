@@ -2162,18 +2162,18 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
             const getIconClass = (type) => {
                 const lowerProp = String(type || '').toLowerCase();
-                if (lowerProp.includes('pdf')) return 'icon-pdf';
+                if (lowerProp.includes('pdf')) return 'icon-pdf ebook-style';
                 if (lowerProp.includes('video') || lowerProp.includes('mp4')) return 'icon-video';
                 if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return 'icon-presentation';
                 if (lowerProp.includes('word') || lowerProp.includes('doc')) return 'icon-word';
                 if (lowerProp.includes('image') || lowerProp.includes('jpg') || lowerProp.includes('png')) return 'icon-image';
-                if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return 'icon-pdf';
+                if (lowerProp.includes('ebook') || lowerProp.includes('epub')) return 'icon-pdf ebook-style';
                 return 'icon-document';
             };
 
             const getIcon = (type) => {
                 const lowerProp = String(type || '').toLowerCase();
-                if (lowerProp.includes('pdf')) return '📄';
+                if (lowerProp.includes('pdf')) return '📖';
                 if (lowerProp.includes('video') || lowerProp.includes('mp4')) return '▶️';
                 if (lowerProp.includes('presentation') || lowerProp.includes('ppt')) return '📊';
                 if (lowerProp.includes('word') || lowerProp.includes('doc')) return '📝';
