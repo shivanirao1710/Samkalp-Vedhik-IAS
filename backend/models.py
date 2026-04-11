@@ -173,3 +173,10 @@ class InterviewResult(Base):
     overall_score = Column(Integer)
     report_json = Column(Text, nullable=False) # Store the full analysis object
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class NotificationRead(Base):
+    __tablename__ = "notification_reads"
+    id = Column(Integer, primary_key=True, index=True)
+    notification_id = Column(Integer, index=True)
+    user_id = Column(Integer, index=True)
+    read_at = Column(DateTime, default=datetime.utcnow)

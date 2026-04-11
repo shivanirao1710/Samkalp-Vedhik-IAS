@@ -2370,6 +2370,20 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                                         {ann.type}
                                     </span>
                                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(ann.created_at).toLocaleString()}</span>
+                                    <span style={{ 
+                                        fontSize: '0.75rem', 
+                                        color: '#10b981', 
+                                        fontWeight: '800', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '0.25rem',
+                                        background: '#dcfce7',
+                                        padding: '4px 10px',
+                                        borderRadius: '20px',
+                                        marginLeft: '0.5rem'
+                                    }}>
+                                        📖 Read by {ann.read_count || 0}
+                                    </span>
                                 </div>
                                 <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-main)' }}>{ann.title}</h4>
                                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>{ann.message}</p>

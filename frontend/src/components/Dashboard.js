@@ -35,6 +35,20 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  const markAsRead = async (notiId) => {
+    try {
+      const resp = await fetch(`http://localhost:8000/notifications/${notiId}/read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id })
+      });
+      if (resp.ok) {
+        setNotifications(prev => prev.map(n => n.id === notiId ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (err) { console.error(err); }
+  };
+
   React.useEffect(() => {
     const fetchDashboardData = async () => {
       // Only fetch if we are actually viewing the main dashboard summary
@@ -83,18 +97,11 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         }
 
         // 6. Fetch Notifications
-        const notiResp = await fetch(`http://localhost:8000/notifications/`);
+        const notiResp = await fetch(`http://localhost:8000/notifications/?user_id=${user.id}`);
         if (notiResp.ok) {
-          const notis = await notiResp.ok ? await notiResp.json() : [];
+          const notis = await notiResp.json();
           setNotifications(notis);
-          // For now, consider all of them "unread" until manually cleared or handled via local storage
-          const lastRead = localStorage.getItem('lastNotificationRead');
-          if (!lastRead) {
-            setUnreadCount(notis.length);
-          } else {
-            const count = notis.filter(n => new Date(n.created_at) > new Date(lastRead)).length;
-            setUnreadCount(count);
-          }
+          setUnreadCount(notis.filter(n => !n.is_read).length);
         }
 
       } catch (err) {
@@ -305,7 +312,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           <div className="profile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
             <div className="user-profile">
-              <div className="notification-bell-wrapper" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); setUnreadCount(0); localStorage.setItem('lastNotificationRead', new Date().toISOString()); }}>
+              <div className="notification-bell-wrapper" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); }}>
                 <span className="notification-bell">🔔</span>
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </div>
@@ -330,13 +337,18 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                   <div className="notifications-list">
                     {notifications.length > 0 ? (
                       notifications.map(noti => (
-                        <div key={noti.id} className={`notification-item ${noti.type}`}>
-                          <div className="noti-icon">
-                            {noti.type === 'warning' ? '⚠️' : (noti.type === 'success' ? '✅' : '📢')}
+                        <div key={noti.id} className={`notification-item ${noti.type} ${noti.is_read ? 'read' : ''}`}>
+                          <div 
+                            className="noti-icon" 
+                            onClick={() => !noti.is_read && markAsRead(noti.id)} 
+                            style={{ cursor: noti.is_read ? 'default' : 'pointer', transition: 'all 0.2s', filter: noti.is_read ? 'grayscale(0)' : 'none' }}
+                            title={noti.is_read ? "Read" : "Mark as read"}
+                          >
+                            {noti.is_read ? '✅' : (noti.type === 'warning' ? '⚠️' : (noti.type === 'success' ? '✅' : '📢'))}
                           </div>
-                          <div className="noti-content">
-                            <h5>{noti.title}</h5>
-                            <p>{noti.message}</p>
+                          <div className="noti-content" onClick={() => !noti.is_read && markAsRead(noti.id)} style={{ cursor: noti.is_read ? 'default' : 'pointer' }}>
+                            <h5 style={{ textDecoration: noti.is_read ? 'none' : 'none', opacity: noti.is_read ? 0.7 : 1 }}>{noti.title}</h5>
+                            <p style={{ opacity: noti.is_read ? 0.6 : 1 }}>{noti.message}</p>
                             <span className="noti-time">{new Date(noti.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>

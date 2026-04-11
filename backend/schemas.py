@@ -112,8 +112,13 @@ class NotificationResponse(NotificationBase):
     id: int
     sender_id: Optional[int]
     created_at: datetime
+    is_read: Optional[bool] = False
+    read_count: Optional[int] = 0
     class Config:
         from_attributes = True
+
+class NotificationReadMark(BaseModel):
+    user_id: int
 
 class AdminRequestCreate(BaseModel):
     subject: str
