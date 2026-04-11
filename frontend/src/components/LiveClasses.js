@@ -13,7 +13,7 @@ const LiveClasses = ({ user }) => {
 
   const fetchUserEnrollments = async () => {
     try {
-      const resp = await fetch(`http://localhost:8000/live-classes/user/${user.id}/enrollments`);
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/live-classes/user/${user.id}/enrollments`);
       const data = await resp.json();
       setBookedClassIds(data);
     } catch (err) {
@@ -23,7 +23,7 @@ const LiveClasses = ({ user }) => {
 
   const fetchLiveClasses = async () => {
     try {
-      const resp = await fetch('http://localhost:8000/live-classes/');
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/live-classes/`);
       const data = await resp.json();
       setLiveClasses(data);
     } catch (err) {
@@ -36,7 +36,7 @@ const LiveClasses = ({ user }) => {
   const handleBookSpot = async (classId) => {
     if (!user?.id) return alert("Please log in to book spots");
     try {
-      const response = await fetch(`http://localhost:8000/live-classes/${classId}/book?user_id=${user.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/live-classes/${classId}/book?user_id=${user.id}`, {
         method: 'POST'
       });
       if (response.ok) {

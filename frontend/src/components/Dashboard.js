@@ -49,7 +49,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const fetchLatestCA = async () => {
     try {
-        const res = await fetch('http://localhost:8000/current-affairs/');
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/current-affairs/`);
         if (res.ok) {
             const data = await res.json();
             if (data.length > 0) {
@@ -72,7 +72,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const markAsRead = async (notiId) => {
     try {
-      const resp = await fetch(`http://localhost:8000/notifications/${notiId}/read`, {
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/notifications/${notiId}/read`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.id })
@@ -91,14 +91,14 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
       setLoading(true);
       try {
         // 1. Sync profile
-        const profileResp = await fetch(`http://localhost:8000/users/me/${user.id}`);
+        const profileResp = await fetch(`${process.env.REACT_APP_API_URL}/users/me/${user.id}`);
         if (profileResp.ok) {
           const updatedUser = await profileResp.json();
           onUserUpdate(updatedUser);
         }
 
         // 2. Fetch Stats
-        const statsResp = await fetch(`http://localhost:8000/users/stats/${user.id}`);
+        const statsResp = await fetch(`${process.env.REACT_APP_API_URL}/users/stats/${user.id}`);
         if (statsResp.ok) {
           const statsData = await statsResp.json();
           setDashboardStats({
@@ -110,28 +110,28 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         }
 
         // 3. Fetch Enrolled Courses
-        const courseResp = await fetch(`http://localhost:8000/courses/student/${user.id}`);
+        const courseResp = await fetch(`${process.env.REACT_APP_API_URL}/courses/student/${user.id}`);
         if (courseResp.ok) {
           const courses = await courseResp.json();
           setEnrolledCourses(courses.filter(c => c.is_enrolled));
         }
 
         // 4. Fetch Tests
-        const testsResp = await fetch(`http://localhost:8000/tests/`);
+        const testsResp = await fetch(`${process.env.REACT_APP_API_URL}/tests/`);
         if (testsResp.ok) {
           const tests = await testsResp.json();
           setUpcomingTests(tests.slice(0, 2));
         }
 
         // 5. Fetch Live Sessions
-        const liveResp = await fetch(`http://localhost:8000/live-classes/`);
+        const liveResp = await fetch(`${process.env.REACT_APP_API_URL}/live-classes/`);
         if (liveResp.ok) {
           const sessions = await liveResp.json();
           setLiveSessions(sessions.slice(0, 1));
         }
 
         // 6. Fetch Notifications
-        const notiResp = await fetch(`http://localhost:8000/notifications/?user_id=${user.id}`);
+        const notiResp = await fetch(`${process.env.REACT_APP_API_URL}/notifications/?user_id=${user.id}`);
         if (notiResp.ok) {
           const notis = await notiResp.json();
           setNotifications(notis);

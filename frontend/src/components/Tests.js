@@ -90,7 +90,7 @@ const Tests = () => {
 
   const fetchTests = async () => {
     try {
-      const response = await fetch('http://localhost:8000/tests/');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/`);
       const data = await response.json();
       setTests(data);
     } catch (error) {
@@ -103,7 +103,7 @@ const Tests = () => {
   const startTest = async (test) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/tests/${test.id}/questions`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/${test.id}/questions`);
       const questions = await response.json();
 
       // Transform backend format to frontend format if needed

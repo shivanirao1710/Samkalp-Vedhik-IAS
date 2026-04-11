@@ -37,7 +37,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/users/stats/${user.id}`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/stats/${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -69,7 +69,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/users/update/${user.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/update/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editData),
@@ -102,7 +102,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
 
     setUploading(true);
     try {
-      const response = await fetch(`http://localhost:8000/users/upload-image/${user.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/upload-image/${user.id}`, {
         method: 'POST',
         body: formData,
       });
@@ -124,7 +124,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const handleRemovePhoto = async () => {
     setUploading(true);
     try {
-      const response = await fetch(`http://localhost:8000/users/remove-image/${user.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/remove-image/${user.id}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -143,7 +143,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const handleDeleteAccount = async () => {
     if (window.confirm("Are you absolutely sure? This action cannot be undone and all your data will be permanently deleted.")) {
       try {
-        const response = await fetch(`http://localhost:8000/users/delete/${user.id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/users/delete/${user.id}`, {
           method: 'DELETE'
         });
         if (response.ok) {

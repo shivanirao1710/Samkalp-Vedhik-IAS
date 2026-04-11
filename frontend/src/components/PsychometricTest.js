@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import VideoAvatarCounselling from './VideoAvatarCounselling';
 import '../styles/PsychometricTest.css';
 
-const API = 'http://localhost:8000';
+const API = `${process.env.REACT_APP_API_URL}`;
 
 const PsychometricTest = ({ user }) => {
   const [view, setView] = useState('loading'); // loading | landing | table | testing | analyzing | results

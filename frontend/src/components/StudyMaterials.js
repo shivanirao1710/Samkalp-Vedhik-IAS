@@ -33,8 +33,8 @@ const StudyMaterials = ({ user }) => {
     const fetchMaterials = async () => {
         try {
             const url = user && user.id
-                ? `http://localhost:8000/study-materials/student/${user.id}?category=${categoryFilter === 'All' ? '' : categoryFilter}`
-                : `http://localhost:8000/study-materials/?category=${categoryFilter === 'All' ? '' : categoryFilter}`;
+                ? `${process.env.REACT_APP_API_URL}/study-materials/student/${user.id}?category=${categoryFilter === 'All' ? '' : categoryFilter}`
+                : `${process.env.REACT_APP_API_URL}/study-materials/?category=${categoryFilter === 'All' ? '' : categoryFilter}`;
 
             const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch materials');
@@ -57,7 +57,7 @@ const StudyMaterials = ({ user }) => {
             return;
         }
         try {
-            const response = await fetch(`http://localhost:8000/study-materials/${materialId}/favorite/${user.id}`, { method: 'POST' });
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/study-materials/${materialId}/favorite/${user.id}`, { method: 'POST' });
             if (response.ok) {
                 // Optimistically update UI
                 setMaterials(materials.map(m => {
@@ -96,7 +96,7 @@ const StudyMaterials = ({ user }) => {
     };
 
     const getAbsoluteUrl = (url) => {
-        return url.startsWith('/static') ? `http://localhost:8000${url}` : url;
+        return url.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${url}` : url;
     };
 
     const handleDownload = async (material) => {

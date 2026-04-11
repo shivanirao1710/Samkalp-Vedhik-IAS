@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/AIMentor.css';
 
-const API = 'http://localhost:8000';
+const API = `${process.env.REACT_APP_API_URL}`;
 
 const QUICK_PROMPTS = [
   "How do I join a live class?",

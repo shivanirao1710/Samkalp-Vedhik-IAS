@@ -16,7 +16,7 @@ const Interview = ({ user }) => {
 
     const fetchStats = async () => {
         try {
-            const res = await fetch(`http://localhost:8000/api/interview/stats/${user.id}`);
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/interview/stats/${user.id}`);
             if (res.ok) {
                 const data = await res.json();
                 setStats(data);
@@ -34,7 +34,7 @@ const Interview = ({ user }) => {
         setHistory([]); // Clear old history
         setActiveTab('history'); // Switch tab immediately for responsiveness
         try {
-            const res = await fetch(`http://localhost:8000/api/interview/history/${user?.id}`);
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/interview/history/${user?.id}`);
             if (res.ok) {
                 const data = await res.json();
                 setHistory(data);
@@ -51,7 +51,7 @@ const Interview = ({ user }) => {
         // Store the result in the database
         if (user?.id) {
             try {
-                await fetch(`http://localhost:8000/api/interview/save`, {
+                await fetch(`${process.env.REACT_APP_API_URL}/api/interview/save`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -75,7 +75,7 @@ const Interview = ({ user }) => {
     const deleteResult = async (id) => {
         if (!window.confirm("Are you sure you want to delete this interview result?")) return;
         try {
-            const res = await fetch(`http://localhost:8000/api/interview/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${process.env.REACT_APP_API_URL}/api/interview/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 fetchHistory(); // Refresh list
                 fetchStats();   // Refresh dashboard stats

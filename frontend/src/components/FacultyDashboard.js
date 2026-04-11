@@ -18,7 +18,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     // Sync profile data on mount
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/users/me/${user.id}`);
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/users/me/${user.id}`);
         if (response.ok) {
           const updatedUser = await response.json();
           onUserUpdate(updatedUser);
@@ -119,7 +119,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const fetchAdminRequests = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/admin/requests/faculty/${user.id}`);
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/admin/requests/faculty/${user.id}`);
       if (res.ok) setAdminRequests(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -130,7 +130,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
     setIsSendingRequest(true);
     try {
-      const res = await fetch('http://localhost:8000/admin/requests', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/admin/requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -150,7 +150,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await fetch('http://localhost:8000/notifications/');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/notifications/`);
       if (res.ok) setAnnouncements(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -158,7 +158,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const fetchInterviews = async () => {
     setLoadingInterviews(true);
     try {
-      const res = await fetch('http://localhost:8000/api/interview/all');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/interview/all`);
       if (res.ok) {
         const data = await res.json();
         setAllInterviewResults(data);
@@ -179,7 +179,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
     setIsSendingAnnouncement(true);
     try {
-      const res = await fetch('http://localhost:8000/notifications/', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/notifications/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newAnnouncement, sender_id: user.id })
@@ -196,7 +196,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleDeleteAnnouncement = async (id) => {
     if (!window.confirm("Delete this announcement?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/notifications/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/notifications/${id}`, { method: 'DELETE' });
       if (res.ok) fetchAnnouncements();
     } catch (err) { console.error(err); }
   };
@@ -204,7 +204,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const fetchStudents = async () => {
     setLoadingStudents(true);
     try {
-      const response = await fetch('http://localhost:8000/admin/students-detailed');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/students-detailed`);
       if (response.ok) {
         const data = await response.json();
         setStudentData(data);
@@ -234,7 +234,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const fetchCurrentAffairs = async () => {
     try {
-      const res = await fetch('http://localhost:8000/current-affairs/');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/current-affairs/`);
       if (res.ok) setCurrentAffairs(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -249,7 +249,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     fd.append('file', caFile);
 
     try {
-      const res = await fetch('http://localhost:8000/current-affairs/', { method: 'POST', body: fd });
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/current-affairs/`, { method: 'POST', body: fd });
       if (res.ok) {
         alert("Daily Current Affairs uploaded!");
         setIsCAModalOpen(false);
@@ -267,7 +267,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleDeleteCA = async (id) => {
     if (!window.confirm("Delete this daily update?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/current-affairs/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/current-affairs/${id}`, { method: 'DELETE' });
       if (res.ok) fetchCurrentAffairs();
     } catch (err) { console.error(err); }
   };
@@ -275,8 +275,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const fetchGeneralStats = async () => {
     try {
       const [coursesRes, testsRes] = await Promise.all([
-        fetch('http://localhost:8000/courses/'),
-        fetch('http://localhost:8000/tests/')
+        fetch(`${process.env.REACT_APP_API_URL}/courses/`),
+        fetch(`${process.env.REACT_APP_API_URL}/tests/`)
       ]);
 
       const courses = await coursesRes.json();
@@ -510,7 +510,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const fetchStudyMaterials = async () => {
     try {
-      const res = await fetch('http://localhost:8000/study-materials/');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/study-materials/`);
       setStudyMaterials(await res.json());
     } catch (err) { console.error(err); }
   };
@@ -537,7 +537,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       fd.append('file', file);
 
       try {
-        const res = await fetch('http://localhost:8000/study-materials/', { method: 'POST', body: fd });
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/study-materials/`, { method: 'POST', body: fd });
         if (res.ok) {
           successCount++;
         }
@@ -562,14 +562,14 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleDeleteMaterial = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/study-materials/${id}`, { method: 'DELETE' });
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/study-materials/${id}`, { method: 'DELETE' });
       if (res.ok) fetchStudyMaterials();
     } catch (err) { console.error(err); }
   };
 
   const fetchLiveCourses = async () => {
     try {
-      const res = await fetch('http://localhost:8000/courses/');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/`);
       const data = await res.json();
       setLiveCourses(data);
     } catch (err) {
@@ -597,7 +597,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       fd.append('progress', 0);
       if (thumbnailFile) fd.append('thumbnail', thumbnailFile);
 
-      const res = await fetch('http://localhost:8000/courses/', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/`, {
         method: 'POST',
         body: fd
       });
@@ -644,7 +644,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     // Show existing thumbnail as preview
     if (course.image_url) {
       const src = course.image_url.startsWith('/static')
-        ? `http://localhost:8000${course.image_url}`
+        ? `${process.env.REACT_APP_API_URL}${course.image_url}`
         : course.image_url;
       setEditThumbnailPreview(src);
     } else {
@@ -675,7 +675,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       fd.append('progress', editCourse.progress || 0);
       if (editThumbnailFile) fd.append('thumbnail', editThumbnailFile);
 
-      const res = await fetch(`http://localhost:8000/courses/${editCourse.id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/${editCourse.id}`, {
         method: 'PUT',
         body: fd
       });
@@ -699,7 +699,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleDeleteCourse = async (course) => {
     if (!window.confirm(`Delete "${course.title}"? This cannot be undone.`)) return;
     try {
-      const res = await fetch(`http://localhost:8000/courses/${course.id}`, { method: 'DELETE' });
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/${course.id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchLiveCourses();
       } else {
@@ -1061,7 +1061,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           {liveCourses.map((course) => {
             const thumbSrc = course.image_url
               ? (course.image_url.startsWith('/static')
-                ? `http://localhost:8000${course.image_url}`
+                ? `${process.env.REACT_APP_API_URL}${course.image_url}`
                 : course.image_url)
               : null;
             const statusLabel = course.status === 'in_progress' ? 'Published' : course.status === 'completed' ? 'Completed' : 'Draft';
@@ -1257,7 +1257,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/tests/', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1475,7 +1475,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const fetchTests = async () => {
     try {
-      const response = await fetch('http://localhost:8000/tests/');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/`);
       const data = await response.json();
       setFetchedTests(data);
     } catch (error) {
@@ -1487,7 +1487,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     setTestToManage(test);
     setIsManagingQuestions(true);
     try {
-      const response = await fetch(`http://localhost:8000/tests/${test.id}/questions`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/${test.id}/questions`);
       const data = await response.json();
       setTestQuestions(data);
     } catch (error) {
@@ -1498,7 +1498,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleDeleteQuestion = async (questionId) => {
     if (!window.confirm("Are you sure you want to delete this question?")) return;
     try {
-      const response = await fetch(`http://localhost:8000/tests/questions/${questionId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/questions/${questionId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -1515,7 +1515,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleDeleteTest = async (testId) => {
     if (!window.confirm("Are you sure you want to delete this entire test? This will remove all questions and cannot be undone.")) return;
     try {
-      const response = await fetch(`http://localhost:8000/tests/${testId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/${testId}`, {
         method: 'DELETE'
       });
       if (response.ok) {
@@ -1542,7 +1542,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleUpdateQuestion = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:8000/tests/questions/${editingQuestion.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/questions/${editingQuestion.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1555,7 +1555,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       if (response.ok) {
         setIsEditQuestionModalOpen(false);
         // Refresh question list
-        const refreshed = await fetch(`http://localhost:8000/tests/${testToManage.id}/questions`);
+        const refreshed = await fetch(`${process.env.REACT_APP_API_URL}/tests/${testToManage.id}/questions`);
         const data = await refreshed.json();
         setTestQuestions(data);
       } else {
@@ -1802,7 +1802,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const fetchLiveClasses = async () => {
     try {
-      const resp = await fetch('http://localhost:8000/live-classes/');
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/live-classes/`);
       const data = await resp.json();
       setLiveClasses(data);
     } catch (err) {
@@ -1813,7 +1813,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleClassSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/live-classes/', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/live-classes/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(classFormData)
@@ -1833,7 +1833,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleDeleteClass = async (id) => {
     if (!window.confirm("Delete this scheduled class?")) return;
     try {
-      await fetch(`http://localhost:8000/live-classes/${id}`, { method: 'DELETE' });
+      await fetch(`${process.env.REACT_APP_API_URL}/live-classes/${id}`, { method: 'DELETE' });
       fetchLiveClasses();
     } catch (err) {
       console.error("Error deleting class:", err);
@@ -1863,7 +1863,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const handleEditClassSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:8000/live-classes/${editingClassId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/live-classes/${editingClassId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editClassFormData)
@@ -2760,7 +2760,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </div>
             <div style={{ flex: 1, background: '#f8fafc', borderRadius: '0 0 24px 24px', overflow: 'hidden' }}>
               <iframe
-                src={`http://localhost:8000${caPreviewItem.content_url}#toolbar=0`}
+                src={`${process.env.REACT_APP_API_URL}${caPreviewItem.content_url}#toolbar=0`}
                 title="CA Preview"
                 style={{ width: '100%', height: '100%', border: 'none' }}
               />

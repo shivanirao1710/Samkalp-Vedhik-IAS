@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/VideoAvatarCounselling.css'; 
 
-const API = 'http://localhost:8000';
+const API = `${process.env.REACT_APP_API_URL}`;
 
 const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) => {
   const [beyCallLink, setBeyCallLink] = useState(null);

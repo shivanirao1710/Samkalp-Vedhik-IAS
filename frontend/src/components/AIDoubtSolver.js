@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../styles/AIDoubtSolver.css';
 
-const API = 'http://localhost:8000';
+const API = `${process.env.REACT_APP_API_URL}`;
 
 const SUGGESTED_DOUBTS = [
   "Explain the Basic Structure Doctrine.",

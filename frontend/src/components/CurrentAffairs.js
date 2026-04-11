@@ -12,7 +12,7 @@ const CurrentAffairs = ({ user }) => {
 
     const fetchCurrentAffairs = async () => {
         try {
-            const response = await fetch('http://localhost:8000/current-affairs/');
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/current-affairs/`);
             if (response.ok) {
                 const data = await response.json();
                 setCurrentAffairs(data);
@@ -27,7 +27,7 @@ const CurrentAffairs = ({ user }) => {
 
     const getAbsoluteUrl = (url) => {
         if (!url) return '';
-        return url.startsWith('/static') ? `http://localhost:8000${url}` : url;
+        return url.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${url}` : url;
     };
 
     const formatDateTime = (dateStr) => {

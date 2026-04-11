@@ -35,7 +35,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const fetchRequests = async () => {
     try {
-      const resp = await fetch('http://localhost:8000/admin/requests');
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/admin/requests`);
       if (resp.ok) setRequests(await resp.json());
     } catch (err) { console.error(err); }
   };
@@ -43,7 +43,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   const handleReply = async (requestId) => {
     if (!replyText) return;
     try {
-      const resp = await fetch(`http://localhost:8000/admin/requests/${requestId}/reply`, {
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/admin/requests/${requestId}/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reply: replyText })

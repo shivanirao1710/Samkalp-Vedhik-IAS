@@ -9,8 +9,8 @@ const Courses = ({ user }) => {
   const fetchCourses = async () => {
     try {
       const url = user && user.id
-        ? `http://localhost:8000/courses/student/${user.id}`
-        : 'http://localhost:8000/courses/';
+        ? `${process.env.REACT_APP_API_URL}/courses/student/${user.id}`
+        : `${process.env.REACT_APP_API_URL}/courses/`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
@@ -32,7 +32,7 @@ const Courses = ({ user }) => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:8000/courses/${courseId}/enroll/${user.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/courses/${courseId}/enroll/${user.id}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -83,7 +83,7 @@ const Courses = ({ user }) => {
           filteredCourses.map(course => {
             const thumbSrc = course.image_url
               ? (course.image_url.startsWith('/static')
-                ? `http://localhost:8000${course.image_url}`
+                ? `${process.env.REACT_APP_API_URL}${course.image_url}`
                 : course.image_url)
               : null;
             return (

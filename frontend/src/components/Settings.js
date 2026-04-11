@@ -29,7 +29,7 @@ const Settings = ({ user, onBack }) => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/users/update-password/${user.id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/users/update-password/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

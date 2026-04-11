@@ -41,7 +41,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/users/update/${user.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/update/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editData),
@@ -72,7 +72,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
     setShowPhotoMenu(false);
 
     try {
-      const response = await fetch(`http://localhost:8000/users/upload-image/${user.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/upload-image/${user.id}`, {
         method: 'POST',
         body: formData,
       });
@@ -92,7 +92,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   };
 
   const profileImageSrc = user.profile_image 
-    ? (user.profile_image.startsWith('/static') ? `http://localhost:8000${user.profile_image}` : user.profile_image)
+    ? (user.profile_image.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${user.profile_image}` : user.profile_image)
     : null;
 
   return (
