@@ -9,17 +9,13 @@ on:
     branches:
       - main
 
-env:
-  # This silences the Node.js 20 deprecation warning
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
-
 jobs:
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           lfs: false
@@ -32,9 +28,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           ###### Location Configurations ######
-          app_location: "/frontend"      # Path to your React code
-          api_location: ""               # Leave empty if using separate Backend App Service
-          output_location: "build"       # Where React puts the build files (usually 'build' or 'dist')
+          app_location: "/frontend"
+          api_location: ""
+          output_location: "build"
           ###### End of Location Configurations ######
         env:
           REACT_APP_API_URL: https://samkalp-backend-hacrbsdmccdbcpfa.centralindia-01.azurewebsites.net

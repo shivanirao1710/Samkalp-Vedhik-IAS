@@ -6,10 +6,7 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  # This silences the Node.js 20 deprecation warning
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true
-
+# No environment overrides needed; using native Node 24 compliant actions
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,10 +14,10 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python version
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -31,7 +28,7 @@ jobs:
           pip install -r backend/requirements.txt
                 
       - name: Upload artifact for deployment jobs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: python-app
           path: |
@@ -44,7 +41,7 @@ jobs:
     
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: python-app
       
