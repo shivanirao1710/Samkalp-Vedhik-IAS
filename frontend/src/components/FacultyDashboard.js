@@ -524,11 +524,11 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                            <span style={{ 
                               fontSize: '0.75rem', 
                               fontWeight: '900', 
-                              color: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' 
+                              color: data.score > 70 ? '#F2921D' : data.score > 40 ? '#f59e0b' : '#ef4444' 
                            }}>{data.score}%</span>
                         </div>
                         <div style={{ width: '100%', height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
-                           <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
+                           <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#F2921D' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
                         </div>
                         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>{data.description}</p>
                       </div>
@@ -581,7 +581,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const courseStats = [
     { label: 'Total Courses', value: '18', icon: '📚', color: '#e0f2fe' },
-    { label: 'Total Enrollments', value: '1,245', icon: '👥', color: '#f0fdf4' },
+    { label: 'Total Enrollments', value: '1,245', icon: '👥', color: '#fff7ed' },
     { label: 'Total Hours', value: '850', icon: '⏱️', color: '#fff7ed' },
     { label: 'Draft Courses', value: '4', icon: '📝', color: '#fef2f2' },
   ];
@@ -1246,7 +1246,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const testStats = [
     { label: 'Total Tests', value: '48', icon: '📝', color: '#e0f2fe' },
-    { label: 'Total Attempts', value: '1,429', icon: '👥', color: '#f0fdf4' },
+    { label: 'Total Attempts', value: '1,429', icon: '👥', color: '#fff7ed' },
     { label: 'Avg Score', value: '68.2%', icon: '⏱️', color: '#fff7ed' },
     { label: 'Draft Tests', value: '6', icon: '📋', color: '#fef2f2' },
   ];
@@ -1504,7 +1504,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   </span>
                 </div>
                 {testFormData.questions.length > 0 && (
-                  <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '700' }}>✓ Questions ready</span>
+                  <span style={{ fontSize: '0.75rem', color: '#F2921D', fontWeight: '700' }}>✓ Questions ready</span>
                 )}
               </div>
 
@@ -1574,7 +1574,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                           {correctOpt && (
                             <span style={{
                               fontSize: '0.72rem',
-                              color: '#10b981',
+                              color: '#F2921D',
                               fontWeight: '700',
                               display: 'flex',
                               alignItems: 'center',
@@ -1618,10 +1618,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </div>
 
 
-            <div className="bulk-upload-zone" style={{ border: '1.5px dashed #10b981', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#f0fdf4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="bulk-upload-zone" style={{ border: '1.5px dashed #F2921D', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#fff7ed', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h4 style={{ color: '#10b981', margin: '0 0 0.5rem 0' }}>Bulk Upload via Excel/CSV</h4>
-                <p style={{ fontSize: '0.85rem', color: '#047857', margin: 0 }}>Easily upload many questions at once.</p>
+                <h4 style={{ color: '#F2921D', margin: '0 0 0.5rem 0' }}>Bulk Upload via Excel/CSV</h4>
+                <p style={{ fontSize: '0.85rem', color: '#c2410c', margin: 0 }}>Easily upload many questions at once.</p>
               </div>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button type="button" onClick={() => {
@@ -1633,10 +1633,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
-                }} style={{ fontSize: '0.85rem', color: '#10b981', background: 'none', border: '1px solid #10b981', padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer' }}>
+                }} style={{ fontSize: '0.85rem', color: '#F2921D', background: 'none', border: '1px solid #F2921D', padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer' }}>
                   Download Template
                 </button>
-                <label style={{ background: '#10b981', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                <label style={{ background: '#F2921D', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>
                   Upload File
                   <input type="file" accept=".csv, .xlsx, .xls" onChange={handleBulkUpload} style={{ display: 'none' }} />
                 </label>
@@ -1697,7 +1697,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 type="button"
                 className="submit-btn"
                 style={{
-                  background: isCreatingTest ? '#059669' : '#10b981',
+                  background: isCreatingTest ? '#D93425' : '#F2921D',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

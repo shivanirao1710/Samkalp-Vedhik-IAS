@@ -178,40 +178,125 @@ const Settings = ({ user, onBack }) => {
           )}
 
           {activeTab === 'Appearance' && (
-            <div className="profile-card">
-              <div className="profile-section-title">
-                <h3>Display Themes</h3>
-              </div>
-              <div className="preferences-list">
-                <div className="preference-item" style={{ alignItems: 'flex-start' }}>
-                  <div className="pref-info">
-                    <h4>Application Theme</h4>
-                    <p>Customize the visual layout of Samkalp Vedhik</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="profile-card">
+                <div className="profile-section-title">
+                  <h3>Display Themes</h3>
+                </div>
+                <div className="preferences-list">
+                  <div className="preference-item" style={{ alignItems: 'flex-start' }}>
+                    <div className="pref-info">
+                      <h4>Application Theme</h4>
+                      <p>Customize the visual layout of Samkalp Vedhik</p>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                      <div
-                        onClick={() => handleThemeChange('light')}
-                        style={{
-                          border: !isDarkMode ? '2px solid #f97316' : '2px solid #e2e8f0',
-                          padding: '1rem', borderRadius: '8px',
-                          cursor: 'pointer', background: '#fff', color: '#1e293b', fontWeight: '600',
-                          opacity: !isDarkMode ? 1 : 0.6
-                        }}
-                      >
-                        ☀️ Light Mode
-                      </div>
-                      <div
-                        onClick={() => handleThemeChange('dark')}
-                        style={{
-                          border: isDarkMode ? '2px solid #f97316' : '2px solid #e2e8f0',
-                          padding: '1rem', borderRadius: '8px',
-                          cursor: 'pointer', background: '#0f172a', color: '#f1f5f9', fontWeight: '600',
-                          opacity: isDarkMode ? 1 : 0.6
-                        }}
-                      >
-                        🌙 Dark Mode
+                      <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                        <div
+                          onClick={() => handleThemeChange('light')}
+                          style={{
+                            border: !isDarkMode ? '2px solid #F2921D' : '2px solid var(--border-color)',
+                            padding: '1rem 1.5rem', borderRadius: '12px',
+                            cursor: 'pointer', background: 'var(--bg-main)', color: 'var(--text-main)', fontWeight: '700',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          ☀️ Light Mode
+                        </div>
+                        <div
+                          onClick={() => handleThemeChange('dark')}
+                          style={{
+                            border: isDarkMode ? '2px solid #F2921D' : '2px solid var(--border-color)',
+                            padding: '1rem 1.5rem', borderRadius: '12px',
+                            cursor: 'pointer', background: 'var(--bg-main)', color: 'var(--text-main)', fontWeight: '700',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          🌙 Dark Mode
+                        </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-card">
+                <div className="profile-section-title">
+                  <h3>Font & Typography</h3>
+                </div>
+                <div className="preferences-list">
+                  <div className="preference-item">
+                    <div className="pref-info">
+                      <h4>Interface Font Size</h4>
+                      <p>Adjust text size for better readability</p>
+                    </div>
+                    <div style={{ display: 'flex', background: 'var(--bg-main)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                      {['Small', 'Standard', 'Large'].map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => {
+                            const root = document.documentElement;
+                            root.style.setProperty('--base-font-size', size === 'Small' ? '14px' : size === 'Large' ? '18px' : '16px');
+                            localStorage.setItem('font-size', size);
+                            // Re-render handled by local state if needed, but CSS var is instant
+                            window.location.reload(); // Simplest way to apply across all components
+                          }}
+                          style={{
+                            padding: '0.5rem 1rem',
+                            border: 'none',
+                            background: (localStorage.getItem('font-size') || 'Standard') === size ? '#F2921D' : 'transparent',
+                            color: (localStorage.getItem('font-size') || 'Standard') === size ? 'white' : 'var(--text-muted)',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontWeight: '600'
+                          }}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-card">
+                <div className="profile-section-title">
+                  <h3>Accessibility & Motion</h3>
+                </div>
+                <div className="preferences-list">
+                  <div className="preference-item">
+                    <div className="pref-info">
+                      <h4>Reduce Motion</h4>
+                      <p>Minimize animations and transitions</p>
+                    </div>
+                    <label className="switch">
+                      <input 
+                        type="checkbox" 
+                        defaultChecked={localStorage.getItem('reduce-motion') === 'true'} 
+                        onChange={(e) => {
+                          localStorage.setItem('reduce-motion', e.target.checked);
+                          if (e.target.checked) document.documentElement.classList.add('reduce-motion');
+                          else document.documentElement.classList.remove('reduce-motion');
+                        }}
+                      />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                  <div className="preference-item">
+                    <div className="pref-info">
+                      <h4>High Contrast Mode</h4>
+                      <p>Increase contrast for text and icons</p>
+                    </div>
+                    <label className="switch">
+                      <input 
+                        type="checkbox" 
+                        defaultChecked={localStorage.getItem('high-contrast') === 'true'} 
+                        onChange={(e) => {
+                          localStorage.setItem('high-contrast', e.target.checked);
+                          if (e.target.checked) document.documentElement.classList.add('high-contrast');
+                          else document.documentElement.classList.remove('high-contrast');
+                        }}
+                      />
+                      <span className="slider"></span>
+                    </label>
                   </div>
                 </div>
               </div>

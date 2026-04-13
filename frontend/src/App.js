@@ -13,10 +13,20 @@ function App() {
   const [user, setUser] = useState(null);
 
   React.useEffect(() => {
+    // Load user and apply accessibility settings
     const savedUser = localStorage.getItem('samkalp_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
+
+    // Apply Accessibility Settings
+    const root = document.documentElement;
+    const fontSize = localStorage.getItem('font-size') || 'Standard';
+    root.style.setProperty('--base-font-size', fontSize === 'Small' ? '14px' : fontSize === 'Large' ? '18px' : '16px');
+
+    if (localStorage.getItem('reduce-motion') === 'true') root.classList.add('reduce-motion');
+    if (localStorage.getItem('high-contrast') === 'true') root.classList.add('high-contrast');
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
   }, []);
 
   const handleLoginSuccess = (userData) => {

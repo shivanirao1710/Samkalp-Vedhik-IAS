@@ -26,6 +26,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [showSavedMessage, setShowSavedMessage] = useState(false);
 
   const handleEditToggle = () => {
     if (isEditing) {
@@ -45,6 +46,11 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   };
 
   const handleSave = async () => {
+    // Validation
+    if (!editData.name.trim()) return alert("Please enter your full name");
+    if (!editData.phone.trim()) return alert("Please enter your phone number");
+    if (!editData.location.trim()) return alert("Please enter your location");
+
     setLoading(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/users/update/${user.id}`, {
@@ -57,6 +63,8 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
         const updatedUser = await response.json();
         onUserUpdate(updatedUser);
         setIsEditing(false);
+        setShowSavedMessage(true);
+        setTimeout(() => setShowSavedMessage(false), 2000);
       } else {
         alert("Failed to update profile.");
       }
@@ -86,6 +94,8 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
       if (response.ok) {
         const data = await response.json();
         onUserUpdate({ ...user, profile_image: data.image_url });
+        setShowSavedMessage(true);
+        setTimeout(() => setShowSavedMessage(false), 2000);
       } else {
         alert("Failed to upload image.");
       }
@@ -101,8 +111,59 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
     ? (user.profile_image.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${user.profile_image}` : user.profile_image)
     : null;
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "January 2024";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  };
+
+  const handlePhotoRemoveAction = () => {
+    onUserUpdate({ ...user, profile_image: null });
+    setShowPhotoMenu(false);
+    setShowSavedMessage(true);
+    setTimeout(() => setShowSavedMessage(false), 2000);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you absolutely sure? This action cannot be undone and all your data will be permanently deleted.")) {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/users/delete/${user.id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          alert("Account deleted successfully.");
+          onLogout();
+        } else {
+          alert("Failed to delete account.");
+        }
+      } catch (err) {
+        alert("Error deleting account.");
+      }
+    }
+  };
+
   return (
     <div className="profile-container">
+      {showSavedMessage && (
+        <div className="save-success-toast" style={{
+          position: 'fixed',
+          top: '2rem',
+          right: '2rem',
+          background: '#F2921D',
+          color: 'white',
+          padding: '1rem 2rem',
+          borderRadius: '12px',
+          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          animation: 'slideInRight 0.3s ease-out'
+        }}>
+          <span style={{ fontSize: '1.2rem' }}>✅</span>
+          <span style={{ fontWeight: '700' }}>Profile Updated Successfully!</span>
+        </div>
+      )}
       <header className="profile-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           <button onClick={onBack} className="back-btn-minimal">← Back to Dashboard</button>
@@ -127,7 +188,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
             <div className="profile-subtitle">Faculty Member</div>
             
             <div className="member-since">
-              <span className="icon">📅</span> Joined January 2024
+              <span className="icon">📅</span> Joined {formatDate(user.member_since)}
             </div>
 
             <div className="photo-actions-wrapper" style={{ position: 'relative' }}>
@@ -148,10 +209,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                   {profileImageSrc && (
                     <button 
                       className="photo-menu-item remove-opt" 
-                      onClick={() => {
-                        onUserUpdate({ ...user, profile_image: null });
-                        setShowPhotoMenu(false);
-                      }}
+                      onClick={handlePhotoRemoveAction}
                     >
                       <span className="icon">🗑️</span> Remove photo
                     </button>
@@ -225,13 +283,33 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
               <div className="info-group">
                 <label><span className="icon">📍</span> Location</label>
                 {isEditing ? (
-                  <input
-                    className="info-field editable"
-                    name="location"
-                    placeholder="City, Country"
-                    value={editData.location}
-                    onChange={handleInputChange}
-                  />
+                  <>
+                    <input
+                      className="info-field editable"
+                      name="location"
+                      placeholder="e.g. Kerala, India"
+                      list="location-suggestions"
+                      value={editData.location}
+                      onChange={handleInputChange}
+                    />
+                    <datalist id="location-suggestions">
+                      <option value="Delhi, India" />
+                      <option value="Mumbai, Maharashtra" />
+                      <option value="Bangalore, Karnataka" />
+                      <option value="Trivandrum, Kerala" />
+                      <option value="Kochi, Kerala" />
+                      <option value="Chennai, Tamil Nadu" />
+                      <option value="Hyderabad, Telangana" />
+                      <option value="Kolkata, West Bengal" />
+                      <option value="Pune, Maharashtra" />
+                      <option value="Lucknow, Uttar Pradesh" />
+                      <option value="Guwahati, Assam" />
+                      <option value="Indore, Madhya Pradesh" />
+                      <option value="Jaipur, Rajasthan" />
+                      <option value="Patna, Bihar" />
+                      <option value="Ahmedabad, Gujarat" />
+                    </datalist>
+                  </>
                 ) : (
                   <div className="info-field">{user.location || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
                 )}
@@ -255,6 +333,16 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                 <div className="info-field">{editData.department}</div>
               )}
             </div>
+          </div>
+          
+          <div className="profile-card danger-zone" style={{ marginTop: '2rem' }}>
+            <div className="profile-section-title">
+              <h3>Danger Zone</h3>
+            </div>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <button className="delete-account-btn" onClick={handleDeleteAccount}>Delete Account</button>
           </div>
 
         </main>
