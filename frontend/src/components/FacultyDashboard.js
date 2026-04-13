@@ -1234,6 +1234,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     }
   };
 
+  const [isCreatingTest, setIsCreatingTest] = useState(false);
+
   const handleTestSubmit = async (e) => {
     e.preventDefault();
 
@@ -1257,6 +1259,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     }
 
     try {
+      setIsCreatingTest(true);
       const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1289,6 +1292,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     } catch (error) {
       console.error("Fetch error:", error);
       alert("Failed to connect to backend");
+    } finally {
+      setIsCreatingTest(false);
     }
   };
 
@@ -1351,28 +1356,136 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
         ) : (
           <div className="adm-modal-form">
-            <div className="added-questions-list" style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px' }}>
-              <strong style={{ display: 'block', marginBottom: '0.5rem' }}>Added Questions ({testFormData.questions.length})</strong>
-              {testFormData.questions.length === 0 && <p style={{ fontSize: '0.85rem', color: '#64748b' }}>No questions added yet.</p>}
-              {testFormData.questions.map((q, idx) => (
-                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', borderBottom: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80%' }}>
-                    {idx + 1}. {q.text}
+            <div style={{ marginBottom: '1.5rem' }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ fontWeight: '800', fontSize: '1rem', color: '#1e293b' }}>Added Questions</span>
+                  <span style={{
+                    background: testFormData.questions.length > 0 ? 'linear-gradient(135deg, #F2921D, #D93425)' : '#e2e8f0',
+                    color: testFormData.questions.length > 0 ? '#fff' : '#94a3b8',
+                    padding: '2px 10px',
+                    borderRadius: '20px',
+                    fontSize: '0.8rem',
+                    fontWeight: '800'
+                  }}>
+                    {testFormData.questions.length}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newQs = [...testFormData.questions];
-                      newQs.splice(idx, 1);
-                      setTestFormData({ ...testFormData, questions: newQs });
-                    }}
-                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
-                  >
-                    Remove
-                  </button>
                 </div>
-              ))}
+                {testFormData.questions.length > 0 && (
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: '700' }}>✓ Questions ready</span>
+                )}
+              </div>
+
+              {/* Questions List Box */}
+              <div style={{
+                maxHeight: '220px',
+                overflowY: 'auto',
+                background: '#0f172a',
+                borderRadius: '16px',
+                border: '1.5px solid #334155',
+                padding: testFormData.questions.length === 0 ? '2rem' : '0.5rem'
+              }}>
+                {testFormData.questions.length === 0 ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</div>
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No questions added yet.</p>
+                    <p style={{ color: '#475569', fontSize: '0.8rem', marginTop: '0.25rem' }}>Add manually below or bulk upload via CSV.</p>
+                  </div>
+                ) : (
+                  testFormData.questions.map((q, idx) => {
+                    const correctOpt = q.options.find(o => o.is_correct);
+                    return (
+                      <div key={idx} style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '0.75rem',
+                        padding: '0.85rem 0.75rem',
+                        borderBottom: idx < testFormData.questions.length - 1 ? '1px solid #1e293b' : 'none',
+                        borderRadius: '10px',
+                        background: 'transparent',
+                        transition: 'background 0.15s'
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#1e293b'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        {/* Number Badge */}
+                        <span style={{
+                          minWidth: '26px',
+                          height: '26px',
+                          background: 'linear-gradient(135deg, #F2921D, #D93425)',
+                          color: '#fff',
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.7rem',
+                          fontWeight: '800',
+                          flexShrink: 0,
+                          marginTop: '1px'
+                        }}>
+                          {idx + 1}
+                        </span>
+
+                        {/* Question Text + Correct Answer */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{
+                            margin: '0 0 0.3rem 0',
+                            fontSize: '0.85rem',
+                            fontWeight: '600',
+                            color: '#f1f5f9',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {q.text}
+                          </p>
+                          {correctOpt && (
+                            <span style={{
+                              fontSize: '0.72rem',
+                              color: '#10b981',
+                              fontWeight: '700',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem'
+                            }}>
+                              ✓ {correctOpt.text}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Remove Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newQs = [...testFormData.questions];
+                            newQs.splice(idx, 1);
+                            setTestFormData({ ...testFormData, questions: newQs });
+                          }}
+                          style={{
+                            background: 'rgba(239,68,68,0.12)',
+                            border: '1px solid rgba(239,68,68,0.3)',
+                            color: '#f87171',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                            padding: '3px 10px',
+                            borderRadius: '6px',
+                            flexShrink: 0,
+                            transition: 'all 0.15s'
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.color = '#f87171'; }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
+
 
             <div className="bulk-upload-zone" style={{ border: '1.5px dashed #10b981', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#f0fdf4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -1448,14 +1561,39 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </div>
 
             <div className="modal-actions">
-              <button type="button" className="cancel-btn" onClick={() => setTestModalStep(1)}>Back</button>
+              <button type="button" className="cancel-btn" onClick={() => setTestModalStep(1)} disabled={isCreatingTest}>Back</button>
               <button
                 type="button"
                 className="submit-btn"
-                style={{ background: '#10b981' }}
+                style={{
+                  background: isCreatingTest ? '#059669' : '#10b981',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.6rem',
+                  cursor: isCreatingTest ? 'not-allowed' : 'pointer',
+                  opacity: isCreatingTest ? 0.9 : 1
+                }}
                 onClick={handleTestSubmit}
+                disabled={isCreatingTest || testFormData.questions.length === 0}
               >
-                Create Final Test ({testFormData.questions.length} Qs)
+                {isCreatingTest ? (
+                  <>
+                    <span style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid rgba(255,255,255,0.35)',
+                      borderTopColor: '#fff',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      animation: 'spin 0.7s linear infinite',
+                      flexShrink: 0
+                    }} />
+                    Uploading Test...
+                  </>
+                ) : (
+                  `Create Final Test (${testFormData.questions.length} Qs)`
+                )}
               </button>
             </div>
           </div>
