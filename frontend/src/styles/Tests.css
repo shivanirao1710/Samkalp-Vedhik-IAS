@@ -467,3 +467,12 @@ body.dark-mode .score-badge.fail {
     transform: translateY(0);
   }
 }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.start-test-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+}

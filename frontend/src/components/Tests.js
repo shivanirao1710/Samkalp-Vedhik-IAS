@@ -76,6 +76,7 @@ const Tests = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [startingTestId, setStartingTestId] = useState(null); // tracks which test button is loading
   const [filterTab, setFilterTab] = useState('All Tests');
   const [attemptedTestIds, setAttemptedTestIds] = useState(() => {
     try {
@@ -101,7 +102,7 @@ const Tests = () => {
   };
 
   const startTest = async (test) => {
-    setLoading(true);
+    setStartingTestId(test.id);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/${test.id}/questions`);
       const questions = await response.json();
@@ -122,7 +123,7 @@ const Tests = () => {
       console.error("Error fetching questions:", error);
       alert("Failed to load test questions");
     } finally {
-      setLoading(false);
+      setStartingTestId(null);
     }
   };
 
@@ -383,8 +384,40 @@ const Tests = () => {
                 </div>
               )}
 
-              <button className="start-test-btn" onClick={() => startTest(test)} style={{ marginTop: isAttempted ? '0.5rem' : '1.5rem', background: isAttempted ? '#f1f5f9' : undefined, color: isAttempted ? '#3b82f6' : undefined, border: isAttempted ? '1px solid #cbd5e1' : undefined }}>
-                {isAttempted ? 'Retake Test' : 'Start Test'}
+              <button
+                className="start-test-btn"
+                onClick={() => startTest(test)}
+                disabled={startingTestId === test.id}
+                style={{
+                  marginTop: isAttempted ? '0.5rem' : '1.5rem',
+                  background: isAttempted ? '#f1f5f9' : undefined,
+                  color: isAttempted ? '#3b82f6' : undefined,
+                  border: isAttempted ? '1px solid #cbd5e1' : undefined,
+                  opacity: startingTestId === test.id ? 1 : undefined,
+                  cursor: startingTestId === test.id ? 'not-allowed' : undefined,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.6rem'
+                }}
+              >
+                {startingTestId === test.id ? (
+                  <>
+                    <span style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid rgba(255,255,255,0.4)',
+                      borderTopColor: '#fff',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      animation: 'spin 0.7s linear infinite',
+                      flexShrink: 0
+                    }} />
+                    Loading Test...
+                  </>
+                ) : (
+                  isAttempted ? 'Retake Test' : 'Start Test'
+                )}
               </button>
             </div>
           );
