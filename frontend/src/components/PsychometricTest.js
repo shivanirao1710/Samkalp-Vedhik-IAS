@@ -138,7 +138,7 @@ const PsychometricTest = ({ user }) => {
       <div className="psy-header-card">
         <div className="psy-icon-main">🧠</div>
         <h1>Psychometric Assessment</h1>
-        <p>Understand your cognitive strengths, personality traits, and learning patterns through our Gemini AI-powered assessment</p>
+        <p>Understand your cognitive strengths, personality traits, and learning patterns through our Samkalp AI-powered assessment</p>
         {report && (
           <div className="psy-report-exists-banner">
             ✅ You have a previous report. <button className="psy-link-btn" onClick={() => setView('results')}>View it →</button>
@@ -165,7 +165,7 @@ const PsychometricTest = ({ user }) => {
         <div className="psy-feature-item orange">
           <div className="psy-feat-icon">✨</div>
           <h3>AI Insights</h3>
-          <p>Get a detailed Gemini AI report with UPSC-specific recommendations</p>
+          <p>Get a detailed Samkalp AI report with UPSC-specific recommendations</p>
         </div>
       </div>
 
@@ -277,7 +277,7 @@ const PsychometricTest = ({ user }) => {
           <div className="spinner-ring"></div>
           <div className="spinner-ring"></div>
         </div>
-        <h2>🤖 Gemini AI is Analyzing Your Responses</h2>
+        <h2>🤖 Samkalp AI is Analyzing Your Responses</h2>
         <p>Our AI is building your personalized psychometric profile…</p>
         <div className="psy-analyzing-steps">
           <div className="psy-step psy-step-done">✅ Responses recorded</div>

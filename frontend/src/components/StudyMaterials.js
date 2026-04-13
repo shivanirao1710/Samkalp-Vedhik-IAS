@@ -139,10 +139,17 @@ const StudyMaterials = ({ user }) => {
         const type = previewMaterial.file_type;
         const extMatch = previewMaterial.file_url.match(/\.[0-9a-z]+$/i);
         const ext = extMatch ? extMatch[0].toLowerCase() : '';
+        const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
 
         if (type === 'pdf' || type === 'txt') {
-            const finalUrl = type === 'pdf' ? `${url}#toolbar=0&navpanes=0&scrollbar=0` : url;
-            return <iframe src={finalUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
+            if (isLocalhost) {
+                // Local dev: direct iframe (works since file is on same machine)
+                const finalUrl = type === 'pdf' ? `${url}#toolbar=0&navpanes=0&scrollbar=0` : url;
+                return <iframe src={finalUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
+            }
+            // Production (Azure): use Google Docs Viewer to avoid Content-Disposition: attachment
+            const gviewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+            return <iframe src={gviewerUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
         } else if (type === 'video') {
             return <video src={url} controls autoPlay controlsList="nodownload" />;
         } else if (type === 'image') {
@@ -166,7 +173,6 @@ const StudyMaterials = ({ user }) => {
                 );
             }
         } else if (type === 'presentation' || type === 'document') {
-            const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
             const gviewer = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
             return (
                 <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
@@ -183,6 +189,7 @@ const StudyMaterials = ({ user }) => {
         // Default fallback
         return <iframe src={url} title="Preview" />;
     };
+
 
     return (
         <div className="study-materials-container">
