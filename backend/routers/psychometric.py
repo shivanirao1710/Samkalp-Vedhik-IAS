@@ -328,6 +328,21 @@ def get_user_report(user_id: int, db: Session = Depends(get_db)):
     }
 
 
+@router.get("/all-reports")
+def get_all_reports(db: Session = Depends(get_db)):
+    reports = db.query(models.PsychometricReport).order_by(models.PsychometricReport.created_at.desc()).all()
+    return [
+        {
+            "id": r.id,
+            "user_id": r.user_id,
+            "user_name": r.user_name,
+            "report": json.loads(r.report_json),
+            "created_at": str(r.created_at)
+        }
+        for r in reports
+    ]
+
+
 @router.delete("/report/{user_id}")
 def delete_user_report(user_id: int, db: Session = Depends(get_db)):
     deleted = db.query(models.PsychometricReport).filter(

@@ -102,12 +102,17 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [adminRequests, setAdminRequests] = useState([]);
   const [newRequest, setNewRequest] = useState({ subject: '', message: '' });
   const [isSendingRequest, setIsSendingRequest] = useState(false);
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
+  const [psychometricReports, setPsychometricReports] = useState([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
+  const [selectedStudentReport, setSelectedStudentReport] = useState(null);
+  const [isPsyReportModalOpen, setIsPsyReportModalOpen] = useState(false);
   
   // Interview Results State
   const [allInterviewResults, setAllInterviewResults] = useState([]);
   const [loadingInterviews, setLoadingInterviews] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isInterviewReportModalOpen, setIsInterviewReportModalOpen] = useState(false);
 
   useEffect(() => {
     fetchStudents();
@@ -115,7 +120,23 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     fetchAdminRequests();
     fetchCurrentAffairs();
     fetchInterviews();
-  }, []);
+    fetchPsychometricReports();
+  }, [activeMenu]);
+
+  const fetchPsychometricReports = async () => {
+    setIsLoadingReports(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/psychometric/all-reports`);
+      if (response.ok) {
+        const data = await response.json();
+        setPsychometricReports(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching psychometric reports:", error);
+    } finally {
+      setIsLoadingReports(false);
+    }
+  };
 
   const fetchAdminRequests = async () => {
     try {
@@ -2305,35 +2326,301 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
+  const downloadPsyReportPDF = async (studentReport) => {
+    if (!studentReport || !studentReport.report) return;
+    const { report, user_name } = studentReport;
+    const scores = report.scores || {};
+    const allScores = [
+      { label: 'Personality', key: 'personality', icon: '🧩' },
+      { label: 'Cognitive Strength', key: 'cognitive_strength', icon: '🧠' },
+      { label: 'Learning Style', key: 'learning_style', icon: '📚' },
+      { label: 'Motivation', key: 'motivation', icon: '🔥' },
+      { label: 'Stress Management', key: 'stress_management', icon: '🌿' },
+      { label: 'Time Management', key: 'time_management', icon: '⏰' },
+    ];
+
+    const scoreRows = allScores.map(({ label, key }) => {
+      const s = scores[key] || {};
+      const score = s.score || 0;
+      const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+      return `
+        <div style="margin-bottom:18px; padding:16px; border:1px solid #e2e8f0; border-radius:12px; break-inside:avoid;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; width: 100%;">
+            <strong style="font-size:14px; font-family: Inter, sans-serif;">${label}</strong>
+            <span style="font-size:13px; font-weight:700; color:${color};">${score}/100</span>
+          </div>
+          <div style="background:#f1f5f9; border-radius:99px; height:8px; overflow:hidden; width: 100%;">
+            <div style="width:${score}%; height:100%; background:${color}; border-radius:99px;"></div>
+          </div>
+          <p style="font-size:12px; color:#64748b; margin:10px 0 0 0; line-height:1.4;">${s.description || ''}</p>
+        </div>
+      `;
+    }).join('');
+
+    const strengths = (report.strengths || []).map(s => `<li style="margin-bottom:8px;">${s}</li>`).join('');
+    const improvements = (report.areas_for_improvement || []).map(a => `<li style="margin-bottom:8px;">${a}</li>`).join('');
+
+    const htmlContent = `
+      <div style="font-family: 'Inter', sans-serif; color: #1e293b; max-width: 800px; margin: 0 auto; padding: 30px; background: white;">
+        <div style="background: linear-gradient(135deg, #F2921D, #D93425); color: white; border-radius:20px; padding:40px; margin-bottom:30px; text-align: center;">
+          <h1 style="font-size:32px; font-weight:900; margin:0 0 10px 0;">Student Psychometric Profile</h1>
+          <p style="margin:5px 0; font-size:16px; opacity:0.9;">Student: <strong>${user_name}</strong></p>
+          <p style="margin:5px 0; font-size:14px; opacity:0.8;">Report Analysis by Samkalp Vedhik AI</p>
+        </div>
+        
+        <div style="background:#f8fafc; border-radius:16px; padding:25px; margin-bottom:30px; border:1px solid #e2e8f0;">
+          <h2 style="font-size:18px; margin:0 0 12px 0; color: #1e293b;">Overall Psychological Profile</h2>
+          <p style="color:#475569; font-size:14px; line-height:1.7; margin: 0;">${report.overall_profile || ''}</p>
+        </div>
+
+        <h2 style="font-size:20px; margin:0 0 20px 0; color: #1e293b; border-bottom: 2px solid #F2921D; padding-bottom: 8px; width: fit-content;">Dimensional Analysis</h2>
+        ${scoreRows}
+
+        <div style="page-break-before:always; padding-top:20px;"></div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:30px; width: 100%;">
+          <div style="background:#f0fdf4; border-radius:16px; padding:20px; border: 1px solid #dcfce7; flex: 1;">
+            <h3 style="font-size:16px; color:#166534; margin:0 0 15px 0;">💪 Core Strengths</h3>
+            <ul style="margin:0; padding-left:20px; font-size:14px; color:#166534; line-height: 1.6;">${strengths}</ul>
+          </div>
+          <div style="background:#fff7ed; border-radius:16px; padding:20px; border: 1px solid #ffedd5; flex: 1;">
+            <h3 style="font-size:16px; color:#9a3412; margin:0 0 15px 0;">🎯 Development Areas</h3>
+            <ul style="margin:0; padding-left:20px; font-size:14px; color:#9a3412; line-height: 1.6;">${improvements}</ul>
+          </div>
+        </div>
+
+        <div style="background:#eff6ff; border-radius:16px; padding:25px; margin-top:20px; border: 1px solid #dbeafe;">
+          <h3 style="font-size:16px; color:#1e40af; margin:0 0 10px 0;">📅 Mentoring Focus & Recommendation</h3>
+          <p style="font-size:14px; color:#1e40af; line-height:1.7; margin: 0;">${report.study_plan_suggestion || ''}</p>
+        </div>
+
+        <div style="text-align:center; padding:40px 0; margin-top:40px; border-top:1px solid #e2e8f0; color: #94a3b8; font-size: 12px;">
+          Report generated for Faculty review purposes. Confidential. &copy; Samkalp Vedhik IAS Academy
+        </div>
+      </div>
+    `;
+
+    const element = document.createElement('div');
+    element.innerHTML = htmlContent;
+
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: `Psychometric_Report_${user_name.replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'avoid-all'] }
+    };
+
+    if (window.html2pdf) {
+      await window.html2pdf().set(opt).from(element).save();
+    } else {
+      console.warn("html2pdf not found, falling back to print");
+      window.print();
+    }
+  };
+
   const renderReports = () => (
     <div className="reports-management-page">
       <div className="view-page-header">
-
         <div style={{ flex: 1 }}>
           <h1>Student Reports & Analytics</h1>
           <p>View comprehensive student performance data</p>
         </div>
-        <button className="global-search-btn">
-          <span>⬇</span> Export Reports
+        <button className="global-search-btn" onClick={fetchPsychometricReports}>
+          <span>🔄</span> Refresh Data
         </button>
       </div>
 
       <div className="admin-stats-grid">
-        {dashboardStats.map((stat) => (
-          <div key={stat.label} className="adm-stat-card">
-            <div className="adm-stat-top">
-              <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
-                {stat.icon}
-              </div>
-            </div>
-            <div className="adm-stat-info">
-              <div className="adm-stat-value">{stat.value}</div>
-              <div className="adm-stat-label">{stat.label}</div>
-            </div>
+        <div className="adm-stat-card">
+          <div className="adm-stat-top">
+            <div className="adm-stat-icon-wrap" style={{ backgroundColor: '#fdf2f8' }}>👤</div>
           </div>
-        ))}
+          <div className="adm-stat-info">
+            <div className="adm-stat-value">{psychometricReports.length}</div>
+            <div className="adm-stat-label">Total Reports</div>
+          </div>
+        </div>
+        <div className="adm-stat-card">
+          <div className="adm-stat-top">
+            <div className="adm-stat-icon-wrap" style={{ backgroundColor: '#f0fdf4' }}>✅</div>
+          </div>
+          <div className="adm-stat-info">
+            <div className="adm-stat-value">{psychometricReports.filter(r => r.report?.upsc_readiness?.score >= 70).length}</div>
+            <div className="adm-stat-label">Ready Students</div>
+          </div>
+        </div>
+        <div className="adm-stat-card">
+          <div className="adm-stat-top">
+            <div className="adm-stat-icon-wrap" style={{ backgroundColor: '#fff7ed' }}>📈</div>
+          </div>
+          <div className="adm-stat-info">
+            <div className="adm-stat-value">{psychometricReports.filter(r => r.report?.upsc_readiness?.score < 40).length}</div>
+            <div className="adm-stat-label">Needs Support</div>
+          </div>
+        </div>
       </div>
-      <p style={{ textAlign: 'center', padding: '2rem', color: '#64748b', fontStyle: 'italic' }}>Detailed reports and analytics visualization enabled for faculty.</p>
+
+      <div className="admin-management-section" style={{ marginTop: '2rem' }}>
+        <div className="table-header-row" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-main)' }}>Student Psychometric Reports</h2>
+        </div>
+
+        <table className="adm-table">
+          <thead>
+            <tr>
+              <th>STUDENT NAME</th>
+              <th>READINESS</th>
+              <th>TOP STYLE</th>
+              <th>SCORE</th>
+              <th>SUBMITTED</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoadingReports ? (
+               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>Fetching records...</td></tr>
+            ) : psychometricReports.length === 0 ? (
+               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>No student reports found.</td></tr>
+            ) : (
+              psychometricReports.map((report) => (
+                <tr key={report.id}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div className="adm-avatar" style={{ width: '32px', height: '32px', fontSize: '0.8rem' }}>
+                        {report.user_name?.charAt(0).toUpperCase()}
+                      </div>
+                      <span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{report.user_name}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`status-pill ${report.report?.upsc_readiness?.level?.toLowerCase() || 'published'}`}>
+                      {report.report?.upsc_readiness?.level || 'Intermediate'}
+                    </span>
+                  </td>
+                  <td>{report.report?.scores?.learning_style?.style || 'N/A'}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ width: '40px', height: '6px', background: 'var(--bg-main)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${report.report?.upsc_readiness?.score || 0}%`, height: '100%', background: '#F2921D' }} />
+                      </div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '700' }}>{report.report?.upsc_readiness?.score || 0}%</span>
+                    </div>
+                  </td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    {new Date(report.created_at).toLocaleDateString()}
+                  </td>
+                  <td>
+                    <button 
+                      className="edit-course-btn" 
+                      style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
+                      onClick={() => {
+                        setSelectedStudentReport(report);
+                        setIsPsyReportModalOpen(true);
+                      }}
+                    >
+                      👁️ View Full Report
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {isPsyReportModalOpen && selectedStudentReport && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '850px', maxHeight: '90vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+             <div style={{ 
+                background: 'linear-gradient(135deg, #1e293b, #0f172a)', 
+                color: 'white', 
+                padding: '2rem',
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                flexShrink: 0
+             }}>
+                <div>
+                   <h2 style={{ color: 'white', margin: 0, fontSize: '1.75rem' }}>Psychometric Analysis</h2>
+                   <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>Comprehensive profile for <strong>{selectedStudentReport.user_name}</strong></p>
+                </div>
+                <button 
+                  className="close-modal" 
+                  onClick={() => setIsPsyReportModalOpen(false)}
+                  style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }}
+                >×</button>
+             </div>
+
+             <div style={{ padding: '2rem', flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
+                {/* Overall Profile */}
+                <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
+                   <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem' }}>🧠 Overall Psychological Profile</h3>
+                   <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem' }}>{selectedStudentReport.report?.overall_profile}</p>
+                </div>
+
+                {/* Score Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                   {Object.entries(selectedStudentReport.report?.scores || {}).map(([key, data]) => (
+                      <div key={key} style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                           <h4 style={{ margin: 0, textTransform: 'capitalize', fontSize: '0.9rem', color: 'var(--text-main)' }}>{key.replace('_', ' ')}</h4>
+                           <span style={{ 
+                              fontSize: '0.75rem', 
+                              fontWeight: '900', 
+                              color: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' 
+                           }}>{data.score}%</span>
+                        </div>
+                        <div style={{ width: '100%', height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
+                           <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
+                        </div>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>{data.description}</p>
+                      </div>
+                   ))}
+                </div>
+
+                {/* Recommendations */}
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>🚀 Key Recommendations</h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                   {(selectedStudentReport.report?.personalized_recommendations || []).map((rec, i) => (
+                      <div key={i} style={{ borderLeft: '4px solid #F2921D', padding: '1rem', background: 'var(--bg-main)', borderRadius: '0 8px 8px 0' }}>
+                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <strong style={{ color: 'var(--text-main)' }}>{rec.title}</strong>
+                            <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#F2921D' }}>{rec.priority?.toUpperCase()} PRIORITY</span>
+                         </div>
+                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{rec.description}</p>
+                      </div>
+                   ))}
+                </div>
+             </div>
+
+             <div style={{ 
+                padding: '1.5rem 2rem', 
+                background: 'var(--bg-card)', 
+                borderTop: '1px solid var(--border-color)', 
+                display: 'flex', 
+                justifyContent: 'flex-end', 
+                gap: '1rem' 
+             }}>
+                <button 
+                   className="cancel-btn" 
+                   onClick={() => setIsPsyReportModalOpen(false)}
+                   style={{ padding: '0.85rem 1.5rem', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '700' }}
+                >
+                  Close Analysis
+                </button>
+                <button 
+                  className="submit-btn" 
+                  style={{ minWidth: '180px', background: '#F2921D', color: 'white' }} 
+                  onClick={() => downloadPsyReportPDF(selectedStudentReport)}
+                >
+                  📥 Download PDF
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -2429,7 +2716,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                       className="view-btn"
                       onClick={() => {
                         setSelectedReport(result);
-                        setIsReportModalOpen(true);
+                        setIsInterviewReportModalOpen(true);
                       }}
                       style={{ background: '#fff7ed', border: '1px solid #F2921D', color: '#F2921D', padding: '0.4rem 0.75rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700' }}
                     >
@@ -2443,7 +2730,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         </table>
       </div>
 
-      {isReportModalOpen && selectedReport && (
+      {isInterviewReportModalOpen && selectedReport && (
         <div className="adm-modal-overlay">
           <div className="adm-modal-content" style={{ maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="adm-modal-header" style={{ borderBottom: '1px solid #f1f5f9', padding: '1.5rem 2rem' }}>
@@ -2451,7 +2738,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#1e293b' }}>Detailed Interview Analysis</h2>
                 <p style={{ fontSize: '0.9rem', color: '#64748b' }}>Candidate: <strong>{selectedReport.candidate_name}</strong> • {selectedReport.date}</p>
               </div>
-              <button className="close-modal" onClick={() => setIsReportModalOpen(false)}>×</button>
+              <button className="close-modal" onClick={() => setIsInterviewReportModalOpen(false)}>×</button>
             </div>
             
             <div className="report-modal-body" style={{ padding: '2rem' }}>
@@ -2507,7 +2794,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             <div className="modal-actions" style={{ padding: '1.5rem 2rem', background: '#f8fafc', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
               <button 
                 className="submit-btn" 
-                onClick={() => setIsReportModalOpen(false)}
+                onClick={() => setIsInterviewReportModalOpen(false)}
                 style={{ background: '#F2921D', color: 'white', border: 'none', padding: '0.75rem 2rem', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', width: '100%' }}
               >
                 Close Report
