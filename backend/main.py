@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import models, database
-from routers import auth, courses, tests, psychometric, admin, live_classes, study_materials, bey_avatar, mentor_chat, users, doubt_solver, notifications, interview, current_affairs
+from routers import auth, courses, tests, psychometric, admin, live_classes, study_materials, bey_avatar, mentor_chat, users, doubt_solver, notifications, interview, current_affairs, file_viewer
 import os
 # Initialize database
 models.Base.metadata.create_all(bind=database.engine)
@@ -77,6 +77,7 @@ app.include_router(mentor_chat.router)
 app.include_router(doubt_solver.router)
 app.include_router(notifications.router)
 app.include_router(current_affairs.router)
+app.include_router(file_viewer.router)
 
 @app.get("/")
 def root():

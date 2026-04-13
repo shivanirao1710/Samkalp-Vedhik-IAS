@@ -97,10 +97,15 @@ const StudyMaterials = ({ user }) => {
 
     const getAbsoluteUrl = (url) => {
         if (!url) return '';
-        // If it's already a full URL (like Azure Blob Storage), return it as is
         if (url.startsWith('http')) return url;
-        // Otherwise, it's a local static path, so prepend the API URL
         return `${process.env.REACT_APP_API_URL}${url}`;
+    };
+
+    // Routes any file through our backend proxy served with Content-Disposition: inline
+    const getProxyUrl = (url) => {
+        if (!url) return '';
+        const absolute = getAbsoluteUrl(url);
+        return `${process.env.REACT_APP_API_URL}/view-file/?url=${encodeURIComponent(absolute)}`;
     };
 
 
@@ -136,24 +141,18 @@ const StudyMaterials = ({ user }) => {
     const renderPreviewContent = () => {
         if (!previewMaterial) return null;
         const url = getAbsoluteUrl(previewMaterial.file_url);
+        const proxyUrl = getProxyUrl(previewMaterial.file_url);
         const type = previewMaterial.file_type;
         const extMatch = previewMaterial.file_url.match(/\.[0-9a-z]+$/i);
         const ext = extMatch ? extMatch[0].toLowerCase() : '';
-        const isLocalhost = url.includes('localhost') || url.includes('127.0.0.1');
 
         if (type === 'pdf' || type === 'txt') {
-            if (isLocalhost) {
-                // Local dev: direct iframe (works since file is on same machine)
-                const finalUrl = type === 'pdf' ? `${url}#toolbar=0&navpanes=0&scrollbar=0` : url;
-                return <iframe src={finalUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
-            }
-            // Production (Azure): use Google Docs Viewer to avoid Content-Disposition: attachment
-            const gviewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
-            return <iframe src={gviewerUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
+            // Proxy serves with Content-Disposition: inline — works on Azure & localhost
+            return <iframe src={proxyUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
         } else if (type === 'video') {
-            return <video src={url} controls autoPlay controlsList="nodownload" />;
+            return <video src={url} controls autoPlay controlsList="nodownload" style={{ width: '100%', height: '100%' }} />;
         } else if (type === 'image') {
-            return <img src={url} alt="Preview" />;
+            return <img src={url} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />;
         } else if (type === 'word') {
             return <DocxViewer url={url} />;
         } else if (type === 'ebook') {
@@ -167,27 +166,21 @@ const StudyMaterials = ({ user }) => {
                 return (
                     <div style={{ display: 'flex', flexDirection: 'column', padding: '2rem', textAlign: 'center', justifyContent: 'center', height: '100%', background: '#fff' }}>
                         <h2 style={{ color: '#F2921D' }}>Preview not natively supported</h2>
-                        <p>Web previews for {ext.toUpperCase()} files are currently not directly supported. We are working on integrating a generic cloud reader.</p>
+                        <p>Web previews for {ext.toUpperCase()} files are currently not directly supported.</p>
                         <p style={{ marginTop: '1rem', fontStyle: 'italic', color: '#64748b' }}>E-books are restricted from being downloaded directly to comply with copyright guidelines.</p>
                     </div>
                 );
             }
         } else if (type === 'presentation' || type === 'document') {
-            const gviewer = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
             return (
                 <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
-                    {isLocalhost && (
-                        <div style={{ padding: '0.75rem', background: '#fef3c7', color: '#b45309', textAlign: 'center', fontSize: '0.85rem', borderBottom: '1px solid #fde68a' }}>
-                            ⚠️ <b>Local Preview Limitation:</b> Since you are running on your local machine (`localhost`), Google's Online Viewer cannot reach your file to preview it. It will work perfectly once deployed! For now, please use the <b>Download</b> button.
-                        </div>
-                    )}
-                    <iframe src={gviewer} style={{ flex: 1, width: '100%', border: 'none' }} title="Preview File" />
+                    <iframe src={proxyUrl} style={{ flex: 1, width: '100%', border: 'none' }} title="Preview File" />
                 </div>
             );
         }
 
-        // Default fallback
-        return <iframe src={url} title="Preview" />;
+        // Default fallback — use proxy
+        return <iframe src={proxyUrl} title="Preview" style={{ width: '100%', height: '100%', border: 'none' }} />;
     };
 
 

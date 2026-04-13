@@ -2757,8 +2757,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         const absoluteUrl = rawUrl.startsWith('http')
           ? rawUrl
           : `${process.env.REACT_APP_API_URL}${rawUrl}`;
-        const isLocalhost = absoluteUrl.includes('localhost') || absoluteUrl.includes('127.0.0.1');
-        const gviewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absoluteUrl)}&embedded=true`;
+        // Route through our backend proxy which serves with Content-Disposition: inline
+        const viewerUrl = `${process.env.REACT_APP_API_URL}/view-file/?url=${encodeURIComponent(absoluteUrl)}`;
 
         return (
           <div className="adm-modal-overlay">
@@ -2777,26 +2777,18 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <button className="close-modal" onClick={() => setCAPreviewItem(null)}>×</button>
                 </div>
               </div>
-              <div style={{ flex: 1, background: '#f8fafc', borderRadius: '0 0 24px 24px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                {isLocalhost ? (
-                  <div style={{ padding: '3rem', textAlign: 'center', color: '#b45309', background: '#fef3c7', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                    <div style={{ fontSize: '3rem' }}>⚠️</div>
-                    <h3>Local Preview Not Available</h3>
-                    <p style={{ maxWidth: '500px', lineHeight: 1.6 }}>Google Docs Viewer cannot access files on <code>localhost</code>. Use the <strong>Open in New Tab</strong> button above to view the file directly, or deploy to production for in-app previews.</p>
-                    <a href={absoluteUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '0.75rem 2rem', background: '#F2921D', color: 'white', borderRadius: '12px', fontWeight: '700', textDecoration: 'none' }}>Open File Directly</a>
-                  </div>
-                ) : (
-                  <iframe
-                    src={gviewerUrl}
-                    title="CA Preview"
-                    style={{ width: '100%', height: '100%', border: 'none', flex: 1 }}
-                  />
-                )}
+              <div style={{ flex: 1, background: '#f8fafc', borderRadius: '0 0 24px 24px', overflow: 'hidden' }}>
+                <iframe
+                  src={viewerUrl}
+                  title="CA Preview"
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                />
               </div>
             </div>
           </div>
         );
       })()}
+
 
     </div>
   );
