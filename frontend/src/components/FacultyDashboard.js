@@ -7,6 +7,7 @@ import FacultyProfile from './FacultyProfile';
 import logo from '../images/logo.png';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import mammoth from 'mammoth';
 import '../styles/StudyMaterials.css';
 
 const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
@@ -40,9 +41,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   // Current Affairs State
   const [currentAffairs, setCurrentAffairs] = useState([]);
   const [isCAModalOpen, setIsCAModalOpen] = useState(false);
-  
+
   const getDefaultCATitle = () => `Daily News - ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
-  
+
   const [caForm, setCAForm] = useState({ title: getDefaultCATitle() });
   const [caFile, setCAFile] = useState(null);
   const [isUploadingCA, setIsUploadingCA] = useState(false);
@@ -66,10 +67,12 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
     { title: 'Create Test', subtitle: 'Add new test', icon: '＋', target: 'Tests', trigger: () => setIsTestModalOpen(true) },
     { title: 'Send Announcement', subtitle: 'Message all students', icon: '🔔', target: 'Announcements' },
-    { title: 'Post Daily News', subtitle: 'Upload current affairs', icon: '🌍', target: 'Current Affairs', trigger: () => {
+    {
+      title: 'Post Daily News', subtitle: 'Upload current affairs', icon: '🌍', target: 'Current Affairs', trigger: () => {
         setCAForm({ title: getDefaultCATitle() });
         setIsCAModalOpen(true);
-    }},
+      }
+    },
     { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '📚', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
     { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews', target: 'Interviews' },
     { title: 'Psychometric Reports', icon: '🧠', subtitle: 'View student analytics', target: 'Reports' },
@@ -108,7 +111,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [selectedStudentReport, setSelectedStudentReport] = useState(null);
   const [isPsyReportModalOpen, setIsPsyReportModalOpen] = useState(false);
-  
+
   // Interview Results State
   const [allInterviewResults, setAllInterviewResults] = useState([]);
   const [loadingInterviews, setLoadingInterviews] = useState(false);
@@ -184,7 +187,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       if (res.ok) {
         const data = await res.json();
         setAllInterviewResults(data);
-        
+
         // Update dashboard stats
         setDashboardStats(prev => prev.map(s => {
           if (s.label === 'Interviews Conducted') return { ...s, value: data.length.toString() };
@@ -452,8 +455,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         {report ? (
-                          <button 
-                            className="edit-course-btn" 
+                          <button
+                            className="edit-course-btn"
                             style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}
                             onClick={() => {
                               setSelectedStudentReport(report);
@@ -488,91 +491,91 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       {isPsyReportModalOpen && selectedStudentReport && (
         <div className="adm-modal-overlay">
           <div className="adm-modal-content" style={{ maxWidth: '850px', maxHeight: '90vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-             <div style={{ 
-                background: 'linear-gradient(135deg, #1e293b, #0f172a)', 
-                color: 'white', 
-                padding: '2rem',
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                flexShrink: 0
-             }}>
-                <div>
-                   <h2 style={{ color: 'white', margin: 0, fontSize: '1.75rem' }}>Psychometric Analysis</h2>
-                   <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>Comprehensive profile for <strong>{selectedStudentReport.user_name}</strong></p>
-                </div>
-                <button 
-                  className="close-modal" 
-                  onClick={() => setIsPsyReportModalOpen(false)}
-                  style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }}
-                >×</button>
-             </div>
+            <div style={{
+              background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+              color: 'white',
+              padding: '2rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexShrink: 0
+            }}>
+              <div>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.75rem' }}>Psychometric Analysis</h2>
+                <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>Comprehensive profile for <strong>{selectedStudentReport.user_name}</strong></p>
+              </div>
+              <button
+                className="close-modal"
+                onClick={() => setIsPsyReportModalOpen(false)}
+                style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }}
+              >×</button>
+            </div>
 
-             <div style={{ padding: '2rem', flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
-                {/* Overall Profile */}
-                <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
-                   <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem' }}>🧠 Overall Psychological Profile</h3>
-                   <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem' }}>{selectedStudentReport.report?.overall_profile}</p>
-                </div>
+            <div style={{ padding: '2rem', flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
+              {/* Overall Profile */}
+              <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
+                <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem' }}>🧠 Overall Psychological Profile</h3>
+                <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem' }}>{selectedStudentReport.report?.overall_profile}</p>
+              </div>
 
-                {/* Score Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                   {Object.entries(selectedStudentReport.report?.scores || {}).map(([key, data]) => (
-                      <div key={key} style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                           <h4 style={{ margin: 0, textTransform: 'capitalize', fontSize: '0.9rem', color: 'var(--text-main)' }}>{key.replace('_', ' ')}</h4>
-                           <span style={{ 
-                              fontSize: '0.75rem', 
-                              fontWeight: '900', 
-                              color: data.score > 70 ? '#F2921D' : data.score > 40 ? '#f59e0b' : '#ef4444' 
-                           }}>{data.score}%</span>
-                        </div>
-                        <div style={{ width: '100%', height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
-                           <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#F2921D' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
-                        </div>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>{data.description}</p>
-                      </div>
-                   ))}
-                </div>
+              {/* Score Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {Object.entries(selectedStudentReport.report?.scores || {}).map(([key, data]) => (
+                  <div key={key} style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                      <h4 style={{ margin: 0, textTransform: 'capitalize', fontSize: '0.9rem', color: 'var(--text-main)' }}>{key.replace('_', ' ')}</h4>
+                      <span style={{
+                        fontSize: '0.75rem',
+                        fontWeight: '900',
+                        color: data.score > 70 ? '#F2921D' : data.score > 40 ? '#f59e0b' : '#ef4444'
+                      }}>{data.score}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
+                      <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#F2921D' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>{data.description}</p>
+                  </div>
+                ))}
+              </div>
 
-                {/* Recommendations */}
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>🚀 Key Recommendations</h3>
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                   {(selectedStudentReport.report?.personalized_recommendations || []).map((rec, i) => (
-                      <div key={i} style={{ borderLeft: '4px solid #F2921D', padding: '1rem', background: 'var(--bg-main)', borderRadius: '0 8px 8px 0' }}>
-                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                            <strong style={{ color: 'var(--text-main)' }}>{rec.title}</strong>
-                            <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#F2921D' }}>{rec.priority?.toUpperCase()} PRIORITY</span>
-                         </div>
-                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{rec.description}</p>
-                      </div>
-                   ))}
-                </div>
-             </div>
+              {/* Recommendations */}
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>🚀 Key Recommendations</h3>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {(selectedStudentReport.report?.personalized_recommendations || []).map((rec, i) => (
+                  <div key={i} style={{ borderLeft: '4px solid #F2921D', padding: '1rem', background: 'var(--bg-main)', borderRadius: '0 8px 8px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <strong style={{ color: 'var(--text-main)' }}>{rec.title}</strong>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#F2921D' }}>{rec.priority?.toUpperCase()} PRIORITY</span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{rec.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-             <div style={{ 
-                padding: '1.5rem 2rem', 
-                background: 'var(--bg-card)', 
-                borderTop: '1px solid var(--border-color)', 
-                display: 'flex', 
-                justifyContent: 'flex-end', 
-                gap: '1rem' 
-             }}>
-                <button 
-                   className="cancel-btn" 
-                   onClick={() => setIsPsyReportModalOpen(false)}
-                   style={{ padding: '0.85rem 1.5rem', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '700' }}
-                >
-                  Close Analysis
-                </button>
-                <button 
-                  className="submit-btn" 
-                  style={{ minWidth: '180px', background: '#F2921D', color: 'white' }} 
-                  onClick={() => downloadPsyReportPDF(selectedStudentReport)}
-                >
-                  📥 Download PDF
-                </button>
-             </div>
+            <div style={{
+              padding: '1.5rem 2rem',
+              background: 'var(--bg-card)',
+              borderTop: '1px solid var(--border-color)',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '1rem'
+            }}>
+              <button
+                className="cancel-btn"
+                onClick={() => setIsPsyReportModalOpen(false)}
+                style={{ padding: '0.85rem 1.5rem', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '700' }}
+              >
+                Close Analysis
+              </button>
+              <button
+                className="submit-btn"
+                style={{ minWidth: '180px', background: '#F2921D', color: 'white' }}
+                onClick={() => downloadPsyReportPDF(selectedStudentReport)}
+              >
+                📥 Download PDF
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1304,66 +1307,54 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const parseData = (data) => {
-      let newQuestions = [];
-      data.forEach(row => {
-        const qText = row.Question || row.question || row['Question Text'];
-        const optA = row['Option A'] || row.OptionA || row.A;
-        const optB = row['Option B'] || row.OptionB || row.B;
-        const optC = row['Option C'] || row.OptionC || row.C;
-        const optD = row['Option D'] || row.OptionD || row.D;
-        const correctOpt = String(row['Correct Option'] || row.Correct || row.Answer || '').trim().toUpperCase();
-        const explanation = row.Explanation || row.explanation || '';
-
-        if (qText && optA && optB) {
-          newQuestions.push({
-            text: qText,
-            explanation: explanation,
-            options: [
-              { text: optA, is_correct: correctOpt === 'A' || correctOpt === optA },
-              { text: optB, is_correct: correctOpt === 'B' || correctOpt === optB },
-              { text: optC, is_correct: correctOpt === 'C' || correctOpt === optC },
-              { text: optD, is_correct: correctOpt === 'D' || correctOpt === optD }
-            ].filter(o => o.text !== undefined && o.text !== "")
-          });
-        }
-      });
-
-      if (newQuestions.length > 0) {
-        setTestFormData(prev => ({
-          ...prev,
-          questions: [...prev.questions, ...newQuestions]
-        }));
-        alert(`Successfully loaded ${newQuestions.length} questions!`);
-      } else {
-        alert('No valid questions found in file. Please ensure headings like "Question", "Option A", "Option B", "Correct Option" are present.');
-      }
-      e.target.value = null;
-    };
-
-    if (file.name.endsWith('.csv')) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function (results) {
-          parseData(results.data);
-        }
-      });
-    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+    if (file.name.endsWith('.docx')) {
+      setIsBulkUploading(true);
       const reader = new FileReader();
-      reader.onload = (evt) => {
-        const bstr = evt.target.result;
-        const workbook = XLSX.read(bstr, { type: 'binary' });
-        const wsname = workbook.SheetNames[0];
-        const ws = workbook.Sheets[wsname];
-        const data = XLSX.utils.sheet_to_json(ws);
-        parseData(data);
+      reader.onload = async (e) => {
+        const arrayBuffer = e.target.result;
+        try {
+          const result = await mammoth.convertToHtml({ arrayBuffer });
+          const html = result.value;
+          
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/parse-ai`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: html })
+          });
+
+          setIsBulkUploading(false);
+
+          if (response.ok) {
+            const newQuestions = await response.json();
+            if (newQuestions.length > 0) {
+              setTestFormData(prev => ({
+                ...prev,
+                questions: [...prev.questions, ...newQuestions]
+              }));
+              alert(`Success: ${newQuestions.length} questions extracted!`);
+            } else {
+              alert('No questions found.');
+            }
+          } else {
+            const err = await response.json();
+            alert("Error: " + (err.detail || "Failed to process"));
+          }
+        } catch (err) {
+          console.error(err);
+          setIsBulkUploading(false);
+          alert("Error processing document.");
+        }
       };
-      reader.readAsBinaryString(file);
+      reader.onerror = () => {
+        setIsBulkUploading(false);
+        alert("Failed to read file.");
+      };
+      reader.readAsArrayBuffer(file);
     } else {
-      alert("Unsupported file format. Please upload a CSV or Excel file.");
+      alert("Please upload a .docx file.");
     }
   };
+
 
   const [isCreatingTest, setIsCreatingTest] = useState(false);
 
@@ -1427,6 +1418,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       setIsCreatingTest(false);
     }
   };
+
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
 
   const renderCreateTestModal = () => (
     <div className="adm-modal-overlay">
@@ -1515,13 +1508,43 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 background: '#0f172a',
                 borderRadius: '16px',
                 border: '1.5px solid #334155',
-                padding: testFormData.questions.length === 0 ? '2rem' : '0.5rem'
+                padding: testFormData.questions.length === 0 ? '2rem' : '0.5rem',
+                position: 'relative'
               }}>
+                {isBulkUploading && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(15, 23, 42, 0.95)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 2000,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '16px'
+                  }}>
+                    <div className="bulk-upload-pulse" style={{
+                      width: '64px',
+                      height: '64px',
+                      border: '4px solid #F2921D',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      marginBottom: '1.5rem',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                    <h2 style={{ color: '#F2921D', margin: 0, fontWeight: '900', letterSpacing: '1px' }}>UPLOADING...</h2>
+                    <p style={{ color: '#94a3b8', marginTop: '0.8rem', fontWeight: '500' }}>Please stay on this page</p>
+                  </div>
+                )}
                 {testFormData.questions.length === 0 ? (
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</div>
                     <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No questions added yet.</p>
-                    <p style={{ color: '#475569', fontSize: '0.8rem', marginTop: '0.25rem' }}>Add manually below or bulk upload via CSV.</p>
+                    <p style={{ color: '#475569', fontSize: '0.8rem', marginTop: '0.25rem' }}>Add manually below or bulk upload via Word.</p>
                   </div>
                 ) : (
                   testFormData.questions.map((q, idx) => {
@@ -1620,25 +1643,22 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
             <div className="bulk-upload-zone" style={{ border: '1.5px dashed #F2921D', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem', background: '#fff7ed', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h4 style={{ color: '#F2921D', margin: '0 0 0.5rem 0' }}>Bulk Upload via Excel/CSV</h4>
-                <p style={{ fontSize: '0.85rem', color: '#c2410c', margin: 0 }}>Easily upload many questions at once.</p>
+                <h4 style={{ color: '#F2921D', margin: '0 0 0.5rem 0' }}>Bulk Upload via Docx</h4>
+                <p style={{ fontSize: '0.85rem', color: '#c2410c', margin: 0 }}>Easily upload questions from Word documents. Bold the correct option.</p>
               </div>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => {
-                  const csvContent = "data:text/csv;charset=utf-8,Question,Option A,Option B,Option C,Option D,Correct Option,Explanation\nSample Question 1?,Apple,Banana,Orange,Grape,A,Apple is correct\nSample Question 2?,Cat,Dog,Bird,Fish,B,Dog is correct";
-                  const encodedUri = encodeURI(csvContent);
-                  const link = document.createElement("a");
-                  link.setAttribute("href", encodedUri);
-                  link.setAttribute("download", "questions_template.csv");
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }} style={{ fontSize: '0.85rem', color: '#F2921D', background: 'none', border: '1px solid #F2921D', padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer' }}>
-                  Download Template
-                </button>
-                <label style={{ background: '#F2921D', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                  Upload File
-                  <input type="file" accept=".csv, .xlsx, .xls" onChange={handleBulkUpload} style={{ display: 'none' }} />
+                <label style={{
+                  background: isBulkUploading ? '#f59e0b' : '#F2921D',
+                  color: '#fff',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '8px',
+                  cursor: isBulkUploading ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem',
+                  opacity: isBulkUploading ? 0.7 : 1
+                }}>
+                  {isBulkUploading ? 'Uploading...' : 'Upload Word File'}
+                  <input type="file" accept=".docx" onChange={handleBulkUpload} style={{ display: 'none' }} disabled={isBulkUploading} />
                 </label>
               </div>
             </div>
@@ -1930,11 +1950,11 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '700' }}>Q{idx + 1}: {q.text}</h4>
                   <div className="options-display-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     {q.options.map((opt, oIdx) => (
-                        <div key={oIdx} style={{ padding: '0.75rem', borderRadius: '10px', background: opt.is_correct ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-main)', border: opt.is_correct ? '1.5px solid #22c55e' : '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <span style={{ fontWeight: '700', color: opt.is_correct ? '#22c55e' : 'var(--text-muted)' }}>{String.fromCharCode(65 + oIdx)}</span>
-                          <span style={{ color: 'var(--text-main)' }}>{opt.text}</span>
-                          {opt.is_correct && <span style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>Correct</span>}
-                        </div>
+                      <div key={oIdx} style={{ padding: '0.75rem', borderRadius: '10px', background: opt.is_correct ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-main)', border: opt.is_correct ? '1.5px solid #22c55e' : '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontWeight: '700', color: opt.is_correct ? '#22c55e' : 'var(--text-muted)' }}>{String.fromCharCode(65 + oIdx)}</span>
+                        <span style={{ color: 'var(--text-main)' }}>{opt.text}</span>
+                        {opt.is_correct && <span style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>Correct</span>}
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -2590,9 +2610,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </thead>
           <tbody>
             {isLoadingReports ? (
-               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>Fetching records...</td></tr>
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>Fetching records...</td></tr>
             ) : psychometricReports.length === 0 ? (
-               <tr><td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>No student reports found.</td></tr>
+              <tr><td colSpan="6" style={{ textAlign: 'center', padding: '3rem' }}>No student reports found.</td></tr>
             ) : (
               psychometricReports.map((report) => (
                 <tr key={report.id}>
@@ -2622,8 +2642,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     {new Date(report.created_at).toLocaleDateString()}
                   </td>
                   <td>
-                    <button 
-                      className="edit-course-btn" 
+                    <button
+                      className="edit-course-btn"
                       style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}
                       onClick={() => {
                         setSelectedStudentReport(report);
@@ -2643,91 +2663,91 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       {isPsyReportModalOpen && selectedStudentReport && (
         <div className="adm-modal-overlay">
           <div className="adm-modal-content" style={{ maxWidth: '850px', maxHeight: '90vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-             <div style={{ 
-                background: 'linear-gradient(135deg, #1e293b, #0f172a)', 
-                color: 'white', 
-                padding: '2rem',
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                flexShrink: 0
-             }}>
-                <div>
-                   <h2 style={{ color: 'white', margin: 0, fontSize: '1.75rem' }}>Psychometric Analysis</h2>
-                   <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>Comprehensive profile for <strong>{selectedStudentReport.user_name}</strong></p>
-                </div>
-                <button 
-                  className="close-modal" 
-                  onClick={() => setIsPsyReportModalOpen(false)}
-                  style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }}
-                >×</button>
-             </div>
+            <div style={{
+              background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+              color: 'white',
+              padding: '2rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexShrink: 0
+            }}>
+              <div>
+                <h2 style={{ color: 'white', margin: 0, fontSize: '1.75rem' }}>Psychometric Analysis</h2>
+                <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>Comprehensive profile for <strong>{selectedStudentReport.user_name}</strong></p>
+              </div>
+              <button
+                className="close-modal"
+                onClick={() => setIsPsyReportModalOpen(false)}
+                style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }}
+              >×</button>
+            </div>
 
-             <div style={{ padding: '2rem', flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
-                {/* Overall Profile */}
-                <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
-                   <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem' }}>🧠 Overall Psychological Profile</h3>
-                   <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem' }}>{selectedStudentReport.report?.overall_profile}</p>
-                </div>
+            <div style={{ padding: '2rem', flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
+              {/* Overall Profile */}
+              <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
+                <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem' }}>🧠 Overall Psychological Profile</h3>
+                <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem' }}>{selectedStudentReport.report?.overall_profile}</p>
+              </div>
 
-                {/* Score Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                   {Object.entries(selectedStudentReport.report?.scores || {}).map(([key, data]) => (
-                      <div key={key} style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                           <h4 style={{ margin: 0, textTransform: 'capitalize', fontSize: '0.9rem', color: 'var(--text-main)' }}>{key.replace('_', ' ')}</h4>
-                           <span style={{ 
-                              fontSize: '0.75rem', 
-                              fontWeight: '900', 
-                              color: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' 
-                           }}>{data.score}%</span>
-                        </div>
-                        <div style={{ width: '100%', height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
-                           <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
-                        </div>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>{data.description}</p>
-                      </div>
-                   ))}
-                </div>
+              {/* Score Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {Object.entries(selectedStudentReport.report?.scores || {}).map(([key, data]) => (
+                  <div key={key} style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                      <h4 style={{ margin: 0, textTransform: 'capitalize', fontSize: '0.9rem', color: 'var(--text-main)' }}>{key.replace('_', ' ')}</h4>
+                      <span style={{
+                        fontSize: '0.75rem',
+                        fontWeight: '900',
+                        color: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444'
+                      }}>{data.score}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
+                      <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>{data.description}</p>
+                  </div>
+                ))}
+              </div>
 
-                {/* Recommendations */}
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>🚀 Key Recommendations</h3>
-                <div style={{ display: 'grid', gap: '1rem' }}>
-                   {(selectedStudentReport.report?.personalized_recommendations || []).map((rec, i) => (
-                      <div key={i} style={{ borderLeft: '4px solid #F2921D', padding: '1rem', background: 'var(--bg-main)', borderRadius: '0 8px 8px 0' }}>
-                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                            <strong style={{ color: 'var(--text-main)' }}>{rec.title}</strong>
-                            <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#F2921D' }}>{rec.priority?.toUpperCase()} PRIORITY</span>
-                         </div>
-                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{rec.description}</p>
-                      </div>
-                   ))}
-                </div>
-             </div>
+              {/* Recommendations */}
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>🚀 Key Recommendations</h3>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {(selectedStudentReport.report?.personalized_recommendations || []).map((rec, i) => (
+                  <div key={i} style={{ borderLeft: '4px solid #F2921D', padding: '1rem', background: 'var(--bg-main)', borderRadius: '0 8px 8px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <strong style={{ color: 'var(--text-main)' }}>{rec.title}</strong>
+                      <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#F2921D' }}>{rec.priority?.toUpperCase()} PRIORITY</span>
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{rec.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-             <div style={{ 
-                padding: '1.5rem 2rem', 
-                background: 'var(--bg-card)', 
-                borderTop: '1px solid var(--border-color)', 
-                display: 'flex', 
-                justifyContent: 'flex-end', 
-                gap: '1rem' 
-             }}>
-                <button 
-                   className="cancel-btn" 
-                   onClick={() => setIsPsyReportModalOpen(false)}
-                   style={{ padding: '0.85rem 1.5rem', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '700' }}
-                >
-                  Close Analysis
-                </button>
-                <button 
-                  className="submit-btn" 
-                  style={{ minWidth: '180px', background: '#F2921D', color: 'white' }} 
-                  onClick={() => downloadPsyReportPDF(selectedStudentReport)}
-                >
-                  📥 Download PDF
-                </button>
-             </div>
+            <div style={{
+              padding: '1.5rem 2rem',
+              background: 'var(--bg-card)',
+              borderTop: '1px solid var(--border-color)',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '1rem'
+            }}>
+              <button
+                className="cancel-btn"
+                onClick={() => setIsPsyReportModalOpen(false)}
+                style={{ padding: '0.85rem 1.5rem', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '700' }}
+              >
+                Close Analysis
+              </button>
+              <button
+                className="submit-btn"
+                style={{ minWidth: '180px', background: '#F2921D', color: 'white' }}
+                onClick={() => downloadPsyReportPDF(selectedStudentReport)}
+              >
+                📥 Download PDF
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -2762,7 +2782,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
           <div className="adm-stat-info">
             <div className="adm-stat-value">
-              {allInterviewResults.length > 0 
+              {allInterviewResults.length > 0
                 ? Math.round(allInterviewResults.reduce((acc, r) => acc + (r.overall_score || 0), 0) / allInterviewResults.length)
                 : 0}%
             </div>
@@ -2801,17 +2821,17 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <td>{result.date}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ 
-                        fontWeight: '800', 
-                        color: result.overall_score >= 70 ? '#10b981' : (result.overall_score >= 40 ? '#f59e0b' : '#ef4444') 
+                      <span style={{
+                        fontWeight: '800',
+                        color: result.overall_score >= 70 ? '#10b981' : (result.overall_score >= 40 ? '#f59e0b' : '#ef4444')
                       }}>
                         {result.overall_score}%
                       </span>
                       <div style={{ width: '60px', height: '6px', background: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ 
-                          width: `${result.overall_score}%`, 
-                          height: '100%', 
-                          background: result.overall_score >= 70 ? '#10b981' : (result.overall_score >= 40 ? '#f59e0b' : '#ef4444') 
+                        <div style={{
+                          width: `${result.overall_score}%`,
+                          height: '100%',
+                          background: result.overall_score >= 70 ? '#10b981' : (result.overall_score >= 40 ? '#f59e0b' : '#ef4444')
                         }}></div>
                       </div>
                     </div>
@@ -2822,7 +2842,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     </p>
                   </td>
                   <td>
-                    <button 
+                    <button
                       className="view-btn"
                       onClick={() => {
                         setSelectedReport(result);
@@ -2850,7 +2870,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </div>
               <button className="close-modal" onClick={() => setIsInterviewReportModalOpen(false)}>×</button>
             </div>
-            
+
             <div className="report-modal-body" style={{ padding: '2rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
                 <div style={{ textAlign: 'center', padding: '1.5rem', background: '#fff7ed', borderRadius: '16px', border: '1px solid #fed7aa' }}>
@@ -2880,7 +2900,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '1.5rem', borderRadius: '16px' }}>
                   <h4 style={{ color: '#166534', marginBottom: '0.75rem', fontWeight: '700' }}>💪 Strengths</h4>
                   <ul style={{ paddingLeft: '1.25rem', color: '#166534' }}>
-                    {selectedReport.strengths && selectedReport.strengths.length > 0 
+                    {selectedReport.strengths && selectedReport.strengths.length > 0
                       ? selectedReport.strengths.map((s, i) => <li key={i} style={{ marginBottom: '0.4rem' }}>{s}</li>)
                       : <li>No major strengths noted</li>}
                   </ul>
@@ -2888,7 +2908,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', padding: '1.5rem', borderRadius: '16px' }}>
                   <h4 style={{ color: '#9a3412', marginBottom: '0.75rem', fontWeight: '700' }}>🎯 Areas for Improvement</h4>
                   <ul style={{ paddingLeft: '1.25rem', color: '#9a3412' }}>
-                    {selectedReport.areas_for_improvement && selectedReport.areas_for_improvement.length > 0 
+                    {selectedReport.areas_for_improvement && selectedReport.areas_for_improvement.length > 0
                       ? selectedReport.areas_for_improvement.map((a, i) => <li key={i} style={{ marginBottom: '0.4rem' }}>{a}</li>)
                       : <li>No major improvements noted</li>}
                   </ul>
@@ -2902,8 +2922,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             </div>
 
             <div className="modal-actions" style={{ padding: '1.5rem 2rem', background: '#f8fafc', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
-              <button 
-                className="submit-btn" 
+              <button
+                className="submit-btn"
                 onClick={() => setIsInterviewReportModalOpen(false)}
                 style={{ background: '#F2921D', color: 'white', border: 'none', padding: '0.75rem 2rem', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', width: '100%' }}
               >
@@ -3215,8 +3235,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           <p>Upload daily news updates and exam insights for students</p>
         </div>
         <button className="create-course-main-btn" onClick={() => {
-            setCAForm({ title: getDefaultCATitle() }); 
-            setIsCAModalOpen(true);
+          setCAForm({ title: getDefaultCATitle() });
+          setIsCAModalOpen(true);
         }}>
           <span>+</span> Post Daily Update
         </button>

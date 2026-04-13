@@ -4,6 +4,18 @@ from database import get_db
 import models
 from pydantic import BaseModel
 from typing import List
+import google.generativeai as genai
+from groq import Groq
+import os
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+class RawTextRequest(BaseModel):
+    text: str
 
 router = APIRouter(prefix="/tests", tags=["tests"])
 
@@ -121,3 +133,89 @@ def update_question(question_id: int, question_data: QuestionCreate, db: Session
     
     db.commit()
     return db_q
+
+@router.post("/parse-ai")
+def parse_ai_questions(request: RawTextRequest):
+    try:
+        # Using Groq (Llama 3.3 70B) for faster extraction
+        completion = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile", # Try the standard 70b first if versatile fails, but versatile is usually better. 
+            # Wait, user error said llama3-70b-8192 is decommissioned.
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a professional exam parser. Extract multiple choice questions from the provided HTML. "
+                               "Correct answers are indicated by <strong> or <b> tags inside paragraphs. "
+                               "CRITICAL: 'is_correct' MUST BE A BOOLEAN true/false, NOT a string. "
+                               "Return exactly a JSON object with a key 'questions' containing the array. "
+                               "JSON structure: {\"questions\": [{\"text\": \"...\", \"explanation\": \"...\", \"options\": [{\"text\": \"...\", \"is_correct\": true}]}]}"
+                },
+                {
+                    "role": "user",
+                    "content": request.text
+                }
+            ],
+            response_format={"type": "json_object"}
+        )
+        
+        data = json.loads(completion.choices[0].message.content)
+        questions = data.get("questions", [])
+        if not isinstance(questions, list):
+            # Try to find any list in the object
+            for val in data.values():
+                if isinstance(val, list):
+                    questions = val
+                    break
+        
+        # Cleanup and validate
+        final_questions = []
+        for q in questions:
+            if not isinstance(q, dict) or "text" not in q:
+                continue
+            
+            clean_q = {
+                "text": str(q.get("text", "")).strip(),
+                "explanation": str(q.get("explanation", "") or "").strip(),
+                "options": []
+            }
+            
+            raw_options = q.get("options", [])
+            if not isinstance(raw_options, list):
+                continue
+                
+            for opt in raw_options:
+                if not isinstance(opt, dict) or "text" not in opt:
+                    continue
+                clean_q["options"].append({
+                    "text": str(opt.get("text", "")).strip(),
+                    "is_correct": bool(opt.get("is_correct", False))
+                })
+            
+            if len(clean_q["options"]) >= 2:
+                final_questions.append(clean_q)
+                
+        return final_questions
+        
+    except Exception as e:
+        print(f"Groq Parse Error: {str(e)}")
+        # Fallback to Gemini if Groq fails
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            prompt = f"""
+            Extract MCQ JSON from this HTML. Identify correct answers via bold/strong tags.
+            Return exactly this JSON format: [{{ "text": "...", "explanation": "...", "options": [{{ "text": "...", "is_correct": true }}] }}]
+            Ensure is_correct is a boolean.
+            
+            HTML:
+            {request.text}
+            """
+            response = model.generate_content(prompt)
+            text_resp = response.text.strip()
+            if "```json" in text_resp:
+                text_resp = text_resp.split("```json")[1].split("```")[0].strip()
+            elif "```" in text_resp:
+                text_resp = text_resp.split("```")[1].split("```")[0].strip()
+            
+            return json.loads(text_resp)
+        except Exception as e2:
+            raise HTTPException(status_code=500, detail=f"AI Parsing failed: {str(e)}")
