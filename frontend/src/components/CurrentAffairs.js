@@ -102,57 +102,83 @@ const CurrentAffairs = ({ user }) => {
                         </div>
                     ))}
 
-                    {selectedItem && (
-                        <div style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'var(--bg-main)',
-                            zIndex: 9999,
-                            display: 'flex',
-                            flexDirection: 'column'
-                        }}>
+                    {selectedItem && (() => {
+                        const absoluteUrl = getAbsoluteUrl(selectedItem.content_url);
+                        const isLocalhost = absoluteUrl.includes('localhost') || absoluteUrl.includes('127.0.0.1');
+                        const gviewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absoluteUrl)}&embedded=true`;
+
+                        return (
                             <div style={{
-                                padding: '1rem 2rem',
-                                background: 'var(--bg-card)',
-                                borderBottom: '1px solid var(--border-color)',
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'var(--bg-main)',
+                                zIndex: 9999,
                                 display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
+                                flexDirection: 'column'
                             }}>
-                                <div>
-                                    <h2 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{selectedItem.title}</h2>
-                                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{new Date(selectedItem.published_date).toLocaleString()}</p>
+                                <div style={{
+                                    padding: '1rem 2rem',
+                                    background: 'var(--bg-card)',
+                                    borderBottom: '1px solid var(--border-color)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <div>
+                                        <h2 style={{ fontSize: '1.25rem', fontWeight: '800' }}>{selectedItem.title}</h2>
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{new Date(selectedItem.published_date).toLocaleString()}</p>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                        <a
+                                            href={absoluteUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ padding: '0.5rem 1.25rem', background: '#f0fdf4', border: '1px solid #86efac', color: '#166534', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none' }}
+                                        >
+                                            🔗 Open in New Tab
+                                        </a>
+                                        <button
+                                            onClick={() => setSelectedItem(null)}
+                                            style={{
+                                                padding: '0.6rem 1.5rem',
+                                                background: '#fee2e2',
+                                                color: '#ef4444',
+                                                border: 'none',
+                                                borderRadius: '12px',
+                                                fontWeight: '700',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem'
+                                            }}
+                                        >
+                                            <span>✕</span> Close Reader
+                                        </button>
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={() => setSelectedItem(null)}
-                                    style={{
-                                        padding: '0.6rem 1.5rem',
-                                        background: '#fee2e2',
-                                        color: '#ef4444',
-                                        border: 'none',
-                                        borderRadius: '12px',
-                                        fontWeight: '700',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem'
-                                    }}
-                                >
-                                    <span>✕</span> Close Reader
-                                </button>
+                                <div style={{ flex: 1, background: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+                                    {isLocalhost ? (
+                                        <div style={{ padding: '3rem', textAlign: 'center', color: '#b45309', background: '#fef3c7', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                                            <div style={{ fontSize: '3rem' }}>⚠️</div>
+                                            <h3>Local Preview Not Available</h3>
+                                            <p style={{ maxWidth: '500px', lineHeight: 1.6 }}>Google Docs Viewer cannot access files on <code>localhost</code>. Use <strong>Open in New Tab</strong> to view the file directly, or this will work automatically once deployed.</p>
+                                            <a href={absoluteUrl} target="_blank" rel="noopener noreferrer" style={{ padding: '0.75rem 2rem', background: '#F2921D', color: 'white', borderRadius: '12px', fontWeight: '700', textDecoration: 'none' }}>Open File Directly</a>
+                                        </div>
+                                    ) : (
+                                        <iframe
+                                            src={gviewerUrl}
+                                            title="Current Affairs Reader"
+                                            style={{ width: '100%', height: '100%', border: 'none', flex: 1 }}
+                                        />
+                                    )}
+                                </div>
                             </div>
-                            <div style={{ flex: 1, background: '#f8fafc' }}>
-                                <iframe
-                                    src={`${getAbsoluteUrl(selectedItem.content_url)}#toolbar=0`}
-                                    title="Current Affairs Reader"
-                                    style={{ width: '100%', height: '100%', border: 'none' }}
-                                />
-                            </div>
-                        </div>
-                    )}
+                        );
+                    })()}
+
                 </div>
             ) : (
                 <div style={{ textAlign: 'center', padding: '5rem', background: 'var(--bg-card)', borderRadius: '24px', border: '1px solid var(--border-color)' }}>
