@@ -24,6 +24,11 @@ function App() {
     localStorage.setItem('samkalp_user', JSON.stringify(userData));
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('samkalp_user', JSON.stringify(updatedUser));
+  };
+
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('samkalp_user');
@@ -39,12 +44,12 @@ function App() {
 
   if (user) {
     if (user.role === 'admin') {
-      return <AdminDashboard user={user} onLogout={handleLogout} onUserUpdate={setUser} />;
+      return <AdminDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
     }
     if (user.role === 'faculty') {
-      return <FacultyDashboard user={user} onLogout={handleLogout} onUserUpdate={setUser} />;
+      return <FacultyDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
     }
-    return <Dashboard user={user} onLogout={handleLogout} onUserUpdate={setUser} />;
+    return <Dashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
   }
 
 

@@ -4,19 +4,25 @@ import '../styles/Profile.css';
 const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    name: user.name || '',
-    email: user.email || '',
-    phone: user.phone || '',
-    location: user.location || '',
-    department: user.department || 'Art and Culture'
+    name: '',
+    email: '',
+    phone: '',
+    location: '',
+    department: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        location: user.location || '',
+        department: user.department || 'Art and Culture'
+      });
+    }
+  }, [user]);
   
-  const [stats, setStats] = useState({
-    courses_taught: 4,
-    students_mentored: 245,
-    interviews_done: 89,
-    faculty_rating: "4.8/5"
-  });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
@@ -152,28 +158,6 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                   )}
                 </div>
               )}
-            </div>
-
-            <div className="profile-stats-divider" style={{ borderTop: '1px solid #e2e8f0', margin: '2rem 0', width: '100%' }}></div>
-            
-            <div style={{ width: '100%', textAlign: 'left' }}>
-              <h3 style={{ fontSize: '1rem', color: '#94a3b8', marginBottom: '1rem' }}>Faculty Stats</h3>
-              <div className="stat-inline-group">
-                <span className="stat-inline-label">Courses Taught</span>
-                <span className="stat-inline-value">{stats.courses_taught}</span>
-              </div>
-              <div className="stat-inline-group">
-                <span className="stat-inline-label">Students Mentored</span>
-                <span className="stat-inline-value">{stats.students_mentored}</span>
-              </div>
-              <div className="stat-inline-group">
-                <span className="stat-inline-label">Interviews Done</span>
-                <span className="stat-inline-value">{stats.interviews_done}</span>
-              </div>
-              <div className="stat-inline-group">
-                <span className="stat-inline-label">Faculty Rating</span>
-                <span className="stat-inline-value stat-highlight">{stats.faculty_rating}</span>
-              </div>
             </div>
           </div>
         </aside>

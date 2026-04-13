@@ -323,7 +323,6 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           <h1>Faculty Dashboard</h1>
           <p>Manage students, courses, tests, and interviews</p>
         </div>
-        <button className="global-search-btn">🔍 Search</button>
       </div>
 
       <div className="admin-stats-grid">

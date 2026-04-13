@@ -4,12 +4,25 @@ import '../styles/Profile.css';
 const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    name: user.name || '',
-    email: user.email || '',
-    phone: user.phone || '',
-    location: user.location || '',
-    target_exam: user.target_exam || ''
+    name: '',
+    email: '',
+    phone: '',
+    location: '',
+    target_exam: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        location: user.location || '',
+        target_exam: user.target_exam || ''
+      });
+    }
+  }, [user]);
+
   const [stats, setStats] = useState({
     courses_completed: "0/0",
     tests_taken: 0,
@@ -163,6 +176,9 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
+  const profileImageSrc = user.profile_image 
+    ? (user.profile_image.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${user.profile_image}` : user.profile_image)
+    : null;
 
   return (
     <div className="profile-container">
@@ -183,13 +199,13 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
               onClick={handleImageClick}
               style={{
                 cursor: 'pointer',
-                backgroundImage: user.profile_image ? `url(${user.profile_image})` : 'none',
+                backgroundImage: profileImageSrc ? `url(${profileImageSrc})` : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 position: 'relative'
               }}
             >
-              {!user.profile_image && (user.name || user.email).substring(0, 2).toUpperCase()}
+              {!profileImageSrc && (user.name || user.email).substring(0, 2).toUpperCase()}
               {uploading && (
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
                   ⌛
