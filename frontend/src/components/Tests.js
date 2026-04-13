@@ -5,7 +5,7 @@ const MOCK_TESTS = [
   {
     id: 1,
     title: 'Prelims Mock Test - 1',
-    category: 'General Studies',
+    category: 'Art and Culture',
     questionsCount: 100,
     duration: '120 mins',
     difficulty: 'Medium',

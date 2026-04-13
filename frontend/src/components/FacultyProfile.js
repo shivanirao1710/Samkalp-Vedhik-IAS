@@ -8,7 +8,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
     email: user.email || '',
     phone: user.phone || '',
     location: user.location || '',
-    department: user.department || 'General Studies'
+    department: user.department || 'Art and Culture'
   });
   
   const [stats, setStats] = useState({
@@ -28,7 +28,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
         email: user.email || '',
         phone: user.phone || '',
         location: user.location || '',
-        department: user.department || 'General Studies'
+        department: user.department || 'Art and Culture'
       });
     }
     setIsEditing(!isEditing);

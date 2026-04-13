@@ -20,7 +20,7 @@ router = APIRouter(
 def upload_material(
     title: str = Form(...),
     description: Optional[str] = Form(None),
-    category: str = Form("General Studies"),
+    category: str = Form("Art and Culture"),
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):

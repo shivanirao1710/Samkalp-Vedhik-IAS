@@ -192,7 +192,7 @@ const StudyMaterials = ({ user }) => {
             </div>
 
             <div className="filter-tabs">
-                {['All', 'Favorites', 'General Studies', 'Polity', 'History', 'Economy', 'Geography'].map(cat => (
+                {['All', 'Favorites', 'Art and Culture', 'Polity', 'History', 'Economy', 'Geography'].map(cat => (
                     <button
                         key={cat}
                         className={`tab-btn ${categoryFilter === cat ? 'active' : ''}`}

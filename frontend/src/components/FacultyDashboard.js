@@ -33,7 +33,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   // Study Materials State
   const [studyMaterials, setStudyMaterials] = useState([]);
   const [isStudyMaterialModalOpen, setIsStudyMaterialModalOpen] = useState(false);
-  const [studyMaterialForm, setStudyMaterialForm] = useState({ title: '', description: '', category: 'General Studies' });
+  const [studyMaterialForm, setStudyMaterialForm] = useState({ title: '', description: '', category: 'Art and Culture' });
   const [studyMaterialFiles, setStudyMaterialFiles] = useState([]);
   const [isUploadingMaterials, setIsUploadingMaterials] = useState(false);
 
@@ -515,7 +515,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     author: '',
     modules: '',
     hours: '',
-    category: 'General Studies',
+    category: 'Art and Culture',
     status: 'Draft',
     description: ''
   });
@@ -573,7 +573,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       alert(`Successfully uploaded ${successCount} material(s)`);
       setIsStudyMaterialModalOpen(false);
       setStudyMaterialFiles([]);
-      setStudyMaterialForm({ title: '', description: '', category: 'General Studies' });
+      setStudyMaterialForm({ title: '', description: '', category: 'Art and Culture' });
       fetchStudyMaterials();
     } else {
       alert("Failed to upload materials. Please try again.");
@@ -626,7 +626,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       if (res.ok) {
         alert('Course created successfully! It is now visible in the Student Dashboard.');
         setIsCreateModalOpen(false);
-        setFormData({ title: '', author: '', modules: '', hours: '', category: 'General Studies', status: 'Draft', description: '' });
+        setFormData({ title: '', author: '', modules: '', hours: '', category: 'Art and Culture', status: 'Draft', description: '' });
         setThumbnailFile(null);
         setThumbnailPreview(null);
         fetchLiveCourses();
@@ -976,7 +976,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               >
-                <option>General Studies</option>
+                <option>Art and Culture</option>
                 <option>Polity</option>
                 <option>History</option>
                 <option>Economy</option>
@@ -2952,7 +2952,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               <div className="form-group">
                 <label>Category <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Applied to all)</span></label>
                 <select value={studyMaterialForm.category} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, category: e.target.value })}>
-                  <option>General Studies</option>
+                  <option>Art and Culture</option>
                   <option>Polity</option>
                   <option>History</option>
                   <option>Economy</option>

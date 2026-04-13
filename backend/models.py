@@ -125,7 +125,7 @@ class StudyMaterial(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String)
-    category = Column(String, default="General")
+    category = Column(String, default="Art and Culture")
     file_url = Column(String)
     file_type = Column(String)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
