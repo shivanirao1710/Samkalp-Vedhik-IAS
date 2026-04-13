@@ -310,14 +310,50 @@ const StudyMaterials = ({ user }) => {
                 <div className="preview-modal-overlay" onClick={() => setPreviewMaterial(null)}>
                     <div className="preview-modal-content" onClick={e => e.stopPropagation()}>
                         <div className="preview-header">
-                            <h3>{previewMaterial.title}</h3>
-                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                            <h3>📄 {previewMaterial.title}</h3>
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                <a
+                                    href={getAbsoluteUrl(previewMaterial.file_url)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        padding: '0.4rem 1rem',
+                                        background: 'rgba(255,255,255,0.08)',
+                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        color: '#cbd5e1',
+                                        borderRadius: '8px',
+                                        fontWeight: '600',
+                                        fontSize: '0.8rem',
+                                        textDecoration: 'none',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    🔗 Open in New Tab
+                                </a>
                                 {previewMaterial.file_type !== 'ebook' && previewMaterial.file_type !== 'pdf' && (
-                                    <button className="material-action" style={{ padding: '0.4rem 1rem', width: 'auto' }} onClick={() => handleDownload(previewMaterial)}>
-                                        <span>↓</span> Download
+                                    <button
+                                        style={{
+                                            padding: '0.4rem 1rem',
+                                            background: 'rgba(255,255,255,0.08)',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            color: '#cbd5e1',
+                                            borderRadius: '8px',
+                                            fontWeight: '600',
+                                            fontSize: '0.8rem',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.35rem'
+                                        }}
+                                        onClick={() => handleDownload(previewMaterial)}
+                                    >
+                                        ↓ Download
                                     </button>
                                 )}
-                                <button className="close-preview-btn" onClick={() => setPreviewMaterial(null)}>×</button>
+                                <button className="close-preview-btn" onClick={() => setPreviewMaterial(null)}>✕</button>
                             </div>
                         </div>
                         <div className="preview-body">
@@ -326,6 +362,7 @@ const StudyMaterials = ({ user }) => {
                     </div>
                 </div>
             )}
+
         </div>
     );
 };
