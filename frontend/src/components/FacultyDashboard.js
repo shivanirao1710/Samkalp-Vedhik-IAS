@@ -1713,9 +1713,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         </div>
         <form onSubmit={handleUpdateQuestion} className="adm-modal-form">
           <div className="form-group">
-            <label>Question Text</label>
+            <label style={{ color: 'var(--text-main)', fontWeight: 'bolder' }}>Question Text</label>
             <textarea
-              style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid #e2e8f0' }}
+              style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1.5px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
               rows="3"
               value={editingQuestion.text}
               onChange={(e) => setEditingQuestion({ ...editingQuestion, text: e.target.value })}
@@ -1742,7 +1742,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     newOpts[idx].text = e.target.value;
                     setEditingQuestion({ ...editingQuestion, options: newOpts });
                   }}
-                  style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid #e2e8f0' }}
+                  style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1.5px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }}
                   required
                 />
               </div>
@@ -1793,17 +1793,17 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       <div className="admin-management-section" style={{ marginTop: '2rem' }}>
         <div className="questions-grid-detailed" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {testQuestions.map((q, idx) => (
-            <div key={q.id} className="detailed-question-card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
+            <div key={q.id} className="detailed-question-card" style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
                   <h4 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: '700' }}>Q{idx + 1}: {q.text}</h4>
                   <div className="options-display-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     {q.options.map((opt, oIdx) => (
-                      <div key={oIdx} style={{ padding: '0.75rem', borderRadius: '10px', background: opt.is_correct ? '#f0fdf4' : '#f8fafc', border: opt.is_correct ? '1.5px solid #22c55e' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span style={{ fontWeight: '700', color: opt.is_correct ? '#16a34a' : '#64748b' }}>{String.fromCharCode(65 + oIdx)}</span>
-                        <span>{opt.text}</span>
-                        {opt.is_correct && <span style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>Correct</span>}
-                      </div>
+                        <div key={oIdx} style={{ padding: '0.75rem', borderRadius: '10px', background: opt.is_correct ? 'rgba(34, 197, 94, 0.1)' : 'var(--bg-main)', border: opt.is_correct ? '1.5px solid #22c55e' : '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{ fontWeight: '700', color: opt.is_correct ? '#22c55e' : 'var(--text-muted)' }}>{String.fromCharCode(65 + oIdx)}</span>
+                          <span style={{ color: 'var(--text-main)' }}>{opt.text}</span>
+                          {opt.is_correct && <span style={{ marginLeft: 'auto', backgroundColor: '#22c55e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>Correct</span>}
+                        </div>
                     ))}
                   </div>
                 </div>
@@ -1826,7 +1826,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </div>
             </div>
           ))}
-          {testQuestions.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', background: '#f8fafc', borderRadius: '166px', border: '1.5px dashed #e2e8f0' }}>No questions found in this test.</p>}
+          {testQuestions.length === 0 && <p style={{ textAlign: 'center', padding: '3rem', background: 'var(--bg-main)', color: 'var(--text-muted)', borderRadius: '16px', border: '1.5px dashed var(--border-color)' }}>No questions found in this test.</p>}
         </div>
       </div>
       {isEditQuestionModalOpen && renderEditQuestionModal()}
@@ -1883,7 +1883,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             <tbody>
               {fetchedTests.map((test) => (
                 <tr key={test.id}>
-                  <td style={{ fontWeight: '700', color: '#1e293b' }}>{test.title}</td>
+                  <td style={{ fontWeight: '700', color: 'var(--text-main)' }}>{test.title}</td>
                   <td>
                     <span className="test-type-tag">{test.category}</span>
                   </td>
@@ -2082,24 +2082,24 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
           <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
             <div className="form-group">
-              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Duration (Hours)</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Duration (Hours)</label>
               <input
                 type="number"
                 step="0.5"
                 value={editClassFormData.duration}
                 onChange={(e) => setEditClassFormData({ ...editClassFormData, duration: e.target.value })}
                 required
-                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
               />
             </div>
             <div className="form-group">
-              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Capacity</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Capacity</label>
               <input
                 type="number"
                 value={editClassFormData.capacity}
                 onChange={(e) => setEditClassFormData({ ...editClassFormData, capacity: e.target.value })}
                 required
-                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
               />
             </div>
           </div>
@@ -2121,63 +2121,63 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         </div>
         <form onSubmit={handleClassSubmit} className="adm-modal-form">
           <div className="form-group">
-            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Class Title</label>
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Class Title</label>
             <input
               type="text"
               placeholder="e.g. Economy Masterclass"
               value={classFormData.title}
               onChange={(e) => setClassFormData({ ...classFormData, title: e.target.value })}
               required
-              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+              style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
             />
           </div>
           <div className="form-group">
-            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Instructor</label>
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Instructor</label>
             <input
               type="text"
               placeholder="Instructor Name"
               value={classFormData.instructor}
               onChange={(e) => setClassFormData({ ...classFormData, instructor: e.target.value })}
               required
-              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+              style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
             />
           </div>
           <div className="form-group">
-            <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Meeting Link (Zoom, Google Meet, etc.)</label>
+            <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Meeting Link (Zoom, Google Meet, etc.)</label>
             <input
               type="url"
               placeholder="https://zoom.us/j/..."
               value={classFormData.meeting_link}
               onChange={(e) => setClassFormData({ ...classFormData, meeting_link: e.target.value })}
               required
-              style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+              style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
             />
           </div>
           <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '1.5rem' }}>
             <div className="form-group">
-              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Date</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Date</label>
               <input
                 type="date"
                 value={classFormData.date}
                 onChange={(e) => setClassFormData({ ...classFormData, date: e.target.value })}
                 required
-                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
               />
             </div>
             <div className="form-group">
-              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Time</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Time</label>
               <input
                 type="time"
                 value={classFormData.time}
                 onChange={(e) => setClassFormData({ ...classFormData, time: e.target.value })}
                 required
-                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
               />
             </div>
           </div>
           <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
             <div className="form-group">
-              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Duration (Hours)</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Duration (Hours)</label>
               <input
                 type="number"
                 step="0.5"
@@ -2185,17 +2185,17 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 value={classFormData.duration}
                 onChange={(e) => setClassFormData({ ...classFormData, duration: e.target.value })}
                 required
-                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
               />
             </div>
             <div className="form-group">
-              <label style={{ fontWeight: '700', marginBottom: '0.75rem' }}>Capacity</label>
+              <label style={{ fontWeight: '700', marginBottom: '0.75rem', color: 'var(--text-main)' }}>Capacity</label>
               <input
                 type="number"
                 value={classFormData.capacity}
                 onChange={(e) => setClassFormData({ ...classFormData, capacity: e.target.value })}
                 required
-                style={{ background: '#f8fafc', padding: '1.25rem', border: '1px solid #e2e8f0', borderRadius: '12px' }}
+                style={{ background: 'var(--bg-main)', color: 'var(--text-main)', padding: '1.25rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}
               />
             </div>
           </div>
@@ -2659,8 +2659,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 <input type="text" value={studyMaterialForm.title} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, title: e.target.value })} />
               </div>
               <div className="form-group">
-                <label>Description <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Applied to all)</span></label>
-                <textarea rows="2" value={studyMaterialForm.description} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, description: e.target.value })} style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid #e2e8f0' }} />
+                <label style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>Description <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>(Applied to all)</span></label>
+                <textarea rows="2" value={studyMaterialForm.description} onChange={e => setStudyMaterialForm({ ...studyMaterialForm, description: e.target.value })} style={{ width: '100%', padding: '0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-main)', color: 'var(--text-main)' }} />
               </div>
               <div className="form-group">
                 <label>Category <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Applied to all)</span></label>
@@ -2673,8 +2673,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 </select>
               </div>
               <div className="form-group">
-                <label>Files (Select Multiple)</label>
-                <input required type="file" multiple onChange={e => setStudyMaterialFiles(Array.from(e.target.files))} style={{ padding: '1rem', border: '1px dashed #ccc', width: '100%', borderRadius: '12px', background: '#f8fafc' }} />
+                <label style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>Files (Select Multiple)</label>
+                <input required type="file" multiple onChange={e => setStudyMaterialFiles(Array.from(e.target.files))} style={{ padding: '1rem', border: '1px dashed var(--border-color)', width: '100%', borderRadius: '12px', background: 'var(--bg-main)', color: 'var(--text-main)' }} />
                 {studyMaterialFiles.length > 0 && <p style={{ fontSize: '0.85rem', color: '#10b981', marginTop: '0.5rem' }}>{studyMaterialFiles.length} file(s) selected.</p>}
               </div>
               <div className="modal-actions">
@@ -2908,14 +2908,14 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     href={absoluteUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ padding: '0.5rem 1.25rem', background: '#f0fdf4', border: '1px solid #86efac', color: '#166534', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none' }}
+                    style={{ padding: '0.5rem 1.25rem', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#22c55e', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', textDecoration: 'none' }}
                   >
                     🔗 Open in New Tab
                   </a>
                   <button className="close-modal" onClick={() => setCAPreviewItem(null)}>×</button>
                 </div>
               </div>
-              <div style={{ flex: 1, background: '#f8fafc', borderRadius: '0 0 24px 24px', overflow: 'hidden' }}>
+              <div style={{ flex: 1, background: 'var(--bg-main)', borderRadius: '0 0 24px 24px', overflow: 'hidden' }}>
                 <iframe
                   src={viewerUrl}
                   title="CA Preview"
