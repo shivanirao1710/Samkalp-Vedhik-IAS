@@ -72,6 +72,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     }},
     { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '📚', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
     { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews', target: 'Interviews' },
+    { title: 'Psychometric Reports', icon: '🧠', subtitle: 'View student analytics', target: 'Reports' },
   ];
 
   const [dashboardStats, setDashboardStats] = useState([
@@ -411,8 +412,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               <th>CONTACT INFO</th>
               <th>ENROLLED DATE</th>
               <th>COURSES</th>
-              <th>TESTS COMPLETED</th>
               <th>STATUS</th>
+              <th>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
@@ -422,41 +423,61 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
               )
-              .map((student) => (
-                <tr key={student.id}>
-                  <td>
-                    <div className="adm-student-cell">
-                      <div className="adm-student-avatar" style={{ backgroundColor: student.color }}>
-                        {(student.name || '??').substring(0, 2).toUpperCase()}
+              .map((student) => {
+                const report = psychometricReports.find(r => r.user_id === student.id);
+                return (
+                  <tr key={student.id}>
+                    <td>
+                      <div className="adm-student-cell">
+                        <div className="adm-student-avatar" style={{ backgroundColor: student.color }}>
+                          {(student.name || '??').substring(0, 2).toUpperCase()}
+                        </div>
+                        <span style={{ fontWeight: '700' }}>{student.name}</span>
                       </div>
-                      {student.name}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="contact-info-cell">
-                      <div className="contact-item">✉️ {student.email}</div>
-                      <div className="contact-item">📞 {student.phone}</div>
-                    </div>
-                  </td>
-                  <td>{student.enrolled_date}</td>
-                  <td>
-                    <span className="course-count-tag">{student.courses}</span>
-                  </td>
-                  <td>{student.tests}</td>
-                  <td>
-                    <span className={`status-pill ${(student.status || 'Active').toLowerCase()}`}>
-                      {student.status || 'Active'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <div className="contact-info-cell">
+                        <div className="contact-item">✉️ {student.email}</div>
+                        <div className="contact-item">📞 {student.phone}</div>
+                      </div>
+                    </td>
+                    <td>{student.enrolled_date}</td>
+                    <td>
+                      <span className="course-count-tag">{student.courses} Courses</span>
+                    </td>
+                    <td>
+                      <span className={`status-pill ${(student.status || 'Active').toLowerCase()}`}>
+                        {student.status || 'Active'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {report ? (
+                          <button 
+                            className="edit-course-btn" 
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}
+                            onClick={() => {
+                              setSelectedStudentReport(report);
+                              setIsPsyReportModalOpen(true);
+                            }}
+                          >
+                            🧠 View Analysis
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>No Report</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             {studentData.filter(student =>
               (student.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
               (student.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
               (student.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
             ).length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                     No students found matching "{searchTerm}"
                   </td>
                 </tr>
@@ -464,8 +485,98 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           </tbody>
         </table>
 
-
       </div>
+      {isPsyReportModalOpen && selectedStudentReport && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '850px', maxHeight: '90vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+             <div style={{ 
+                background: 'linear-gradient(135deg, #1e293b, #0f172a)', 
+                color: 'white', 
+                padding: '2rem',
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                flexShrink: 0
+             }}>
+                <div>
+                   <h2 style={{ color: 'white', margin: 0, fontSize: '1.75rem' }}>Psychometric Analysis</h2>
+                   <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>Comprehensive profile for <strong>{selectedStudentReport.user_name}</strong></p>
+                </div>
+                <button 
+                  className="close-modal" 
+                  onClick={() => setIsPsyReportModalOpen(false)}
+                  style={{ background: 'rgba(255,255,255,0.1)', color: 'white' }}
+                >×</button>
+             </div>
+
+             <div style={{ padding: '2rem', flex: 1, overflowY: 'auto', background: 'var(--bg-card)' }}>
+                {/* Overall Profile */}
+                <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '1.5rem', marginBottom: '2rem' }}>
+                   <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-main)', fontSize: '1.1rem' }}>🧠 Overall Psychological Profile</h3>
+                   <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem' }}>{selectedStudentReport.report?.overall_profile}</p>
+                </div>
+
+                {/* Score Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                   {Object.entries(selectedStudentReport.report?.scores || {}).map(([key, data]) => (
+                      <div key={key} style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '1.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                           <h4 style={{ margin: 0, textTransform: 'capitalize', fontSize: '0.9rem', color: 'var(--text-main)' }}>{key.replace('_', ' ')}</h4>
+                           <span style={{ 
+                              fontSize: '0.75rem', 
+                              fontWeight: '900', 
+                              color: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' 
+                           }}>{data.score}%</span>
+                        </div>
+                        <div style={{ width: '100%', height: '6px', background: 'var(--bg-card)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
+                           <div style={{ width: `${data.score}%`, height: '100%', background: data.score > 70 ? '#22c55e' : data.score > 40 ? '#f59e0b' : '#ef4444' }} />
+                        </div>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>{data.description}</p>
+                      </div>
+                   ))}
+                </div>
+
+                {/* Recommendations */}
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', color: 'var(--text-main)' }}>🚀 Key Recommendations</h3>
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                   {(selectedStudentReport.report?.personalized_recommendations || []).map((rec, i) => (
+                      <div key={i} style={{ borderLeft: '4px solid #F2921D', padding: '1rem', background: 'var(--bg-main)', borderRadius: '0 8px 8px 0' }}>
+                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                            <strong style={{ color: 'var(--text-main)' }}>{rec.title}</strong>
+                            <span style={{ fontSize: '0.7rem', fontWeight: '900', color: '#F2921D' }}>{rec.priority?.toUpperCase()} PRIORITY</span>
+                         </div>
+                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{rec.description}</p>
+                      </div>
+                   ))}
+                </div>
+             </div>
+
+             <div style={{ 
+                padding: '1.5rem 2rem', 
+                background: 'var(--bg-card)', 
+                borderTop: '1px solid var(--border-color)', 
+                display: 'flex', 
+                justifyContent: 'flex-end', 
+                gap: '1rem' 
+             }}>
+                <button 
+                   className="cancel-btn" 
+                   onClick={() => setIsPsyReportModalOpen(false)}
+                   style={{ padding: '0.85rem 1.5rem', background: 'var(--bg-main)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontWeight: '700' }}
+                >
+                  Close Analysis
+                </button>
+                <button 
+                  className="submit-btn" 
+                  style={{ minWidth: '180px', background: '#F2921D', color: 'white' }} 
+                  onClick={() => downloadPsyReportPDF(selectedStudentReport)}
+                >
+                  📥 Download PDF
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
