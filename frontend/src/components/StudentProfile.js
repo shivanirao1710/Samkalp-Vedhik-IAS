@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/Profile.css';
+import { INDIAN_LOCATIONS } from '../constants/locations';
 
 const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -32,6 +33,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [showSavedMessage, setShowSavedMessage] = useState(false);
   const fileInputRef = useRef(null);
   const photoMenuRef = useRef(null);
 
@@ -80,6 +82,11 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   };
 
   const handleSave = async () => {
+    // Validation
+    if (!editData.name || !editData.name.trim()) return alert("Please enter your full name");
+    if (!editData.phone || !editData.phone.trim()) return alert("Please enter your phone number");
+    if (!editData.location || !editData.location.trim()) return alert("Please enter your location");
+
     setLoading(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/users/update/${user.id}`, {
@@ -92,6 +99,8 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
         const updatedUser = await response.json();
         onUserUpdate(updatedUser);
         setIsEditing(false);
+        setShowSavedMessage(true);
+        setTimeout(() => setShowSavedMessage(false), 2000);
       } else {
         alert("Failed to update profile");
       }
@@ -123,6 +132,8 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
       if (response.ok) {
         const data = await response.json();
         onUserUpdate({ ...user, profile_image: data.image_url });
+        setShowSavedMessage(true);
+        setTimeout(() => setShowSavedMessage(false), 2000);
       } else {
         alert("Image upload failed");
       }
@@ -143,6 +154,8 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
       if (response.ok) {
         onUserUpdate({ ...user, profile_image: null });
         setShowPhotoMenu(false);
+        setShowSavedMessage(true);
+        setTimeout(() => setShowSavedMessage(false), 2000);
       } else {
         alert("Failed to remove photo");
       }
@@ -176,12 +189,32 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
-  const profileImageSrc = user.profile_image 
+  const profileImageSrc = user.profile_image
     ? (user.profile_image.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${user.profile_image}` : user.profile_image)
     : null;
 
   return (
     <div className="profile-container">
+      {showSavedMessage && (
+        <div className="save-success-toast" style={{
+          position: 'fixed',
+          top: '2rem',
+          right: '2rem',
+          background: '#F2921D',
+          color: 'white',
+          padding: '1rem 2rem',
+          borderRadius: '12px',
+          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          animation: 'slideInRight 0.3s ease-out'
+        }}>
+          <span style={{ fontSize: '1.2rem' }}>✅</span>
+          <span style={{ fontWeight: '700' }}>Profile Updated Successfully!</span>
+        </div>
+      )}
       <header className="profile-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           <button onClick={onBack} className="back-btn-minimal">← Back to Dashboard</button>
@@ -350,13 +383,21 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
               <div className="info-group">
                 <label><span className="icon">📍</span> Location</label>
                 {isEditing ? (
-                  <input
-                    className="info-field editable"
-                    name="location"
-                    placeholder="City, Country"
-                    value={editData.location}
-                    onChange={handleInputChange}
-                  />
+                  <>
+                    <input
+                      className="info-field editable"
+                      name="location"
+                      placeholder="e.g. Kerala, India"
+                      list="location-suggestions-student"
+                      value={editData.location}
+                      onChange={handleInputChange}
+                    />
+                    <datalist id="location-suggestions-student">
+                      {INDIAN_LOCATIONS.map(loc => (
+                        <option key={loc} value={loc} />
+                      ))}
+                    </datalist>
+                  </>
                 ) : (
                   <div className="info-field">{user.location || <span style={{ color: '#94a3b8' }}>Not set</span>}</div>
                 )}

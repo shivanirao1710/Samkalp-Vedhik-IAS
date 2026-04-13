@@ -1315,7 +1315,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         try {
           const result = await mammoth.convertToHtml({ arrayBuffer });
           const html = result.value;
-          
+
           const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/parse-ai`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -197,7 +197,8 @@
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
-  color: white; /* Always white on gradient */
+  color: white;
+  /* Always white on gradient */
 }
 
 .adm-action-text p {
@@ -396,9 +397,20 @@
   z-index: 10;
 }
 
-.status-badge.published { background: rgba(242, 146, 29, 0.9); color: white; }
-.status-badge.draft { background: rgba(148, 163, 184, 0.9); color: white; }
-.status-badge.completed { background: rgba(59, 130, 246, 0.9); color: white; }
+.status-badge.published {
+  background: rgba(242, 146, 29, 0.9);
+  color: white;
+}
+
+.status-badge.draft {
+  background: rgba(148, 163, 184, 0.9);
+  color: white;
+}
+
+.status-badge.completed {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+}
 
 .course-card-actions {
   display: flex;
@@ -463,13 +475,21 @@ body.dark-mode .delete-course-btn:hover {
   font-weight: 700;
 }
 
-.test-management-page, .course-management-page {
+.test-management-page,
+.course-management-page {
   animation: fDashboardFadeIn 0.4s ease-out;
 }
 
 @keyframes fDashboardFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .student-search-bar {
@@ -522,15 +542,45 @@ body.dark-mode .delete-course-btn:hover {
   text-transform: uppercase;
 }
 
-.status-pill.active    { background: #fff7ed; color: #c2410c; }
-.status-pill.inactive  { background: #fee2e2; color: #991b1b; }
-.status-pill.published { background: #dbeafe; color: #1e40af; }
-.status-pill.draft     { background: #f1f5f9; color: #475569; }
+.status-pill.active {
+  background: #fff7ed;
+  color: #c2410c;
+}
 
-body.dark-mode .status-pill.active    { background: #7c2d12; color: #fdba74; }
-body.dark-mode .status-pill.inactive  { background: #450a0a; color: #fca5a5; }
-body.dark-mode .status-pill.published { background: #1e3a5f; color: #93c5fd; }
-body.dark-mode .status-pill.draft     { background: #1e293b; color: #94a3b8; }
+.status-pill.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-pill.published {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-pill.draft {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+body.dark-mode .status-pill.active {
+  background: #7c2d12;
+  color: #fdba74;
+}
+
+body.dark-mode .status-pill.inactive {
+  background: #450a0a;
+  color: #fca5a5;
+}
+
+body.dark-mode .status-pill.published {
+  background: #1e3a5f;
+  color: #93c5fd;
+}
+
+body.dark-mode .status-pill.draft {
+  background: #1e293b;
+  color: #94a3b8;
+}
 
 .adm-pagination {
   display: flex;
@@ -667,8 +717,8 @@ body.dark-mode .status-pill.draft     { background: #1e293b; color: #94a3b8; }
   color: var(--text-main);
 }
 
-.form-group input, 
-.form-group select, 
+.form-group input,
+.form-group select,
 .form-group textarea {
   padding: 0.7rem 1rem;
   border-radius: 12px;
@@ -680,8 +730,8 @@ body.dark-mode .status-pill.draft     { background: #1e293b; color: #94a3b8; }
   transition: all 0.2s;
 }
 
-.form-group input:focus, 
-.form-group select:focus, 
+.form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--primary);
   background: var(--bg-card);
@@ -759,6 +809,13 @@ body.dark-mode .status-pill.draft     { background: #1e293b; color: #94a3b8; }
 }
 
 @keyframes modalFadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

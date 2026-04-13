@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Profile.css';
+import { INDIAN_LOCATIONS } from '../constants/locations';
 
 const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -22,7 +23,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
       });
     }
   }, [user]);
-  
+
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
@@ -107,7 +108,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
     }
   };
 
-  const profileImageSrc = user.profile_image 
+  const profileImageSrc = user.profile_image
     ? (user.profile_image.startsWith('/static') ? `${process.env.REACT_APP_API_URL}${user.profile_image}` : user.profile_image)
     : null;
 
@@ -183,23 +184,23 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                 {user.name ? user.name.substring(0, 2).toUpperCase() : '👨‍🏫'}
               </div>
             )}
-            
+
             <h2>{user.name || user.email.split('@')[0]}</h2>
             <div className="profile-subtitle">Faculty Member</div>
-            
+
             <div className="member-since">
               <span className="icon">📅</span> Joined {formatDate(user.member_since)}
             </div>
 
             <div className="photo-actions-wrapper" style={{ position: 'relative' }}>
-              <button 
-                className="change-photo-btn" 
+              <button
+                className="change-photo-btn"
                 onClick={() => setShowPhotoMenu(!showPhotoMenu)}
                 disabled={uploading}
               >
                 {uploading ? 'Uploading...' : (profileImageSrc ? 'Change Photo' : 'Add New Photo')}
               </button>
-              
+
               {showPhotoMenu && (
                 <div className="photo-dropdown-menu">
                   <label className="photo-menu-item">
@@ -207,8 +208,8 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     <input type="file" hidden accept="image/*" onChange={handlePhotoUpload} />
                   </label>
                   {profileImageSrc && (
-                    <button 
-                      className="photo-menu-item remove-opt" 
+                    <button
+                      className="photo-menu-item remove-opt"
                       onClick={handlePhotoRemoveAction}
                     >
                       <span className="icon">🗑️</span> Remove photo
@@ -277,7 +278,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.phone || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
+                  <div className="info-field">{user.phone || <span style={{ color: '#94a3b8' }}>Not set</span>}</div>
                 )}
               </div>
               <div className="info-group">
@@ -293,25 +294,13 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                       onChange={handleInputChange}
                     />
                     <datalist id="location-suggestions">
-                      <option value="Delhi, India" />
-                      <option value="Mumbai, Maharashtra" />
-                      <option value="Bangalore, Karnataka" />
-                      <option value="Trivandrum, Kerala" />
-                      <option value="Kochi, Kerala" />
-                      <option value="Chennai, Tamil Nadu" />
-                      <option value="Hyderabad, Telangana" />
-                      <option value="Kolkata, West Bengal" />
-                      <option value="Pune, Maharashtra" />
-                      <option value="Lucknow, Uttar Pradesh" />
-                      <option value="Guwahati, Assam" />
-                      <option value="Indore, Madhya Pradesh" />
-                      <option value="Jaipur, Rajasthan" />
-                      <option value="Patna, Bihar" />
-                      <option value="Ahmedabad, Gujarat" />
+                      {INDIAN_LOCATIONS.map(loc => (
+                        <option key={loc} value={loc} />
+                      ))}
                     </datalist>
                   </>
                 ) : (
-                  <div className="info-field">{user.location || <span style={{color: '#94a3b8'}}>Not set</span>}</div>
+                  <div className="info-field">{user.location || <span style={{ color: '#94a3b8' }}>Not set</span>}</div>
                 )}
               </div>
             </div>
@@ -334,7 +323,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
               )}
             </div>
           </div>
-          
+
           <div className="profile-card danger-zone" style={{ marginTop: '2rem' }}>
             <div className="profile-section-title">
               <h3>Danger Zone</h3>
