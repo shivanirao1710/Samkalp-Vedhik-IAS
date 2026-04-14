@@ -4,6 +4,8 @@ import '../styles/AdminDashboard.css';
 import logo from '../images/logo.png';
 import '../styles/FacultyDashboardExtended.css';
 import ThemeToggle from './ThemeToggle';
+import AdminProfile from './AdminProfile';
+import Settings from './Settings';
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [users, setUsers] = useState([]);
@@ -27,6 +29,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -141,7 +144,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     );
   };
 
-  const renderUserTable = (title, userList) => (
+  const renderUserTable = (title, userList, showActions = true) => (
     <div className="user-table-section" style={{ marginBottom: '3rem' }}>
       <div className="table-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.25rem' }}>{title} ({userList.length})</h3>
@@ -153,12 +156,12 @@ const AdminDashboard = ({ user, onLogout }) => {
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Actions</th>
+              {showActions && <th>Actions</th>}
             </tr>
           </thead>
           <tbody>
             {userList.length === 0 ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No {title.toLowerCase()} found.</td></tr>
+              <tr><td colSpan={showActions ? 4 : 3} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No {title.toLowerCase()} found.</td></tr>
             ) : (
               userList.map(u => (
                 <tr key={u.id}>
@@ -167,13 +170,15 @@ const AdminDashboard = ({ user, onLogout }) => {
                   <td>
                     <span className={`role-badge ${u.role}`}>{u.role}</span>
                   </td>
-                  <td className="actions-cell">
-                    <button className="table-btn reset" onClick={() => {
-                      setResetData({ ...resetData, userId: u.id });
-                      setShowResetModal(true);
-                    }}>Reset Pwd</button>
-                    <button className="table-btn delete" onClick={() => handleDeleteUser(u.id)}>Delete</button>
-                  </td>
+                  {showActions && (
+                    <td className="actions-cell">
+                      <button className="table-btn reset" onClick={() => {
+                        setResetData({ ...resetData, userId: u.id });
+                        setShowResetModal(true);
+                      }}>Reset Pwd</button>
+                      <button className="table-btn delete" onClick={() => handleDeleteUser(u.id)}>Delete</button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -195,7 +200,7 @@ const AdminDashboard = ({ user, onLogout }) => {
         {renderUserTable("Faculty Members", facultyList)}
         {renderUserTable("Students", studentList)}
         
-        {adminList.length > 0 && renderUserTable("Administrators", adminList)}
+        {adminList.length > 0 && renderUserTable("Administrators", adminList, false)}
       </div>
     );
   };
@@ -242,11 +247,22 @@ const AdminDashboard = ({ user, onLogout }) => {
     </div>
   );
 
+  const renderContent = () => {
+    switch(activeTab) {
+      case 'overview': return renderOverview();
+      case 'users': return renderUserList();
+      case 'faculty-add': return renderAddFaculty();
+      case 'profile': return <AdminProfile user={user} onBack={() => setActiveTab('overview')} />;
+      case 'settings': return <Settings user={user} onBack={() => setActiveTab('overview')} />;
+      default: return renderOverview();
+    }
+  };
+
   return (
     <div className="admin-layout">
       {/* Sidebar - Matching Faculty Style */}
       <aside className="admin-sidebar" style={{ display: sidebarOpen ? 'flex' : 'none' }}>
-        <div className="admin-sidebar-logo">
+        <div className="admin-sidebar-logo" onClick={() => setActiveTab('overview')} style={{ cursor: 'pointer' }}>
           <img src={logo} alt="Samkalp Logo" className="brand-logo" />
         </div>
 
@@ -280,13 +296,13 @@ const AdminDashboard = ({ user, onLogout }) => {
         </div>
       </aside>
 
-      <main className="admin-main">
+      <main className="admin-main" onClick={() => { setIsProfileOpen(false); setShowRequestsModal(false); }}>
         <header className="admin-top-bar">
           <div style={{ flex: 1 }}></div>
-          <div className="admin-profile-section" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <div className="admin-profile-section" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', position: 'relative' }}>
             <ThemeToggle />
             
-            <div className="admin-notification-bell" onClick={() => setShowRequestsModal(true)} style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '10px', width: '40px', height: '40px' }}>
+            <div className="admin-notification-bell" onClick={(e) => { e.stopPropagation(); setShowRequestsModal(!showRequestsModal); setIsProfileOpen(false); }} style={{ position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', border: '1px solid var(--border-color)', borderRadius: '10px', width: '40px', height: '40px' }}>
               <span style={{ fontSize: '1.2rem' }}>🔔</span>
               {requests.filter(r => r.status === 'pending').length > 0 && (
                 <span style={{ position: 'absolute', top: '-5px', right: '-5px', padding: '2px 6px', background: '#ef4444', color: 'white', borderRadius: '20px', fontSize: '0.65rem', fontWeight: 800 }}>
@@ -295,18 +311,38 @@ const AdminDashboard = ({ user, onLogout }) => {
               )}
             </div>
 
-            <div className="adm-user-meta">
-              <div className="adm-name">{user.name}</div>
-              <div className="adm-role">Platform Admin</div>
+            <div className="admin-user-info-wrap" onClick={(e) => { e.stopPropagation(); setIsProfileOpen(!isProfileOpen); setShowRequestsModal(false); }} style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}>
+              <div className="adm-user-meta" style={{ textAlign: 'right' }}>
+                <div className="adm-name">{user.name || 'Admin'}</div>
+                <div className="adm-role" style={{ color: '#F2921D', fontWeight: 700, fontSize: '0.7rem' }}>Platform Admin</div>
+              </div>
+              <div className="adm-avatar" style={{ backgroundColor: '#F2921D', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 4px 12px rgba(242, 146, 29, 0.2)' }}>💎</div>
             </div>
-            <div className="adm-avatar" style={{ backgroundColor: '#F2921D' }}>💎</div>
+
+            {isProfileOpen && (
+              <div className="profile-dropdown" style={{ top: '60px', right: '0', width: '220px', zIndex: 1000 }}>
+                <div className="dropdown-header" style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{user.name}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{user.email}</div>
+                </div>
+                <button className="dropdown-item" onClick={() => { setActiveTab('profile'); setIsProfileOpen(false); }}>
+                  <span className="icon">👤</span> My Profile
+                </button>
+                <button className="dropdown-item" onClick={() => { setActiveTab('settings'); setIsProfileOpen(false); }}>
+                  <span className="icon">⚙️</span> Settings
+                </button>
+                <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
+                  <button className="dropdown-item logout" onClick={onLogout} style={{ color: '#ef4444' }}>
+                    <span className="icon">↪</span> Logout
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
         <div className="admin-page-content" style={{ padding: '2rem' }}>
-          {activeTab === 'overview' && renderOverview()}
-          {activeTab === 'users' && renderUserList()}
-          {activeTab === 'faculty-add' && renderAddFaculty()}
+          {renderContent()}
         </div>
       </main>
 

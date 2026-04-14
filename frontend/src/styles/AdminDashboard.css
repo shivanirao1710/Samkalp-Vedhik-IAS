@@ -206,8 +206,83 @@ body.dark-mode .success-msg { background: #064e3b; color: #d1fae5; border-color:
   padding: 2.5rem;
   border-radius: 24px;
   max-width: 440px;
-  width: 100%;
-  box-shadow: var(--shadow-md);
+  width: 90%;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   color: var(--text-main);
   border: 1px solid var(--border-color);
+  animation: modalSlide 0.4s ease-out;
+}
+
+@keyframes modalSlide {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-content h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.modal-content p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 1rem;
+  background: var(--bg-main);
+  border: 1.5px solid var(--border-color);
+  border-radius: 14px;
+  color: var(--text-main);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.modal-input:focus {
+  border-color: #F2921D;
+  box-shadow: 0 0 0 4px rgba(242, 146, 29, 0.15);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-btn-confirm {
+  padding: 0.8rem 1.75rem;
+  background: var(--bg-gradient);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.modal-btn-confirm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(242, 146, 29, 0.3);
+}
+
+.modal-btn-cancel {
+  padding: 0.8rem 1.75rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-btn-cancel:hover {
+  background: var(--bg-main);
+  border-color: var(--text-muted);
+  color: var(--text-main);
 }
