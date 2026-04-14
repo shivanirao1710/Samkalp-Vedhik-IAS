@@ -236,13 +236,14 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
         // Calculate stats
         const total = data.length;
-        const active = data.length;
+        const suspended = data.filter(s => s.is_suspended).length;
+        const active = total - suspended;
 
         setStudentPageStats([
           { label: 'Total Students', value: total.toString(), icon: '👥', color: '#e0f2fe' },
           { label: 'Active Students', value: active.toString(), icon: '👤', color: '#f0fdf4' },
           { label: 'New This Month', value: '1', icon: '📅', color: '#fff7ed' },
-          { label: 'Inactive', value: '0', icon: '👤', color: '#fef2f2' },
+          { label: 'Suspended', value: suspended.toString(), icon: '🚫', color: '#fef2f2' },
         ]);
 
         setDashboardStats(prev => prev.map(s => {
@@ -254,6 +255,27 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       console.error("Failed to fetch students:", err);
     } finally {
       setLoadingStudents(false);
+    }
+  };
+
+  const handleToggleSuspension = async (studentId, currentStatus) => {
+    const action = currentStatus ? "unsuspend" : "suspend";
+    if (!window.confirm(`Are you sure you want to ${action} this student's account?`)) return;
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/user/${studentId}/toggle-suspension`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        alert(result.message);
+        fetchStudents(); // Refresh student list
+      } else {
+        alert("Failed to update student status.");
+      }
+    } catch (err) {
+      console.error("Error toggling suspension:", err);
+      alert("Failed to connect to server.");
     }
   };
 
@@ -454,20 +476,20 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {report ? (
-                          <button
-                            className="edit-course-btn"
-                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', background: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}
-                            onClick={() => {
-                              setSelectedStudentReport(report);
-                              setIsPsyReportModalOpen(true);
-                            }}
-                          >
-                            🧠 View Analysis
-                          </button>
-                        ) : (
-                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>No Report</span>
-                        )}
+                        <button
+                          className="edit-course-btn"
+                          style={{
+                            padding: '0.4rem 0.8rem',
+                            fontSize: '0.75rem',
+                            background: student.is_suspended ? '#f0fdf4' : '#fef2f2',
+                            color: student.is_suspended ? '#16a34a' : '#ef4444',
+                            border: `1px solid ${student.is_suspended ? '#bcf0da' : '#fee2e2'}`,
+                            fontWeight: '700'
+                          }}
+                          onClick={() => handleToggleSuspension(student.id, student.is_suspended)}
+                        >
+                          {student.is_suspended ? '🔓 Unsuspend' : '🚫 Suspend'}
+                        </button>
                       </div>
                     </td>
                   </tr>

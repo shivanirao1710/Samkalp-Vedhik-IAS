@@ -582,6 +582,16 @@ body.dark-mode .status-pill.draft {
   color: #94a3b8;
 }
 
+.status-pill.suspended {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+body.dark-mode .status-pill.suspended {
+  background: #450a0a;
+  color: #fca5a5;
+}
+
 .adm-pagination {
   display: flex;
   justify-content: space-between;

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, Text, DateTime, Float
+from sqlalchemy import Column, Integer, String, Enum, Text, DateTime, Float, Boolean
 from database import Base
 import enum
 from datetime import datetime
@@ -24,6 +24,7 @@ class User(Base):
     study_streak = Column(Integer, default=0)
     preferences_json = Column(Text, nullable=True)
     member_since = Column(DateTime, default=datetime.utcnow)
+    is_suspended = Column(Boolean, default=False)
 
 class Course(Base):
     __tablename__ = "courses"

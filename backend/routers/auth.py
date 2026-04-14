@@ -55,6 +55,12 @@ def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.ge
     if not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(status_code=403, detail="Invalid Credentials")
     
+    if user.is_suspended:
+        raise HTTPException(
+            status_code=403, 
+            detail="Your account has been temporarily suspended. Please contact faculty for assistance."
+        )
+
     # Normally we would return a JWT here
     return {
         "message": "Login successful", 

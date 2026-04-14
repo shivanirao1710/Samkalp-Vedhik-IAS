@@ -31,6 +31,7 @@ class UserResponse(BaseModel):
     department: Optional[str] = None
     profile_image: Optional[str] = None
     member_since: Optional[datetime] = None
+    is_suspended: bool = False
 
     class Config:
         from_attributes = True
@@ -60,6 +61,8 @@ class UserAdminResponse(BaseModel):
     phone: Optional[str] = None
     location: Optional[str] = None
     member_since: Optional[datetime] = None
+    is_suspended: bool = False
+
     class Config:
         from_attributes = True
 

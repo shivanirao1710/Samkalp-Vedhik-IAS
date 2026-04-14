@@ -76,7 +76,8 @@ def get_students_detailed(db: Session = Depends(database.get_db)):
             "enrolled_date": s.member_since.strftime("%Y-%m-%d") if s.member_since else "N/A",
             "courses": f"{course_count} courses",
             "tests": test_count,
-            "status": "Active", # Simplified
+            "status": "Suspended" if s.is_suspended else "Active",
+            "is_suspended": s.is_suspended,
             "color": "#F2921D" # Placeholder color
         })
     return result
@@ -116,3 +117,17 @@ def reply_to_request(request_id: int, reply: schemas.AdminRequestReply, db: Sess
     db_req.status = "replied"
     db.commit()
     return {"message": "Reply sent successfully"}
+
+@router.post("/user/{user_id}/toggle-suspension")
+def toggle_user_suspension(user_id: int, db: Session = Depends(database.get_db)):
+    """Toggle a student's suspension status."""
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_suspended = not user.is_suspended
+    db.commit()
+    return {
+        "message": f"User {'suspended' if user.is_suspended else 'activated'} successfully",
+        "is_suspended": user.is_suspended
+    }
