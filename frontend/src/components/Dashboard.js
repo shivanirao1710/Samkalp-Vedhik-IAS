@@ -389,6 +389,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
               onClick={() => {
                 setCurrentView(item.name);
                 setIsProfileOpen(false);
+                setShowNotifications(false);
               }}
               className={`nav-item ${currentView === item.name ? 'active' : ''}`}
               style={{ border: 'none', background: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
@@ -422,11 +423,21 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           <div className="profile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <ThemeToggle />
             <div className="user-profile">
-              <div className="notification-bell-wrapper" onClick={(e) => { e.stopPropagation(); setShowNotifications(!showNotifications); }}>
+              <div className="notification-bell-wrapper" onClick={(e) => { 
+                e.stopPropagation(); 
+                const newState = !showNotifications;
+                setShowNotifications(newState); 
+                if (newState) setIsProfileOpen(false);
+              }}>
                 <span className="notification-bell">🔔</span>
                 {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
               </div>
-              <div className="user-info-text" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+              <div className="user-info-text" onClick={(e) => {
+                e.stopPropagation();
+                const newState = !isProfileOpen;
+                setIsProfileOpen(newState);
+                if (newState) setShowNotifications(false);
+              }}>
                 <div className="user-name">{user.name || user.email.split('@')[0]}</div>
                 <div className="user-role">Student</div>
               </div>
@@ -472,7 +483,12 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                 </div>
               )}
 
-              <div className="avatar" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+              <div className="avatar" onClick={(e) => {
+                e.stopPropagation();
+                const newState = !isProfileOpen;
+                setIsProfileOpen(newState);
+                if (newState) setShowNotifications(false);
+              }}>
                 {(user.name || user.email).substring(0, 2).toUpperCase()}
               </div>
 
@@ -493,7 +509,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           </div>
         </header>
 
-        <div onClick={() => setIsProfileOpen(false)} style={{ minHeight: 'calc(100vh - 80px)' }}>
+        <div onClick={() => { setIsProfileOpen(false); setShowNotifications(false); }} style={{ minHeight: 'calc(100vh - 80px)' }}>
           {renderContent()}
         </div>
       </main>
