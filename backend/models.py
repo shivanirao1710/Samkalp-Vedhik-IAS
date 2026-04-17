@@ -189,3 +189,12 @@ class CurrentAffairs(Base):
     content_url = Column(String)
     file_type = Column(String, default="pdf")
     published_date = Column(DateTime, default=datetime.utcnow)
+
+class CourseFeedback(Base):
+    __tablename__ = "course_feedback"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    user_name = Column(String)
+    answers_json = Column(Text) # The 3 answers from the avatar
+    analysis_json = Column(Text) # Groq analysis result
+    created_at = Column(DateTime, default=datetime.utcnow)
