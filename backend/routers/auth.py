@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from typing import Optional
 
 import models, database, schemas
+from limiter import limiter
 
 
 router = APIRouter(
@@ -13,7 +14,8 @@ router = APIRouter(
 from utils import hash_password, verify_password
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+@limiter.limit("3/minute")
+def register(request: Request, user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     # Only students can sign up via public registration
     if user.role != "student":
         raise HTTPException(status_code=403, detail="Only student accounts can be created via public registration")
@@ -38,7 +40,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     return {"message": "User created successfully", "id": new_user.id}
 
 @router.post("/login")
-def login(user_credentials: schemas.UserLogin, db: Session = Depends(database.get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, user_credentials: schemas.UserLogin, db: Session = Depends(database.get_db)):
     user = db.query(models.User).filter(models.User.email == user_credentials.email).first()
     if not user:
         raise HTTPException(status_code=403, detail="Invalid Credentials")
