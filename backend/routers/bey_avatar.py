@@ -173,7 +173,7 @@ Instructions:
 5. Your name is 'Chairman'.
 """
 
-    greeting = f"Welcome {name}. I am the Chairman of this board. We shall begin your mock interview now. Please take a seat and relax. Are you ready to begin?"
+    greeting = f"Welcome {name}. I am the Chairman of this board. We shall begin your mock interview now. Please take a seat and relax. Are you ready to begin?...."
 
     try:
         agent_id = get_or_update_agent(
