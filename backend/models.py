@@ -173,6 +173,7 @@ class InterviewResult(Base):
     user_id = Column(Integer, index=True)
     overall_score = Column(Integer)
     report_json = Column(Text, nullable=False) # Store the full analysis object
+    transcript = Column(Text, nullable=True) # Store the candidate's spoken responses
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class NotificationRead(Base):

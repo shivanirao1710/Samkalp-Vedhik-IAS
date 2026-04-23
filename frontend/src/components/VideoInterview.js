@@ -5,6 +5,7 @@ const API = `${process.env.REACT_APP_API_URL}`;
 
 const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) => {
   const [beyCallLink, setBeyCallLink] = useState(null);
+  const [callId, setCallId] = useState(null);
   const [error, setError] = useState(null);
   const [transcript, setTranscript] = useState('');
   const [isFinishing, setIsFinishing] = useState(false);
@@ -20,8 +21,10 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
         const beyRes = await fetch(`${API}/api/beyond-presence/init-interview?user_name=${encodeURIComponent(user?.name || 'Candidate')}`, { method: 'POST' });
         
         if (beyRes.ok) {
-          const { beyCallLink } = await beyRes.json();
-          setBeyCallLink(beyCallLink);
+          const data = await beyRes.json();
+          setBeyCallLink(data.beyCallLink);
+          setCallId(data.call_id);
+          console.log("Beyond Presence Session Initialized. Call ID:", data.call_id);
         } else {
             throw new Error("Failed connecting to Avatar Interview service");
         }
@@ -32,11 +35,17 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
       }
     };
     init();
+  }, [user]);
 
-    // Start background speech recognition to capture candidate's side of conversation
-    const SpeechRecognition = window.SpeechRecognition || window.webkitRecognition || window.webkitSpeechRecognition;
+  useEffect(() => {
+    // Browser Speech Recognition (Primary capture)
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
+    let shouldBeActive = false;
+
     if (SpeechRecognition) {
+      shouldBeActive = true;
+      console.log("Speech Recognition initialized.");
       recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = false;
@@ -45,28 +54,49 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
       recognition.onresult = (event) => {
         const result = event.results[event.results.length - 1];
         if (result.isFinal) {
-          setTranscript(prev => prev + " " + result[0].transcript);
+          const text = result[0].transcript;
+          console.log("Transcript Captured:", text);
+          setTranscript(prev => prev + " " + text);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech Recognition Error:", event.error);
+      };
+
+      recognition.onend = () => {
+        if (shouldBeActive) {
+          try {
+            recognition.start();
+          } catch (e) { console.warn("SpeechRec restart failed:", e); }
         }
       };
       
       try {
         recognition.start();
+        console.log("Speech Recognition started.");
       } catch (e) { console.warn("SpeechRec start failed:", e); }
     }
 
     return () => {
-      if (recognition) recognition.stop();
+      shouldBeActive = false;
+      if (recognition) {
+          recognition.onend = null;
+          recognition.stop();
+      }
     };
-  }, [user, difficulty]);
+  }, []);
 
   const handleFinish = async () => {
     if (isFinishing) return;
     setIsFinishing(true);
     
+    // Use the latest transcript value
+    const finalTranscript = transcript.trim();
+    console.log("Final Transcript being sent for analysis:", finalTranscript);
+    
     try {
-      // If we have a transcript, use it for real analysis. 
-      // Otherwise, fallback to a sensible "didn't speak" analysis or mock.
-      const userText = transcript.trim() || "Candidate participated in the interview session but was mostly silent or transcript failed.";
+      const userText = finalTranscript || "Candidate participated in the interview session but was mostly silent or transcript failed.";
       
       const res = await fetch(`${API}/api/interview/analyze`, {
         method: 'POST',
@@ -81,7 +111,8 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
       
       if (res.ok) {
         const analysis = await res.json();
-        onComplete(analysis);
+        console.log("Analysis received. Completing session with transcript length:", finalTranscript.length);
+        onComplete(analysis, userText);
       } else {
         throw new Error("Analysis failed");
       }

@@ -58,6 +58,7 @@ class InterviewAnalysisRequest(BaseModel):
 class SaveResultRequest(BaseModel):
     user_id: int
     analysis: dict
+    transcript: Optional[str] = None
     timestamp: Optional[str] = None # Support candidate's system time
 
 @router.post("/save")
@@ -69,9 +70,6 @@ async def save_interview_result(req: SaveResultRequest):
         if req.timestamp:
             try:
                 # Expecting format from frontend like '11 Apr 2026, 11:23 AM'
-                # But safer to just store as provided if it's a string, 
-                # or parse it if we want it in a DateTime column.
-                # However, InterviewResult.created_at is a DateTime column.
                 # Let's try to parse a standard ISO string or use current if it fails.
                 created_dt = datetime.fromisoformat(req.timestamp.replace('Z', '+00:00'))
             except:
@@ -81,6 +79,7 @@ async def save_interview_result(req: SaveResultRequest):
             user_id=req.user_id,
             overall_score=req.analysis.get("overall_score", 0),
             report_json=json.dumps(req.analysis),
+            transcript=req.transcript,
             created_at=created_dt
         )
         db.add(db_result)
@@ -197,6 +196,7 @@ async def get_all_interview_results():
         report["id"] = r.id
         report["candidate_name"] = u.name or u.email
         report["user_id"] = r.user_id
+        report["transcript"] = r.transcript
         report["date"] = r.created_at.strftime("%d %b %Y, %I:%M %p")
         formatted_results.append(report)
         
@@ -212,6 +212,7 @@ async def get_interview_history(user_id: int):
         report = json.loads(r.report_json)
         # Add date and ID for uniqueness
         report["id"] = r.id
+        report["transcript"] = r.transcript
         report["date"] = r.created_at.strftime("%d %b %Y, %I:%M %p")
         formatted_results.append(report)
         

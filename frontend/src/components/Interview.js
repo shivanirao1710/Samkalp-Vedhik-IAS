@@ -44,8 +44,8 @@ const Interview = ({ user }) => {
         }
     };
 
-    const handleInterviewComplete = async (data) => {
-        setAnalysis(data);
+    const handleInterviewComplete = async (data, transcriptText) => {
+        setAnalysis({ ...data, transcript: transcriptText });
         setPhase('results');
         
         // Store the result in the database
@@ -57,6 +57,7 @@ const Interview = ({ user }) => {
                     body: JSON.stringify({
                         user_id: user.id,
                         analysis: data,
+                        transcript: transcriptText,
                         timestamp: new Date().toISOString()
                     })
                 });
@@ -138,6 +139,19 @@ const Interview = ({ user }) => {
                             <strong>Panel Verdict:</strong>
                             <p>{analysis.verdict}</p>
                         </div>
+
+                        {analysis.transcript && (
+                            <div className="transcript-section" style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid #e2e8f0' }}>
+                                <h3 style={{ fontSize: '1.1rem', color: '#1e293b', marginBottom: '1rem' }}>🎙️ Your Responses (Transcript)</h3>
+                                <div style={{ 
+                                    background: '#f8fafc', padding: '1.5rem', borderRadius: '12px', 
+                                    fontSize: '0.9rem', color: '#475569', lineHeight: '1.8', fontStyle: 'italic',
+                                    maxHeight: '300px', overflowY: 'auto'
+                                }}>
+                                    "{analysis.transcript}"
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div className="results-actions text-center" style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>

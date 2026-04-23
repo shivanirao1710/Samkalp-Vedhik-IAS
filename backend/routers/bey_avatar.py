@@ -135,14 +135,17 @@ You MUST:
             system_prompt=system_prompt,
             greeting=greeting
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to handle Bey Agent: {str(e)}")
 
-    return {
-        "agent_id": agent_id,
-        "call_id": "iframe-session",
-        "beyCallLink": f"https://bey.chat/{agent_id}",
-    }
+        # Return the static agent link (Dynamic calls require Growth plan)
+        return {
+            "agent_id": agent_id,
+            "call_id": "static-session",
+            "beyCallLink": f"https://bey.chat/{agent_id}"
+        }
+
+    except Exception as e:
+        print(f"Error in init_session: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to handle Bey Agent: {str(e)}")
 
 @router.post("/init-interview")
 async def init_interview(user_name: str = "Candidate"):
@@ -156,7 +159,7 @@ async def init_interview(user_name: str = "Candidate"):
         "Content-Type": "application/json"
     }
 
-    name = user_name.split(' ')[0]
+    name = user_name.split(' ')[0] if user_name else 'Candidate'
 
     system_prompt = f"""You are a senior UPSC Board Interview Panelist conducting a mock interview for {name}.
 You are professional, serious yet encouraging, and highly intellectually sharp.
@@ -180,10 +183,14 @@ Instructions:
             system_prompt=system_prompt,
             greeting=greeting
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to handle Bey Agent: {str(e)}")
 
-    return {
-        "agent_id": agent_id,
-        "beyCallLink": f"https://bey.chat/{agent_id}",
-    }
+        # Return the static agent link
+        return {
+            "agent_id": agent_id,
+            "call_id": "static-session",
+            "beyCallLink": f"https://bey.chat/{agent_id}"
+        }
+
+    except Exception as e:
+        print(f"Error in init_interview: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to handle Bey Agent: {str(e)}")
