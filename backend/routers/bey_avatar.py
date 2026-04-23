@@ -15,6 +15,79 @@ class InitSessionRequest(BaseModel):
     reportData: Dict[str, Any]
     candidateName: str
 
+def get_or_update_agent(headers: dict, name: str, avatar_id: str, system_prompt: str, greeting: str):
+    """
+    Checks if an agent with the given name and avatar_id already exists.
+    If yes, updates its system_prompt and greeting and returns its ID.
+    If no, creates a new agent.
+    """
+    try:
+        # 1. List existing agents
+        print(f"--- BEYOND PRESENCE DEBUG ---")
+        print(f"Target Agent Name: '{name}'")
+        print(f"Calling: GET {BEY_API_BASE}/agents")
+        
+        resp = requests.get(f"{BEY_API_BASE}/agents", headers=headers)
+        print(f"Response Status: {resp.status_code}")
+        
+        if resp.ok:
+            data = resp.json()
+            print(f"Raw Response Data: {data}")
+            
+            # Try to find the list of agents in common response keys
+            agents = []
+            if isinstance(data, list):
+                agents = data
+            elif isinstance(data, dict):
+                agents = data.get("agents") or data.get("data") or data.get("items") or []
+            
+            print(f"Processed Agents List Length: {len(agents)}")
+            
+            for agent in agents:
+                found_name = str(agent.get("name", "")).strip()
+                found_id = agent.get("id") or agent.get("agent_id")
+                found_avatar = agent.get("avatar_id")
+                
+                print(f" Checking Agent: '{found_name}' (ID: {found_id})")
+                
+                # Case-insensitive name match
+                if found_name.lower() == name.lower():
+                    print(f" >>> MATCH FOUND! Reusing Agent: {found_id}")
+                    
+                    # Update it to ensure latest prompt/greeting/avatar
+                    update_payload = {
+                        "system_prompt": system_prompt,
+                        "greeting": greeting,
+                        "avatar_id": avatar_id
+                    }
+                    patch_resp = requests.patch(f"{BEY_API_BASE}/agents/{found_id}", headers=headers, json=update_payload)
+                    print(f" PATCH Update Status: {patch_resp.status_code}")
+                    return found_id
+            print("No matching agent name found in the list.")
+        else:
+            print(f"Error listing agents: {resp.status_code} - {resp.text}")
+    except Exception as e:
+        print(f"Exception during agent check: {str(e)}")
+    
+    print("Proceeding to create a new agent...")
+
+    # 2. Create new agent if not found or list failed
+    print(f"Creating new agent '{name}'...")
+    ag_payload = {
+        "name": name,
+        "avatar_id": avatar_id,
+        "system_prompt": system_prompt,
+        "greeting": greeting,
+        "max_session_length_minutes": 30
+    }
+    ag_resp = requests.post(f"{BEY_API_BASE}/agents", headers=headers, json=ag_payload)
+    if not ag_resp.ok:
+        print(f"Error creating agent: {ag_resp.status_code} - {ag_resp.text}")
+        raise Exception(f"Failed to create agent: {ag_resp.text}")
+    
+    agent_data = ag_resp.json()
+    return agent_data.get("agent_id") or agent_data.get("id")
+
 @router.post("/init-session")
 async def init_session(req: InitSessionRequest):
     load_dotenv()
@@ -52,31 +125,25 @@ You MUST:
 5. Never break character. You are Aryan - a professional, warm IAS mentor.
 """
 
-    greeting = f"Namaste {name}! I'm Aryan, your AI mentor for IAS preparation. I've reviewed your psychometric analysis. What would you like to discuss first?"
+    greeting = f"Namaste {name}! I'm Aryan, your AI mentor for IAS preparation. I've reviewed your psychometric analysis. What would you like to discuss first?...."
 
     try:
-        ag_payload = {
-            "name": "Aryan Mentor",
-            "avatar_id": "2ed7477f-3961-4ce1-b331-5e4530c55a57",  # Awais - Stock avatar V2 (South Asian male with glasses)
-            "system_prompt": system_prompt,
-            "greeting": greeting,
-            "max_session_length_minutes": 30
-        }
-        ag_resp = requests.post(f"{BEY_API_BASE}/agents", headers=headers, json=ag_payload)
-        if not ag_resp.ok:
-            raise Exception(ag_resp.text)
-        agent_data = ag_resp.json()
-        agent_id = agent_data.get("agent_id") or agent_data.get("id")
+        agent_id = get_or_update_agent(
+            headers=headers,
+            name="Aryan Mentor",
+            avatar_id="2ed7477f-3961-4ce1-b331-5e4530c55a57",
+            system_prompt=system_prompt,
+            greeting=greeting
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create Bey Agent: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to handle Bey Agent: {str(e)}")
 
-    # Free-tier does not allow programmatic call creation via /v1/calls.
-    # Return the direct bey.chat iframe link which handles WebRTC internally.
     return {
         "agent_id": agent_id,
         "call_id": "iframe-session",
         "beyCallLink": f"https://bey.chat/{agent_id}",
     }
+
 @router.post("/init-interview")
 async def init_interview(user_name: str = "Candidate"):
     load_dotenv()
@@ -106,20 +173,15 @@ Instructions:
     greeting = f"Welcome {name}. I am the Chairman of this board. We shall begin your mock interview now. Please take a seat and relax. Are you ready to begin?"
 
     try:
-        ag_payload = {
-            "name": "UPSC Interviewer",
-            "avatar_id": "2ed7477f-3961-4ce1-b331-5e4530c55a57", 
-            "system_prompt": system_prompt,
-            "greeting": greeting,
-            "max_session_length_minutes": 30
-        }
-        ag_resp = requests.post(f"{BEY_API_BASE}/agents", headers=headers, json=ag_payload)
-        if not ag_resp.ok:
-            raise Exception(ag_resp.text)
-        agent_data = ag_resp.json()
-        agent_id = agent_data.get("agent_id") or agent_data.get("id")
+        agent_id = get_or_update_agent(
+            headers=headers,
+            name="UPSC Interviewer",
+            avatar_id="2ed7477f-3961-4ce1-b331-5e4530c55a57",
+            system_prompt=system_prompt,
+            greeting=greeting
+        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create Bey Agent: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to handle Bey Agent: {str(e)}")
 
     return {
         "agent_id": agent_id,

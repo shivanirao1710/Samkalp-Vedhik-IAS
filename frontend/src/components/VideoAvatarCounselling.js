@@ -7,8 +7,11 @@ const VideoAvatarCounselling = ({ testResultId, report, candidateName, avatarIma
   const [activeBeyLink, setActiveBeyLink] = useState(beyCallLink);
   const [error, setError] = useState(null);
 
+  const initializationStarted = React.useRef(false);
+
   useEffect(() => {
-    if (beyCallLink) return;
+    if (beyCallLink || initializationStarted.current) return;
+    initializationStarted.current = true;
 
     const initBey = async () => {
       try {
@@ -29,6 +32,8 @@ const VideoAvatarCounselling = ({ testResultId, report, candidateName, avatarIma
       } catch (err) {
         console.warn("Failed to init Avatar:", err.message);
         setError("Failed to initialize Avatar Session. Please check backend integration.");
+        // Reset ref so it can retry if needed (though here it's an error)
+        initializationStarted.current = false;
       }
     };
     initBey();

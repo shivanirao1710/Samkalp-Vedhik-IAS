@@ -9,7 +9,12 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
   const [transcript, setTranscript] = useState('');
   const [isFinishing, setIsFinishing] = useState(false);
 
+  const initializationStarted = React.useRef(false);
+
   useEffect(() => {
+    if (initializationStarted.current) return;
+    initializationStarted.current = true;
+
     const init = async () => {
       try {
         const beyRes = await fetch(`${API}/api/beyond-presence/init-interview?user_name=${encodeURIComponent(user?.name || 'Candidate')}`, { method: 'POST' });
@@ -23,12 +28,13 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
       } catch (err) {
         console.error("Init failed:", err);
         setError("Interview Avatar initialization failed.");
+        initializationStarted.current = false;
       }
     };
     init();
 
     // Start background speech recognition to capture candidate's side of conversation
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     if (SpeechRecognition) {
       recognition = new SpeechRecognition();
