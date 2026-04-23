@@ -15,6 +15,9 @@ class InitSessionRequest(BaseModel):
     reportData: Dict[str, Any]
     candidateName: str
 
+# Simple in-memory cache for Agent IDs to speed up initialization
+AGENT_CACHE = {}
+
 def get_or_update_agent(headers: dict, name: str, avatar_id: str, system_prompt: str, greeting: str):
     """
     Checks if an agent with the given name and avatar_id already exists.
@@ -22,6 +25,21 @@ def get_or_update_agent(headers: dict, name: str, avatar_id: str, system_prompt:
     If no, creates a new agent.
     """
     try:
+        # Check cache first
+        cached_id = AGENT_CACHE.get(name)
+        if cached_id:
+            print(f"Using cached Agent ID for '{name}': {cached_id}")
+            update_payload = {
+                "system_prompt": system_prompt,
+                "greeting": greeting,
+                "avatar_id": avatar_id
+            }
+            patch_resp = requests.patch(f"{BEY_API_BASE}/agents/{cached_id}", headers=headers, json=update_payload)
+            if patch_resp.ok:
+                return cached_id
+            else:
+                print(f"Cached ID failed, refreshing search...")
+
         # 1. List existing agents
         print(f"--- BEYOND PRESENCE DEBUG ---")
         print(f"Target Agent Name: '{name}'")
@@ -53,6 +71,7 @@ def get_or_update_agent(headers: dict, name: str, avatar_id: str, system_prompt:
                 # Case-insensitive name match
                 if found_name.lower() == name.lower():
                     print(f" >>> MATCH FOUND! Reusing Agent: {found_id}")
+                    AGENT_CACHE[name] = found_id # Update cache
                     
                     # Update it to ensure latest prompt/greeting/avatar
                     update_payload = {
@@ -86,7 +105,9 @@ def get_or_update_agent(headers: dict, name: str, avatar_id: str, system_prompt:
         raise Exception(f"Failed to create agent: {ag_resp.text}")
     
     agent_data = ag_resp.json()
-    return agent_data.get("agent_id") or agent_data.get("id")
+    new_id = agent_data.get("agent_id") or agent_data.get("id")
+    AGENT_CACHE[name] = new_id # Cache it
+    return new_id
 
 @router.post("/init-session")
 async def init_session(req: InitSessionRequest):
