@@ -13,3 +13,4 @@ google-genai
 groq
 azure-storage-blob
 httpx
+slowapi

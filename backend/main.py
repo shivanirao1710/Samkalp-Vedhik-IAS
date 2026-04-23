@@ -4,6 +4,11 @@ from fastapi.staticfiles import StaticFiles
 import models, database
 from routers import auth, courses, tests, psychometric, admin, live_classes, study_materials, bey_avatar, mentor_chat, users, doubt_solver, notifications, interview, current_affairs, file_viewer
 import os
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from limiter import limiter
+from fastapi import Request
 # Initialize database
 models.Base.metadata.create_all(bind=database.engine)
 
@@ -35,6 +40,9 @@ def ensure_admin_exists():
 ensure_admin_exists()
 
 app = FastAPI(title="Samkalp Vedhik API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS middleware
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
@@ -80,7 +88,8 @@ app.include_router(current_affairs.router)
 app.include_router(file_viewer.router)
 
 @app.get("/")
-def root():
+@limiter.limit("30/minute")
+def root(request: Request):
     return {"message": "Welcome to Samkalp Vedhik API"}
 
 
