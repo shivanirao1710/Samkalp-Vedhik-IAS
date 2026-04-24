@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/Profile.css';
-import { INDIAN_LOCATIONS } from '../constants/locations';
+import { City } from 'country-state-city';
 
 const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -11,6 +11,21 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
     location: '',
     target_exam: ''
   });
+
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [locationSearch, setLocationSearch] = useState('');
+
+  useEffect(() => {
+    if (locationSearch.length > 2) {
+      const cities = City.getAllCities()
+        .filter(city => 
+          city.name.toLowerCase().includes(locationSearch.toLowerCase())
+        )
+        .slice(0, 100)
+        .map(city => `${city.name}, ${city.stateCode}, ${city.countryCode}`);
+      setLocationOptions(cities);
+    }
+  }, [locationSearch]);
 
   useEffect(() => {
     if (user) {
@@ -387,14 +402,17 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     <input
                       className="info-field editable"
                       name="location"
-                      placeholder="e.g. Kerala, India"
+                      placeholder="City, State, Country"
                       list="location-suggestions-student"
                       value={editData.location}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        setLocationSearch(e.target.value);
+                      }}
                     />
                     <datalist id="location-suggestions-student">
-                      {INDIAN_LOCATIONS.map(loc => (
-                        <option key={loc} value={loc} />
+                      {locationOptions.map((opt, idx) => (
+                        <option key={idx} value={opt} />
                       ))}
                     </datalist>
                   </>
