@@ -202,3 +202,9 @@ class CourseFeedback(Base):
     answers_json = Column(Text) # The 3 answers from the avatar
     analysis_json = Column(Text) # Groq analysis result
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class AppSetting(Base):
+    __tablename__ = "app_settings"
+    id = Column(Integer, primary_key=True, index=True)
+    setting_key = Column(String, unique=True, index=True, nullable=False)
+    setting_value = Column(String, nullable=False)

@@ -123,6 +123,39 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   // Scholarships State
   const [pendingScholarships, setPendingScholarships] = useState([]);
   const [viewingAnswersStudent, setViewingAnswersStudent] = useState(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({ start: '', end: '' });
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/users/app-settings`);
+      if (res.ok) {
+        const data = await res.json();
+        setScheduleForm({
+          start: data.scholarship_start ? data.scholarship_start.slice(0, 16) : '',
+          end: data.scholarship_end ? data.scholarship_end.slice(0, 16) : ''
+        });
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleScheduleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/users/app-settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scholarship_start: scheduleForm.start,
+          scholarship_end: scheduleForm.end
+        })
+      });
+      if (res.ok) {
+        alert("Schedule updated successfully!");
+        setIsScheduleModalOpen(false);
+      }
+    } catch (err) { console.error(err); }
+  };
   
   const fetchPendingScholarships = async () => {
     try {
@@ -3401,11 +3434,17 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
   const renderScholarships = () => (
     <div className="student-management-page">
-      <div className="admin-dash-header">
+      <div className="admin-dash-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1>Scholarship Evaluation</h1>
           <p>Review and approve pending scholarship tests</p>
         </div>
+        <button 
+          onClick={() => { fetchSettings(); setIsScheduleModalOpen(true); }} 
+          style={{ background: '#F2921D', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+        >
+          <span>📅</span> Schedule Test
+        </button>
       </div>
       
       <div className="admin-management-section">
@@ -3444,7 +3483,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button 
                       onClick={() => setViewingAnswersStudent(student)}
-                      style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                      style={{ padding: '0.5rem 1rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                     >View Answers</button>
                     <button 
                       onClick={() => handleEvaluateScholarship(student.id, 'approved')}
@@ -3494,6 +3533,42 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 });
               })()}
             </div>
+          </div>
+        </div>
+      )}
+
+      {isScheduleModalOpen && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '500px' }}>
+            <div className="adm-modal-header">
+              <h2>Schedule Scholarship Test</h2>
+              <button className="close-modal" onClick={() => setIsScheduleModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleScheduleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="form-group">
+                <label>Start Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  value={scheduleForm.start}
+                  onChange={(e) => setScheduleForm({...scheduleForm, start: e.target.value})}
+                  required
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                />
+              </div>
+              <div className="form-group">
+                <label>End Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  value={scheduleForm.end}
+                  onChange={(e) => setScheduleForm({...scheduleForm, end: e.target.value})}
+                  required
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                />
+              </div>
+              <button type="submit" className="submit-btn" style={{ background: '#F2921D', color: 'white' }}>
+                Save Schedule
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -130,6 +130,36 @@ def remove_profile_image(user_id: int, db: Session = Depends(database.get_db)):
     db.commit()
     return {"message": "Profile image removed"}
 
+def get_db_app_settings(db: Session):
+    settings = db.query(models.AppSetting).all()
+    if not settings:
+        # Default settings if none exist
+        default_settings = {
+            "scholarship_start": "2026-05-01T10:00:00",
+            "scholarship_end": "2026-05-01T12:00:00"
+        }
+        for k, v in default_settings.items():
+            db.add(models.AppSetting(setting_key=k, setting_value=v))
+        db.commit()
+        return default_settings
+    
+    return {s.setting_key: s.setting_value for s in settings}
+
+@router.get("/app-settings")
+def read_settings(db: Session = Depends(database.get_db)):
+    return get_db_app_settings(db)
+
+@router.put("/app-settings")
+def update_settings(settings: dict, db: Session = Depends(database.get_db)):
+    for k, v in settings.items():
+        setting = db.query(models.AppSetting).filter(models.AppSetting.setting_key == k).first()
+        if setting:
+            setting.setting_value = str(v)
+        else:
+            db.add(models.AppSetting(setting_key=k, setting_value=str(v)))
+    db.commit()
+    return {"message": "Settings updated"}
+
 @router.delete("/delete/{user_id}")
 def delete_account(user_id: int, db: Session = Depends(database.get_db)):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()

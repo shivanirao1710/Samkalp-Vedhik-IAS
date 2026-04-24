@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/shared-layout.css';
 
 export const scholarshipQuestions = [
@@ -32,6 +32,33 @@ export const scholarshipQuestions = [
 const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
   const [answers, setAnswers] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [schedule, setSchedule] = useState(null);
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
+
+  useEffect(() => {
+    const fetchSchedule = async () => {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/users/app-settings`);
+        if (res.ok) {
+          const data = await res.json();
+          setSchedule(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch schedule:", err);
+      } finally {
+        setLoadingSchedule(false);
+      }
+    };
+    fetchSchedule();
+  }, []);
+
+  const isTestActive = () => {
+    if (!schedule) return true; // Default to active if can't fetch
+    const now = new Date();
+    const start = new Date(schedule.scholarship_start);
+    const end = new Date(schedule.scholarship_end);
+    return now >= start && now <= end;
+  };
 
   const handleOptionSelect = (qIndex, option) => {
     setAnswers(prev => ({
@@ -86,6 +113,35 @@ const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
       setIsSubmitting(false);
     }
   };
+
+  if (loadingSchedule) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)' }}>Loading schedule...</div>;
+  }
+
+  if (!isTestActive()) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', alignItems: 'center', padding: '3rem 1rem' }}>
+        <div style={{ background: 'var(--bg-card)', padding: '3rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '700px', width: '100%', textAlign: 'center' }}>
+          <h1 style={{ color: '#F2921D', marginBottom: '1.5rem' }}>Test Not Available</h1>
+          <p style={{ fontSize: '1.2rem', marginBottom: '1rem', color: 'var(--text-main)' }}>The scholarship test is currently not active.</p>
+          {schedule && (
+            <div style={{ background: 'rgba(242, 146, 29, 0.1)', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem' }}>
+              <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold', color: 'var(--text-main)' }}>Scheduled Window:</p>
+              <p style={{ margin: 0, color: '#F2921D', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                {new Date(schedule.scholarship_start).toLocaleString()} - {new Date(schedule.scholarship_end).toLocaleString()}
+              </p>
+            </div>
+          )}
+          <button 
+            onClick={onLogout} 
+            style={{ padding: '1rem 2rem', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: 'var(--text-main)' }}
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', alignItems: 'center', padding: '3rem 1rem' }}>
