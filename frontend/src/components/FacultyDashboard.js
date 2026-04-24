@@ -3449,7 +3449,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       
       <div className="admin-management-section">
         <div className="table-header-row">
-          <h2>Pending Evaluations</h2>
+          <h2>All Evaluations</h2>
         </div>
         
         <table className="adm-table students-full">
@@ -3466,7 +3466,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             {pendingScholarships.length === 0 ? (
               <tr>
                 <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                  No pending scholarships to evaluate.
+                  No scholarships to evaluate.
                 </td>
               </tr>
             ) : pendingScholarships.map(student => (
@@ -3478,21 +3478,33 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     {student.scholarship_score}/100
                   </span>
                 </td>
-                <td><span className="status-pill pending" style={{ background: '#fef9c3', color: '#854d0e', padding: '0.25rem 0.75rem', borderRadius: '12px', fontWeight: 'bold' }}>Pending</span></td>
+                <td>
+                  <span className={`status-pill ${student.scholarship_status === 'approved' ? 'published' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? 'inactive' : 'pending'}`} style={{ 
+                    background: student.scholarship_status === 'approved' ? '#dcfce7' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#fee2e2' : '#fef9c3', 
+                    color: student.scholarship_status === 'approved' ? '#166534' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#991b1b' : '#854d0e', 
+                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontWeight: 'bold' 
+                  }}>
+                    {student.scholarship_status === 'under_evaluation' ? 'Pending' : (student.scholarship_status === 'rejected_acknowledged' ? 'Rejected' : student.scholarship_status.charAt(0).toUpperCase() + student.scholarship_status.slice(1))}
+                  </span>
+                </td>
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button 
                       onClick={() => setViewingAnswersStudent(student)}
                       style={{ padding: '0.5rem 1rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                     >View Answers</button>
-                    <button 
-                      onClick={() => handleEvaluateScholarship(student.id, 'approved')}
-                      style={{ padding: '0.5rem 1rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >Approve</button>
-                    <button 
-                      onClick={() => handleEvaluateScholarship(student.id, 'rejected')}
-                      style={{ padding: '0.5rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >Reject</button>
+                    {student.scholarship_status === 'under_evaluation' && (
+                      <>
+                        <button 
+                          onClick={() => handleEvaluateScholarship(student.id, 'approved')}
+                          style={{ padding: '0.5rem 1rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >Approve</button>
+                        <button 
+                          onClick={() => handleEvaluateScholarship(student.id, 'rejected')}
+                          style={{ padding: '0.5rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >Reject</button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

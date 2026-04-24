@@ -13,6 +13,19 @@ const ScholarshipStatus = ({ user, onLogout, onUserUpdate }) => {
     }
   };
 
+  const handleContinueToDashboard = async () => {
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/users/${user.id}/acknowledge_rejection`, { method: 'POST' });
+      if (res.ok) {
+        onUserUpdate({ ...user, scholarship_status: 'rejected_acknowledged' });
+      } else {
+        alert('Failed to continue to dashboard');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: 'var(--bg-card)', padding: '3rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '500px', width: '90%', textAlign: 'center' }}>
@@ -37,6 +50,15 @@ const ScholarshipStatus = ({ user, onLogout, onUserUpdate }) => {
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {user.scholarship_status === 'rejected' && (
+            <button 
+              onClick={handleContinueToDashboard}
+              style={{ padding: '1rem', borderRadius: '8px', background: '#F2921D', border: 'none', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              Continue to Dashboard
+            </button>
+          )}
+
           <button 
             onClick={refreshStatus}
             style={{ padding: '1rem', borderRadius: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontWeight: 'bold', cursor: 'pointer' }}

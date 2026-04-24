@@ -207,10 +207,19 @@ def skip_scholarship_test(user_id: int, db: Session = Depends(database.get_db)):
     db.commit()
     return {"message": "Scholarship bypassed"}
 
+@router.post("/{user_id}/acknowledge_rejection")
+def acknowledge_rejection(user_id: int, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.scholarship_status = "rejected_acknowledged"
+    db.commit()
+    return {"message": "Rejection acknowledged"}
+
 @router.get("/scholarship/pending")
 def get_pending_scholarships(db: Session = Depends(database.get_db)):
-    users = db.query(models.User).filter(models.User.scholarship_status == "under_evaluation").all()
-    # Also fetch all if faculty needs to see all. But for now "under_evaluation" is fine.
+    users = db.query(models.User).filter(models.User.scholarship_status.in_(["under_evaluation", "approved", "rejected", "rejected_acknowledged"])).all()
     # Return as list of dicts or UserAdminResponse
     return users
 
