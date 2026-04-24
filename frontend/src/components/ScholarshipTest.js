@@ -34,6 +34,33 @@ const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [schedule, setSchedule] = useState(null);
   const [loadingSchedule, setLoadingSchedule] = useState(true);
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (!schedule) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const end = new Date(schedule.scholarship_end).getTime();
+      const distance = end - now;
+
+      if (distance < 0) {
+        setTimeLeft('Time is up!');
+        return;
+      }
+
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [schedule]);
 
   useEffect(() => {
     const fetchSchedule = async () => {
@@ -121,7 +148,7 @@ const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
   if (!isTestActive()) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', alignItems: 'center', padding: '3rem 1rem' }}>
-        <div style={{ background: 'var(--bg-card)', padding: '3rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '700px', width: '100%', textAlign: 'center' }}>
+        <div style={{ background: 'var(--bg-card)', padding: '3rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '900px', width: '100%', textAlign: 'center' }}>
           <h1 style={{ color: '#F2921D', marginBottom: '1.5rem' }}>Test Not Available</h1>
           <p style={{ fontSize: '1.2rem', marginBottom: '1rem', color: 'var(--text-main)' }}>The scholarship test is currently not active.</p>
           {schedule && (
@@ -145,9 +172,27 @@ const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', alignItems: 'center', padding: '3rem 1rem' }}>
-      <div style={{ background: 'var(--bg-card)', padding: '3rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '700px', width: '100%' }}>
+      <div style={{ background: 'var(--bg-card)', padding: '3rem', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', maxWidth: '900px', width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h1 style={{ color: '#F2921D', margin: 0 }}>Scholarship Evaluation</h1>
+          <div>
+            <h1 style={{ color: '#F2921D', margin: 0 }}>Scholarship Evaluation</h1>
+            {timeLeft && (
+              <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 'bold' }}>Time Remaining:</span>
+                <span style={{ 
+                  background: 'rgba(242, 146, 29, 0.1)', 
+                  color: '#F2921D', 
+                  padding: '0.3rem 0.6rem', 
+                  borderRadius: '6px', 
+                  fontWeight: 'bold',
+                  fontFamily: 'monospace',
+                  fontSize: '1.1rem'
+                }}>
+                  {timeLeft}
+                </span>
+              </div>
+            )}
+          </div>
           <button 
             onClick={onLogout} 
             style={{ background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem 1rem', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 'bold' }}
