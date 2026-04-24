@@ -87,6 +87,32 @@ const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
     return now >= start && now <= end;
   };
 
+  const isTestOver = () => {
+    if (!schedule) return false;
+    const now = new Date();
+    const end = new Date(schedule.scholarship_end);
+    return now > end;
+  };
+
+  const handleSkipTest = async () => {
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/users/${user.id}/skip_scholarship`, { method: 'POST' });
+      if (res.ok) {
+        onUserUpdate({ ...user, scholarship_status: 'expired' });
+      } else {
+        alert('Failed to bypass test');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (schedule && isTestOver()) {
+      handleSkipTest();
+    }
+  }, [schedule]);
+
   const handleOptionSelect = (qIndex, option) => {
     setAnswers(prev => ({
       ...prev,
@@ -159,12 +185,22 @@ const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
               </p>
             </div>
           )}
-          <button 
-            onClick={onLogout} 
-            style={{ padding: '1rem 2rem', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: 'var(--text-main)' }}
-          >
-            Logout
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            {isTestOver() && (
+              <button 
+                onClick={handleSkipTest} 
+                style={{ padding: '1rem 2rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Continue to Dashboard
+              </button>
+            )}
+            <button 
+              onClick={onLogout} 
+              style={{ padding: '1rem 2rem', background: 'transparent', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: 'var(--text-main)' }}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     );

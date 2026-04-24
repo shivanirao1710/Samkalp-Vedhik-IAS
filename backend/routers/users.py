@@ -22,6 +22,20 @@ def get_user_me(user_id: int, db: Session = Depends(database.get_db)):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+        
+    if user.scholarship_status == "expired":
+        try:
+            from datetime import datetime
+            setting = db.query(models.AppSetting).filter(models.AppSetting.setting_key == "scholarship_end").first()
+            if setting:
+                end_date = datetime.fromisoformat(setting.setting_value)
+                if datetime.now() <= end_date:
+                    user.scholarship_status = "pending"
+                    db.commit()
+                    db.refresh(user)
+        except Exception:
+            pass
+            
     return user
 
 @router.get("/stats/{user_id}")
@@ -182,6 +196,16 @@ def submit_scholarship_test(user_id: int, data: schemas.ScholarshipSubmit, db: S
     user.scholarship_status = "under_evaluation"
     db.commit()
     return {"message": "Test submitted for evaluation"}
+
+@router.post("/{user_id}/skip_scholarship")
+def skip_scholarship_test(user_id: int, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.scholarship_status = "expired"
+    db.commit()
+    return {"message": "Scholarship bypassed"}
 
 @router.get("/scholarship/pending")
 def get_pending_scholarships(db: Session = Depends(database.get_db)):

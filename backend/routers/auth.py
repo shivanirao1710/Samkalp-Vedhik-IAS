@@ -64,6 +64,20 @@ def login(request: Request, user_credentials: schemas.UserLogin, db: Session = D
             detail="Your account has been temporarily suspended. Please contact faculty for assistance."
         )
 
+    # If the user was expired, check if the admin extended the test date.
+    if user.scholarship_status == "expired":
+        try:
+            from datetime import datetime
+            setting = db.query(models.AppSetting).filter(models.AppSetting.setting_key == "scholarship_end").first()
+            if setting:
+                end_date = datetime.fromisoformat(setting.setting_value)
+                if datetime.now() <= end_date:
+                    user.scholarship_status = "pending"
+                    db.commit()
+                    db.refresh(user)
+        except Exception:
+            pass
+
     # Normally we would return a JWT here
     return {
         "message": "Login successful", 
