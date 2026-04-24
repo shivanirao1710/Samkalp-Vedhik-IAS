@@ -25,6 +25,9 @@ class User(Base):
     preferences_json = Column(Text, nullable=True)
     member_since = Column(DateTime, default=datetime.utcnow)
     is_suspended = Column(Boolean, default=False)
+    scholarship_status = Column(String, default="pending") # pending, under_evaluation, approved, rejected
+    scholarship_score = Column(Integer, nullable=True)
+    scholarship_answers_json = Column(Text, nullable=True)
 
 class Course(Base):
     __tablename__ = "courses"

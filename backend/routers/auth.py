@@ -75,7 +75,9 @@ def login(request: Request, user_credentials: schemas.UserLogin, db: Session = D
         "location": user.location,
         "target_exam": user.target_exam,
         "profile_image": user.profile_image,
-        "member_since": user.member_since.isoformat() if user.member_since else None
+        "member_since": user.member_since.isoformat() if user.member_since else None,
+        "scholarship_status": user.scholarship_status,
+        "scholarship_score": user.scholarship_score
     }
 
 

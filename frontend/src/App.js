@@ -6,6 +6,8 @@ import RegisterForm from './components/RegisterForm';
 import Dashboard from './components/Dashboard';
 import FacultyDashboard from './components/FacultyDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import ScholarshipTest from './components/ScholarshipTest';
+import ScholarshipStatus from './components/ScholarshipStatus';
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);
@@ -59,6 +61,15 @@ function App() {
     if (user.role === 'faculty') {
       return <FacultyDashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
     }
+    
+    // For students, check scholarship status
+    if (user.scholarship_status === 'pending') {
+      return <ScholarshipTest user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
+    }
+    if (user.scholarship_status === 'under_evaluation' || user.scholarship_status === 'rejected') {
+      return <ScholarshipStatus user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
+    }
+    
     return <Dashboard user={user} onLogout={handleLogout} onUserUpdate={handleUserUpdate} />;
   }
 

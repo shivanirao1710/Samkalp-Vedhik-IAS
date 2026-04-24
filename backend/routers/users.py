@@ -139,3 +139,36 @@ def delete_account(user_id: int, db: Session = Depends(database.get_db)):
     db.delete(db_user)
     db.commit()
     return {"message": "Account deleted successfully"}
+
+@router.post("/{user_id}/scholarship_test")
+def submit_scholarship_test(user_id: int, data: schemas.ScholarshipSubmit, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.scholarship_score = data.score
+    if data.answers_json is not None:
+        user.scholarship_answers_json = data.answers_json
+    user.scholarship_status = "under_evaluation"
+    db.commit()
+    return {"message": "Test submitted for evaluation"}
+
+@router.get("/scholarship/pending")
+def get_pending_scholarships(db: Session = Depends(database.get_db)):
+    users = db.query(models.User).filter(models.User.scholarship_status == "under_evaluation").all()
+    # Also fetch all if faculty needs to see all. But for now "under_evaluation" is fine.
+    # Return as list of dicts or UserAdminResponse
+    return users
+
+@router.put("/{user_id}/scholarship_evaluate")
+def evaluate_scholarship(user_id: int, data: schemas.ScholarshipEvaluate, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if data.status not in ["approved", "rejected", "pending"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+        
+    user.scholarship_status = data.status
+    db.commit()
+    return {"message": f"Scholarship {data.status}"}

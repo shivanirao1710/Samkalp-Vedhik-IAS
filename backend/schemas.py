@@ -32,6 +32,9 @@ class UserResponse(BaseModel):
     profile_image: Optional[str] = None
     member_since: Optional[datetime] = None
     is_suspended: bool = False
+    scholarship_status: Optional[str] = "pending"
+    scholarship_score: Optional[int] = None
+    scholarship_answers_json: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -62,6 +65,9 @@ class UserAdminResponse(BaseModel):
     location: Optional[str] = None
     member_since: Optional[datetime] = None
     is_suspended: bool = False
+    scholarship_status: Optional[str] = "pending"
+    scholarship_score: Optional[int] = None
+    scholarship_answers_json: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -155,3 +161,10 @@ class CurrentAffairsResponse(BaseModel):
     published_date: datetime
     class Config:
         from_attributes = True
+
+class ScholarshipSubmit(BaseModel):
+    score: int
+    answers_json: Optional[str] = None
+
+class ScholarshipEvaluate(BaseModel):
+    status: str

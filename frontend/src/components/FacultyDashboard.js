@@ -9,6 +9,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import mammoth from 'mammoth';
 import '../styles/StudyMaterials.css';
+import { scholarshipQuestions } from './ScholarshipTest';
 
 const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
@@ -52,6 +53,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const menuItems = [
     { name: 'Dashboard', icon: '⊞' },
     { name: 'Students', icon: '👥' },
+    { name: 'Scholarships', icon: '🎓' },
     { name: 'Courses', icon: '📖' },
     { name: 'Tests', icon: '📄' },
     { name: 'Live Classes', icon: '📺' },
@@ -74,8 +76,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       }
     },
     { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '📚', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
-    { title: 'Review Videos', icon: '📹', subtitle: 'Check interviews', target: 'Interviews' },
     { title: 'Psychometric Reports', icon: '🧠', subtitle: 'View student analytics', target: 'Reports' },
+    { title: 'Evaluate Scholarships', subtitle: 'Approve or reject', icon: '🎓', target: 'Scholarships' },
   ];
 
   const [dashboardStats, setDashboardStats] = useState([
@@ -118,6 +120,32 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [isInterviewReportModalOpen, setIsInterviewReportModalOpen] = useState(false);
 
+  // Scholarships State
+  const [pendingScholarships, setPendingScholarships] = useState([]);
+  const [viewingAnswersStudent, setViewingAnswersStudent] = useState(null);
+  
+  const fetchPendingScholarships = async () => {
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/users/scholarship/pending`);
+      if (res.ok) setPendingScholarships(await res.json());
+    } catch (err) { console.error(err); }
+  };
+  
+  const handleEvaluateScholarship = async (userId, status) => {
+    if (!window.confirm(`Are you sure you want to ${status} this scholarship?`)) return;
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/users/${userId}/scholarship_evaluate`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        alert(`Scholarship ${status} successfully.`);
+        fetchPendingScholarships();
+      }
+    } catch (err) { console.error(err); }
+  };
+
   useEffect(() => {
     fetchStudents();
     fetchAnnouncements();
@@ -125,6 +153,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     fetchCurrentAffairs();
     fetchInterviews();
     fetchPsychometricReports();
+    fetchPendingScholarships();
   }, [activeMenu]);
 
   const fetchPsychometricReports = async () => {
@@ -3370,6 +3399,107 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
+  const renderScholarships = () => (
+    <div className="student-management-page">
+      <div className="admin-dash-header">
+        <div>
+          <h1>Scholarship Evaluation</h1>
+          <p>Review and approve pending scholarship tests</p>
+        </div>
+      </div>
+      
+      <div className="admin-management-section">
+        <div className="table-header-row">
+          <h2>Pending Evaluations</h2>
+        </div>
+        
+        <table className="adm-table students-full">
+          <thead>
+            <tr>
+              <th>STUDENT NAME</th>
+              <th>EMAIL</th>
+              <th>TEST SCORE</th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pendingScholarships.length === 0 ? (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  No pending scholarships to evaluate.
+                </td>
+              </tr>
+            ) : pendingScholarships.map(student => (
+              <tr key={student.id}>
+                <td><span style={{ fontWeight: '700' }}>{student.name || 'Unnamed'}</span></td>
+                <td>{student.email}</td>
+                <td>
+                  <span style={{ fontWeight: '900', color: student.scholarship_score >= 80 ? '#16a34a' : '#ef4444' }}>
+                    {student.scholarship_score}/100
+                  </span>
+                </td>
+                <td><span className="status-pill pending" style={{ background: '#fef9c3', color: '#854d0e', padding: '0.25rem 0.75rem', borderRadius: '12px', fontWeight: 'bold' }}>Pending</span></td>
+                <td>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button 
+                      onClick={() => setViewingAnswersStudent(student)}
+                      style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >View Answers</button>
+                    <button 
+                      onClick={() => handleEvaluateScholarship(student.id, 'approved')}
+                      style={{ padding: '0.5rem 1rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >Approve</button>
+                    <button 
+                      onClick={() => handleEvaluateScholarship(student.id, 'rejected')}
+                      style={{ padding: '0.5rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >Reject</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {viewingAnswersStudent && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-content" style={{ maxWidth: '600px' }}>
+            <div className="adm-modal-header">
+              <h2>Answers by {viewingAnswersStudent.name}</h2>
+              <button className="close-modal" onClick={() => setViewingAnswersStudent(null)}>×</button>
+            </div>
+            <div style={{ padding: '1.5rem', maxHeight: '60vh', overflowY: 'auto' }}>
+              {(() => {
+                let answers = {};
+                try {
+                  answers = JSON.parse(viewingAnswersStudent.scholarship_answers_json || '{}');
+                } catch(e){}
+                
+                if (Object.keys(answers).length === 0) {
+                  return <p style={{ textAlign: 'center', color: '#64748b' }}>No answers recorded for this student.</p>;
+                }
+
+                return Object.entries(answers).map(([qIndex, ans]) => {
+                  const qText = scholarshipQuestions[qIndex]?.question || `Question ${parseInt(qIndex) + 1}`;
+                  const isCorrect = scholarshipQuestions[qIndex]?.answer === ans;
+                  return (
+                    <div key={qIndex} style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--bg-main)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <p style={{ fontWeight: 'bold', margin: '0 0 0.5rem 0', color: 'var(--text-main)' }}>{parseInt(qIndex) + 1}. {qText}</p>
+                      <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                        Student selected: <span style={{ color: isCorrect ? '#16a34a' : '#ef4444', fontWeight: 'bold' }}>{ans}</span> {isCorrect ? '✓' : '✗'}
+                      </p>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeMenu) {
       case 'Dashboard':
@@ -3396,6 +3526,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         return renderCurrentAffairsManagement();
       case 'Interviews':
         return renderInterviews();
+      case 'Scholarships':
+        return renderScholarships();
       default:
         return renderDashboard();
     }

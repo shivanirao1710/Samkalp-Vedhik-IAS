@@ -30,6 +30,33 @@ def migrate():
             else:
                 print("Column 'transcript' already exists.")
 
+            res2 = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='scholarship_status';
+            """))
+            if not res2.fetchone():
+                print("Adding 'scholarship_status' and 'scholarship_score' columns to 'users'...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN scholarship_status VARCHAR DEFAULT 'pending';"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN scholarship_score INTEGER;"))
+                conn.commit()
+                print("Columns added successfully.")
+            else:
+                print("Columns 'scholarship_status' already exist.")
+                
+            res3 = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='scholarship_answers_json';
+            """))
+            if not res3.fetchone():
+                print("Adding 'scholarship_answers_json' column to 'users'...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN scholarship_answers_json TEXT;"))
+                conn.commit()
+                print("Column 'scholarship_answers_json' added successfully.")
+            else:
+                print("Column 'scholarship_answers_json' already exists.")
+
     except Exception as e:
         print(f"Migration failed: {e}")
 
