@@ -8,7 +8,13 @@ load_dotenv()
 
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:user@localhost/samkalp")
  
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Added connection pooling for high concurrency (e.g., 300-400 simultaneous test takers)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_size=20,          # Maintain 20 connections in the pool
+    max_overflow=30,       # Allow up to 30 additional connections if the pool is full
+    pool_timeout=30        # Wait up to 30 seconds for an available connection before throwing an error
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()

@@ -128,7 +128,7 @@ const ScholarshipTest = ({ user, onLogout, onUserUpdate }) => {
             <div style={{ background: 'rgba(242, 146, 29, 0.1)', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem' }}>
               <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold', color: 'var(--text-main)' }}>Scheduled Window:</p>
               <p style={{ margin: 0, color: '#F2921D', fontSize: '1.1rem', fontWeight: 'bold' }}>
-                {new Date(schedule.scholarship_start).toLocaleString()} - {new Date(schedule.scholarship_end).toLocaleString()}
+                {new Date(schedule.scholarship_start).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase()} - {new Date(schedule.scholarship_end).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase()}
               </p>
             </div>
           )}

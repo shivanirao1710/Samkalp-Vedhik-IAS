@@ -75,14 +75,30 @@ def get_tests(db: Session = Depends(get_db)):
 @router.get("/{test_id}/questions")
 def get_test_questions(test_id: int, db: Session = Depends(get_db)):
     questions = db.query(models.Question).filter(models.Question.test_id == test_id).all()
+    if not questions:
+        return []
+    
+    # Fetch all options in a single query to avoid the N+1 query problem
+    question_ids = [q.id for q in questions]
+    all_options = db.query(models.QuestionOption).filter(models.QuestionOption.question_id.in_(question_ids)).all()
+    
+    # Group options by question_id
+    from collections import defaultdict
+    options_by_q = defaultdict(list)
+    for o in all_options:
+        options_by_q[o.question_id].append({
+            "id": o.id, 
+            "text": o.text, 
+            "is_correct": bool(o.is_correct)
+        })
+        
     result = []
     for q in questions:
-        options = db.query(models.QuestionOption).filter(models.QuestionOption.question_id == q.id).all()
         result.append({
             "id": q.id,
             "text": q.text,
             "explanation": q.explanation,
-            "options": [{"id": o.id, "text": o.text, "is_correct": bool(o.is_correct)} for o in options]
+            "options": options_by_q[q.id]
         })
     return result
 @router.delete("/questions/{question_id}")
