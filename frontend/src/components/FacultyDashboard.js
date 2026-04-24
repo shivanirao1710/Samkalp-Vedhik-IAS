@@ -68,6 +68,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { title: 'Add Course', subtitle: 'Create new course', icon: '＋', target: 'Courses', trigger: () => setIsCreateModalOpen(true) },
     { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
     { title: 'Create Test', subtitle: 'Add new test', icon: '＋', target: 'Tests', trigger: () => setIsTestModalOpen(true) },
+    { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '＋', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
     { title: 'Send Announcement', subtitle: 'Message all students', icon: '🔔', target: 'Announcements' },
     {
       title: 'Post Daily News', subtitle: 'Upload current affairs', icon: '🌍', target: 'Current Affairs', trigger: () => {
@@ -75,7 +76,6 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         setIsCAModalOpen(true);
       }
     },
-    { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '📚', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
     { title: 'Psychometric Reports', icon: '🧠', subtitle: 'View student analytics', target: 'Reports' },
     { title: 'Evaluate Scholarships', subtitle: 'Approve or reject', icon: '🎓', target: 'Scholarships' },
   ];
