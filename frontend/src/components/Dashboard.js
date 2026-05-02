@@ -223,7 +223,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           <>
             <section className="hero-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'visible' }}>
               <div style={{ flex: 1 }}>
-                <h2 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{getGreeting()}, {user.name || user.email.split('@')[0]}! 👋</h2>
+                <h2 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{getGreeting()}, {user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}! 👋</h2>
                 <p className="hero-subtitle" style={{ opacity: 0.9, fontSize: '1.1rem' }}>
                     {enrolledCourses.length > 0
                     ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
@@ -438,7 +438,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                 setIsProfileOpen(newState);
                 if (newState) setShowNotifications(false);
               }}>
-                <div className="user-name">{user.name || user.email.split('@')[0]}</div>
+                <div className="user-name">{user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}</div>
                 <div className="user-role">Student</div>
               </div>
 

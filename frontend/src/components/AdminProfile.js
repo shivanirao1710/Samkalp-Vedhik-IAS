@@ -85,7 +85,7 @@ const AdminProfile = ({ user, onBack }) => {
             <div className="profile-avatar-large" style={{ background: '#F2921D' }}>
               💎
             </div>
-            <h2>{user.name || 'Platform Admin'}</h2>
+            <h2>{user.name && user.name !== 'N/A' ? user.name : 'Platform Admin'}</h2>
             <div className="profile-subtitle">Super Administrator</div>
             <div className="member-since">
               <span className="icon">🛡️</span> Full Access Account

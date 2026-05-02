@@ -165,7 +165,7 @@ const AdminDashboard = ({ user, onLogout }) => {
             ) : (
               userList.map(u => (
                 <tr key={u.id}>
-                  <td className="font-bold">{u.name}</td>
+                  <td className="font-bold">{u.name && u.name !== 'N/A' ? u.name : u.email.split('@')[0]}</td>
                   <td>{u.email}</td>
                   <td>
                     <span className={`role-badge ${u.role}`}>{u.role}</span>
@@ -313,7 +313,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
             <div className="admin-user-info-wrap" onClick={(e) => { e.stopPropagation(); setIsProfileOpen(!isProfileOpen); setShowRequestsModal(false); }} style={{ display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}>
               <div className="adm-user-meta" style={{ textAlign: 'right' }}>
-                <div className="adm-name">{user.name || 'Admin'}</div>
+                <div className="adm-name">{user.name && user.name !== 'N/A' ? user.name : (user.email ? user.email.split('@')[0] : 'Admin')}</div>
                 <div className="adm-role" style={{ color: '#F2921D', fontWeight: 700, fontSize: '0.7rem' }}>Platform Admin</div>
               </div>
               <div className="adm-avatar" style={{ backgroundColor: '#F2921D', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', boxShadow: '0 4px 12px rgba(242, 146, 29, 0.2)' }}>💎</div>
@@ -322,7 +322,7 @@ const AdminDashboard = ({ user, onLogout }) => {
             {isProfileOpen && (
               <div className="profile-dropdown" style={{ top: '60px', right: '0', width: '220px', zIndex: 1000 }}>
                 <div className="dropdown-header" style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
-                  <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{user.name}</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.9rem' }}>{user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{user.email}</div>
                 </div>
                 <button className="dropdown-item" onClick={() => { setActiveTab('profile'); setIsProfileOpen(false); }}>

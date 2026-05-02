@@ -70,7 +70,7 @@ def get_students_detailed(db: Session = Depends(database.get_db)):
         
         result.append({
             "id": s.id,
-            "name": s.name or s.email.split('@')[0],
+            "name": s.name if s.name and s.name != "N/A" else s.email.split('@')[0],
             "email": s.email,
             "phone": s.phone or "N/A",
             "enrolled_date": s.member_since.strftime("%Y-%m-%d") if s.member_since else "N/A",

@@ -268,7 +268,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
               accept="image/*"
             />
 
-            <h2>{user.name || user.email.split('@')[0]}</h2>
+            <h2>{user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}</h2>
             <p className="profile-subtitle">UPSC Aspirant</p>
 
             <div className="member-since">
@@ -364,7 +364,7 @@ const StudentProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.name || user.email.split('@')[0]}</div>
+                  <div className="info-field">{user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}</div>
                 )}
               </div>
               <div className="info-group">
