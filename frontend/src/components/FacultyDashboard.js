@@ -1015,6 +1015,37 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     }
   };
 
+  const [isUploadingLesson, setIsUploadingLesson] = useState({}); // { 'mIdx-lIdx': true }
+
+  const handleLessonFileUpload = async (mIdx, lIdx, file, isEdit = false) => {
+    if (!file) return;
+    
+    const key = `${mIdx}-${lIdx}`;
+    setIsUploadingLesson(prev => ({ ...prev, [key]: true }));
+    
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/lessons/upload`, {
+        method: 'POST',
+        body: fd
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        handleLessonChange(mIdx, lIdx, 'content_url', data.url, isEdit);
+      } else {
+        alert("Upload failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Lesson upload error:", err);
+      alert("Failed to connect to backend for upload.");
+    } finally {
+      setIsUploadingLesson(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
   const renderModulesSection = (isEdit = false) => {
     const currentModules = isEdit ? editFormData.courseModules : formData.courseModules;
     return (
@@ -1047,31 +1078,108 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
             <div className="lessons-list" style={{ marginLeft: '1rem', borderLeft: '2px solid #e2e8f0', paddingLeft: '1rem' }}>
               {module.lessons.map((lesson, lIdx) => (
-                <div key={lIdx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
-                  <input
-                    type="text"
-                    placeholder="Lesson Title"
-                    value={lesson.title}
-                    onChange={(e) => handleLessonChange(mIdx, lIdx, 'title', e.target.value, isEdit)}
-                    style={{ flex: 2, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                  <select
-                    value={lesson.content_type}
-                    onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_type', e.target.value, isEdit)}
-                    style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  >
-                    <option value="video">Video</option>
-                    <option value="pdf">PDF</option>
-                    <option value="text">Text</option>
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="URL (optional)"
-                    value={lesson.content_url}
-                    onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_url', e.target.value, isEdit)}
-                    style={{ flex: 2, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                  />
-                  <button type="button" onClick={() => removeLesson(mIdx, lIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>×</button>
+                <div key={lIdx} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: '#fff', padding: '0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      placeholder="Lesson Title"
+                      value={lesson.title}
+                      onChange={(e) => handleLessonChange(mIdx, lIdx, 'title', e.target.value, isEdit)}
+                      style={{ flex: 2, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                    />
+                    <select
+                      value={lesson.content_type}
+                      onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_type', e.target.value, isEdit)}
+                      style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                    >
+                      <option value="video">Video</option>
+                      <option value="pdf">PDF</option>
+                      <option value="text">Text</option>
+                    </select>
+                    <button type="button" onClick={() => removeLesson(mIdx, lIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem' }}>×</button>
+                  </div>
+                  
+                  {lesson.content_type === 'text' ? (
+                    <textarea
+                      placeholder="Enter lesson text content..."
+                      value={lesson.content_url}
+                      onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_url', e.target.value, isEdit)}
+                      style={{ width: '100%', padding: '0.85rem', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '0.95rem', minHeight: '100px', resize: 'vertical', outline: 'none' }}
+                    />
+                  ) : (
+                    <div className="lesson-content-upload-area" style={{ marginTop: '0.25rem' }}>
+                      {lesson.content_url ? (
+                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#f1f5f9', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                          <span style={{ fontSize: '1.1rem' }}>{lesson.content_type === 'video' ? '🎬' : '📄'}</span>
+                          <span style={{ flex: 1, fontSize: '0.85rem', color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {lesson.content_url.split('/').pop()}
+                          </span>
+                          <button 
+                            type="button" 
+                            onClick={() => handleLessonChange(mIdx, lIdx, 'content_url', '', isEdit)} 
+                            style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <div 
+                            className="upload-drop-zone"
+                            onClick={() => document.getElementById(`lesson-file-${mIdx}-${lIdx}`).click()}
+                            style={{
+                              border: '1.5px dashed #F2921D',
+                              borderRadius: '10px',
+                              padding: '1.25rem',
+                              textAlign: 'center',
+                              cursor: 'pointer',
+                              background: isUploadingLesson[`${mIdx}-${lIdx}`] ? '#fff7ed' : '#fff',
+                              transition: 'all 0.2s',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '0.5rem'
+                            }}
+                          >
+                            {isUploadingLesson[`${mIdx}-${lIdx}`] ? (
+                              <>
+                                <div className="spinner-mini" style={{ width: '20px', height: '20px', border: '2px solid #F2921D', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F2921D' }}>Uploading...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span style={{ fontSize: '1.5rem' }}>📤</span>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F2921D' }}>Click to upload {lesson.content_type} from files</span>
+                                <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{lesson.content_type === 'video' ? 'MP4, WEBM, MOV' : 'PDF Document'}</span>
+                              </>
+                            )}
+                            <input 
+                              id={`lesson-file-${mIdx}-${lIdx}`}
+                              type="file" 
+                              accept={lesson.content_type === 'video' ? "video/*" : "application/pdf"} 
+                              style={{ display: 'none' }} 
+                              onChange={(e) => handleLessonFileUpload(mIdx, lIdx, e.target.files[0], isEdit)}
+                              disabled={isUploadingLesson[`${mIdx}-${lIdx}`]}
+                            />
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
+                            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>OR USE URL</span>
+                            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Paste external link instead..."
+                            value={lesson.content_url}
+                            onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_url', e.target.value, isEdit)}
+                            style={{ padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
               <button type="button" onClick={() => addLesson(mIdx, isEdit)} style={{ fontSize: '0.8rem', color: '#F2921D', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: '0.2rem 0' }}>

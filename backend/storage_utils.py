@@ -52,7 +52,8 @@ def save_file(file: UploadFile, folder: str) -> str:
     else:
         # Local Storage
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        static_dir = os.path.join(base_dir, "static", folder)
+        # Use the static directory in the project root (parent of backend)
+        static_dir = os.path.join(os.path.dirname(base_dir), "static", folder)
         os.makedirs(static_dir, exist_ok=True)
         
         filepath = os.path.join(static_dir, filename)

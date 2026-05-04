@@ -124,8 +124,12 @@ def update_course(
     # Update modules if provided
     if modules:
         try:
-            # Delete existing modules and lessons (simplest for now)
-            db.query(models.Module).filter(models.Module.course_id == course_id).delete()
+            # Delete existing modules and lessons
+            # We must delete lessons first because of foreign key constraints
+            module_ids = [m.id for m in course.course_modules]
+            if module_ids:
+                db.query(models.Lesson).filter(models.Lesson.module_id.in_(module_ids)).delete(synchronize_session=False)
+            db.query(models.Module).filter(models.Module.course_id == course_id).delete(synchronize_session=False)
             
             modules_data = json.loads(modules)
             for m_idx, m_data in enumerate(modules_data):
@@ -235,3 +239,19 @@ def get_student_courses(user_id: int, db: Session = Depends(get_db)):
             
         result.append(c_dict)
     return result
+
+@router.post("/lessons/upload")
+def upload_lesson_content(file: UploadFile = File(...)):
+    """Uploads lesson content (video, pdf, etc.) and returns the URL."""
+    try:
+        # Determine folder based on file type
+        folder = "lessons"
+        if file.content_type.startswith("video/"):
+            folder = "videos"
+        elif file.content_type == "application/pdf":
+            folder = "pdfs"
+            
+        file_url = save_file(file, folder)
+        return {"url": file_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
