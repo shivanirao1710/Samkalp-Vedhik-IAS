@@ -297,7 +297,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                       <div className="progress-inner" style={{ width: `${mainCourse.progress || 0}%` }}></div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
-                      <span>{mainCourse.modules} modules</span>
+                      <span>{mainCourse.modules_count || 0} modules</span>
                       <button
                         onClick={() => setCurrentView('Courses')}
                         style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}

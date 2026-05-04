@@ -106,8 +106,8 @@ const Courses = ({ user }) => {
                     <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem', lineHeight: 1.5 }}>{course.description}</p>
                   )}
                   <div className="course-stats">
-                    <span>📖 {course.modules} Modules</span>
-                    <span>⏱️ {course.lessons} Hours</span>
+                    <span>📖 {course.modules_count || 0} Modules</span>
+                    <span>⏱️ {course.lessons_count || 0} Hours</span>
                   </div>
 
                   {course.is_enrolled ? (

@@ -710,11 +710,12 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [formData, setFormData] = useState({
     title: '',
     author: '',
-    modules: '',
+    modules: '', // This will still hold the total count (auto-updated or manual)
     hours: '',
     category: 'Art and Culture',
     status: 'Draft',
-    description: ''
+    description: '',
+    courseModules: [] // Added for module-wise content
   });
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
@@ -809,10 +810,15 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       const fd = new FormData();
       fd.append('title', formData.title);
       fd.append('description', formData.description || formData.category);
-      fd.append('modules', formData.modules || 0);
-      fd.append('lessons', formData.hours || 0);
+      fd.append('modules_count', formData.modules || 0);
+      fd.append('lessons_count', formData.hours || 0);
       fd.append('status', formData.status === 'Published' ? 'in_progress' : 'not_started');
       fd.append('progress', 0);
+      
+      if (formData.courseModules && formData.courseModules.length > 0) {
+        fd.append('modules', JSON.stringify(formData.courseModules));
+      }
+
       if (thumbnailFile) fd.append('thumbnail', thumbnailFile);
 
       const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/`, {
@@ -823,7 +829,11 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       if (res.ok) {
         alert('Course created successfully! It is now visible in the Student Dashboard.');
         setIsCreateModalOpen(false);
-        setFormData({ title: '', author: '', modules: '', hours: '', category: 'Art and Culture', status: 'Draft', description: '' });
+        setFormData({ 
+          title: '', author: '', modules: '', hours: '', 
+          category: 'Art and Culture', status: 'Draft', 
+          description: '', courseModules: [] 
+        });
         setThumbnailFile(null);
         setThumbnailPreview(null);
         fetchLiveCourses();
@@ -843,7 +853,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCourse, setEditCourse] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    title: '', description: '', modules: '', hours: '', status: 'Draft'
+    title: '', description: '', modules: '', hours: '', status: 'Draft', courseModules: []
   });
   const [editThumbnailFile, setEditThumbnailFile] = useState(null);
   const [editThumbnailPreview, setEditThumbnailPreview] = useState(null);
@@ -855,9 +865,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     setEditFormData({
       title: course.title || '',
       description: course.description || '',
-      modules: course.modules || '',
-      hours: course.lessons || '',
-      status: statusLabel
+      modules: course.modules_count || '',
+      hours: course.lessons_count || '',
+      status: statusLabel,
+      courseModules: course.course_modules || []
     });
     // Show existing thumbnail as preview
     if (course.image_url) {
@@ -887,10 +898,15 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       const fd = new FormData();
       fd.append('title', editFormData.title);
       fd.append('description', editFormData.description);
-      fd.append('modules', editFormData.modules || 0);
-      fd.append('lessons', editFormData.hours || 0);
+      fd.append('modules_count', editFormData.modules || 0);
+      fd.append('lessons_count', editFormData.hours || 0);
       fd.append('status', editFormData.status === 'Published' ? 'in_progress' : 'not_started');
       fd.append('progress', editCourse.progress || 0);
+      
+      if (editFormData.courseModules) {
+        fd.append('modules', JSON.stringify(editFormData.courseModules));
+      }
+
       if (editThumbnailFile) fd.append('thumbnail', editThumbnailFile);
 
       const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/${editCourse.id}`, {
@@ -928,6 +944,144 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       console.error('Delete error:', error);
       alert('Failed to connect to backend');
     }
+  };
+
+  // ── Modules Management Helpers ────────────────────────────────────
+  const addModule = (isEdit = false) => {
+    const newModule = { title: '', lessons: [] };
+    if (isEdit) {
+      setEditFormData({ ...editFormData, courseModules: [...editFormData.courseModules, newModule] });
+    } else {
+      setFormData({ ...formData, courseModules: [...formData.courseModules, newModule] });
+    }
+  };
+
+  const removeModule = (mIdx, isEdit = false) => {
+    if (isEdit) {
+      const updated = editFormData.courseModules.filter((_, i) => i !== mIdx);
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = formData.courseModules.filter((_, i) => i !== mIdx);
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const handleModuleTitleChange = (mIdx, val, isEdit = false) => {
+    if (isEdit) {
+      const updated = [...editFormData.courseModules];
+      updated[mIdx].title = val;
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = [...formData.courseModules];
+      updated[mIdx].title = val;
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const addLesson = (mIdx, isEdit = false) => {
+    const newLesson = { title: '', content_type: 'video', content_url: '' };
+    if (isEdit) {
+      const updated = [...editFormData.courseModules];
+      updated[mIdx].lessons = [...updated[mIdx].lessons, newLesson];
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = [...formData.courseModules];
+      updated[mIdx].lessons = [...updated[mIdx].lessons, newLesson];
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const removeLesson = (mIdx, lIdx, isEdit = false) => {
+    if (isEdit) {
+      const updated = [...editFormData.courseModules];
+      updated[mIdx].lessons = updated[mIdx].lessons.filter((_, i) => i !== lIdx);
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = [...formData.courseModules];
+      updated[mIdx].lessons = updated[mIdx].lessons.filter((_, i) => i !== lIdx);
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const handleLessonChange = (mIdx, lIdx, field, val, isEdit = false) => {
+    if (isEdit) {
+      const updated = [...editFormData.courseModules];
+      updated[mIdx].lessons[lIdx][field] = val;
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = [...formData.courseModules];
+      updated[mIdx].lessons[lIdx][field] = val;
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const renderModulesSection = (isEdit = false) => {
+    const currentModules = isEdit ? editFormData.courseModules : formData.courseModules;
+    return (
+      <div className="modules-management-section" style={{ marginTop: '1.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b' }}>Course Modules</h3>
+          <button type="button" onClick={() => addModule(isEdit)} style={{ padding: '0.4rem 0.8rem', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+            + Add Module
+          </button>
+        </div>
+
+        {currentModules.length === 0 && (
+          <p style={{ fontSize: '0.9rem', color: '#64748b', textAlign: 'center', padding: '1rem', background: '#f8fafc', borderRadius: '12px' }}>
+            No modules added yet. Add modules to structure your course.
+          </p>
+        )}
+
+        {currentModules.map((module, mIdx) => (
+          <div key={mIdx} className="module-item-card" style={{ background: '#f8fafc', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+              <input
+                type="text"
+                placeholder={`Module ${mIdx + 1} Title`}
+                value={module.title}
+                onChange={(e) => handleModuleTitleChange(mIdx, e.target.value, isEdit)}
+                style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: '1.5px solid #cbd5e1' }}
+              />
+              <button type="button" onClick={() => removeModule(mIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+            </div>
+
+            <div className="lessons-list" style={{ marginLeft: '1rem', borderLeft: '2px solid #e2e8f0', paddingLeft: '1rem' }}>
+              {module.lessons.map((lesson, lIdx) => (
+                <div key={lIdx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Lesson Title"
+                    value={lesson.title}
+                    onChange={(e) => handleLessonChange(mIdx, lIdx, 'title', e.target.value, isEdit)}
+                    style={{ flex: 2, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                  />
+                  <select
+                    value={lesson.content_type}
+                    onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_type', e.target.value, isEdit)}
+                    style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                  >
+                    <option value="video">Video</option>
+                    <option value="pdf">PDF</option>
+                    <option value="text">Text</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="URL (optional)"
+                    value={lesson.content_url}
+                    onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_url', e.target.value, isEdit)}
+                    style={{ flex: 2, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                  />
+                  <button type="button" onClick={() => removeLesson(mIdx, lIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>×</button>
+                </div>
+              ))}
+              <button type="button" onClick={() => addLesson(mIdx, isEdit)} style={{ fontSize: '0.8rem', color: '#F2921D', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: '0.2rem 0' }}>
+                + Add Lesson
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const renderEditModal = () => (
@@ -1056,6 +1210,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </label>
             </div>
           </div>
+
+          {renderModulesSection(true)}
 
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
@@ -1224,6 +1380,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </label>
             </div>
           </div>
+
+          {renderModulesSection(false)}
+
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
             <button type="submit" className="submit-btn" disabled={isSubmitting}>
@@ -1300,11 +1459,11 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <p className="author" style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '0.75rem' }}>{course.description || 'No description'}</p>
                   <div className="course-mini-stats">
                     <div className="mini-item">
-                      <span className="val">{course.modules}</span>
+                      <span className="val">{course.modules_count}</span>
                       <span className="lbl">Modules</span>
                     </div>
                     <div className="mini-item">
-                      <span className="val">{course.lessons}</span>
+                      <span className="val">{course.lessons_count}</span>
                       <span className="lbl">Hours</span>
                     </div>
                     <div className="mini-item">

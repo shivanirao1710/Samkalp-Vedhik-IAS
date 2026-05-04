@@ -8,6 +8,7 @@ import schemas
 import os
 import shutil
 import uuid
+import json
 from storage_utils import save_file, delete_file
 
 router = APIRouter(
@@ -15,16 +16,15 @@ router = APIRouter(
     tags=["courses"]
 )
 
-
-
 @router.post("/", response_model=schemas.Course)
 def create_course(
     title: str = Form(...),
     description: Optional[str] = Form(None),
-    modules: int = Form(0),
-    lessons: int = Form(0),
+    modules_count: int = Form(0),
+    lessons_count: int = Form(0),
     status: str = Form("not_started"),
     progress: int = Form(0),
+    modules: Optional[str] = Form(None), # JSON string of modules
     thumbnail: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
@@ -35,8 +35,8 @@ def create_course(
     db_course = models.Course(
         title=title,
         description=description,
-        modules=modules,
-        lessons=lessons,
+        modules_count=modules_count,
+        lessons_count=lessons_count,
         image_url=image_url,
         status=status,
         progress=progress
@@ -44,6 +44,36 @@ def create_course(
     db.add(db_course)
     db.commit()
     db.refresh(db_course)
+
+    # Process modules if provided
+    if modules:
+        try:
+            modules_data = json.loads(modules)
+            for m_idx, m_data in enumerate(modules_data):
+                db_module = models.Module(
+                    course_id=db_course.id,
+                    title=m_data.get("title", f"Module {m_idx + 1}"),
+                    order=m_idx
+                )
+                db.add(db_module)
+                db.commit()
+                db.refresh(db_module)
+
+                lessons_data = m_data.get("lessons", [])
+                for l_idx, l_data in enumerate(lessons_data):
+                    db_lesson = models.Lesson(
+                        module_id=db_module.id,
+                        title=l_data.get("title", f"Lesson {l_idx + 1}"),
+                        content_type=l_data.get("content_type", "video"),
+                        content_url=l_data.get("content_url"),
+                        order=l_idx
+                    )
+                    db.add(db_lesson)
+            db.commit()
+            db.refresh(db_course)
+        except Exception as e:
+            print(f"Error parsing modules: {e}")
+
     return db_course
 
 
@@ -66,10 +96,11 @@ def update_course(
     course_id: int,
     title: str = Form(...),
     description: Optional[str] = Form(None),
-    modules: int = Form(0),
-    lessons: int = Form(0),
+    modules_count: int = Form(0),
+    lessons_count: int = Form(0),
     status: str = Form("not_started"),
     progress: int = Form(0),
+    modules: Optional[str] = Form(None), # JSON string
     thumbnail: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
@@ -79,8 +110,8 @@ def update_course(
 
     course.title = title
     course.description = description
-    course.modules = modules
-    course.lessons = lessons
+    course.modules_count = modules_count
+    course.lessons_count = lessons_count
     course.status = status
     course.progress = progress
 
@@ -89,6 +120,37 @@ def update_course(
         if course.image_url:
             delete_file(course.image_url)
         course.image_url = save_file(thumbnail, "thumbnails")
+
+    # Update modules if provided
+    if modules:
+        try:
+            # Delete existing modules and lessons (simplest for now)
+            db.query(models.Module).filter(models.Module.course_id == course_id).delete()
+            
+            modules_data = json.loads(modules)
+            for m_idx, m_data in enumerate(modules_data):
+                db_module = models.Module(
+                    course_id=course.id,
+                    title=m_data.get("title", f"Module {m_idx + 1}"),
+                    order=m_idx
+                )
+                db.add(db_module)
+                db.commit()
+                db.refresh(db_module)
+
+                lessons_data = m_data.get("lessons", [])
+                for l_idx, l_data in enumerate(lessons_data):
+                    db_lesson = models.Lesson(
+                        module_id=db_module.id,
+                        title=l_data.get("title", f"Lesson {l_idx + 1}"),
+                        content_type=l_data.get("content_type", "video"),
+                        content_url=l_data.get("content_url"),
+                        order=l_idx
+                    )
+                    db.add(db_lesson)
+            db.commit()
+        except Exception as e:
+            print(f"Error updating modules: {e}")
 
     db.commit()
     db.refresh(course)
@@ -129,19 +191,38 @@ def enroll_in_course(course_id: int, user_id: int, db: Session = Depends(get_db)
 
 @router.get("/student/{user_id}")
 def get_student_courses(user_id: int, db: Session = Depends(get_db)):
+    # Fetch courses with their modules
     courses = db.query(models.Course).all()
     enrollments = db.query(models.CourseEnrollment).filter(models.CourseEnrollment.user_id == user_id).all()
     enrolled_dict = {e.course_id: e for e in enrollments}
     
     result = []
     for c in courses:
+        # Construct module list
+        modules_list = []
+        for m in c.course_modules:
+            lessons_list = []
+            for l in m.lessons:
+                lessons_list.append({
+                    "id": l.id,
+                    "title": l.title,
+                    "content_type": l.content_type,
+                    "content_url": l.content_url
+                })
+            modules_list.append({
+                "id": m.id,
+                "title": m.title,
+                "lessons": lessons_list
+            })
+
         c_dict = {
             "id": c.id,
             "title": c.title,
             "description": c.description,
-            "modules": c.modules,
-            "lessons": c.lessons,
+            "modules_count": c.modules_count,
+            "lessons_count": c.lessons_count,
             "image_url": c.image_url,
+            "course_modules": modules_list
         }
         if c.id in enrolled_dict:
             c_dict["is_enrolled"] = True

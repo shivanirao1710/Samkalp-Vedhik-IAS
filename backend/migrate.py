@@ -5,17 +5,37 @@ import models
 def migrate():
     print("Running migrations...")
     try:
-        # 1. Create all tables (handles new tables)
+        # 1. Create all tables (handles new tables like modules and lessons)
         Base.metadata.create_all(bind=engine)
         print("Base tables created successfully.")
 
         # 2. Handle schema updates (ALTER TABLE)
         with engine.connect() as conn:
-            # Check if 'transcript' column exists in 'interview_results'
-            # (Postgres/SQLite compatible check)
             print("Checking for schema updates...")
             
-            # For Postgres
+            # Rename 'modules' to 'modules_count' in 'courses' if it exists
+            res_m = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='courses' AND column_name='modules';
+            """))
+            if res_m.fetchone():
+                print("Renaming 'modules' to 'modules_count' in 'courses'...")
+                conn.execute(text("ALTER TABLE courses RENAME COLUMN modules TO modules_count;"))
+                conn.commit()
+            
+            # Rename 'lessons' to 'lessons_count' in 'courses' if it exists
+            res_l = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='courses' AND column_name='lessons';
+            """))
+            if res_l.fetchone():
+                print("Renaming 'lessons' to 'lessons_count' in 'courses'...")
+                conn.execute(text("ALTER TABLE courses RENAME COLUMN lessons TO lessons_count;"))
+                conn.commit()
+
+            # Check if 'transcript' column exists in 'interview_results'
             res = conn.execute(text("""
                 SELECT column_name 
                 FROM information_schema.columns 
@@ -26,10 +46,7 @@ def migrate():
                 print("Adding 'transcript' column to 'interview_results'...")
                 conn.execute(text("ALTER TABLE interview_results ADD COLUMN transcript TEXT;"))
                 conn.commit()
-                print("Column 'transcript' added successfully.")
-            else:
-                print("Column 'transcript' already exists.")
-
+            
             res2 = conn.execute(text("""
                 SELECT column_name 
                 FROM information_schema.columns 
@@ -40,9 +57,6 @@ def migrate():
                 conn.execute(text("ALTER TABLE users ADD COLUMN scholarship_status VARCHAR DEFAULT 'pending';"))
                 conn.execute(text("ALTER TABLE users ADD COLUMN scholarship_score INTEGER;"))
                 conn.commit()
-                print("Columns added successfully.")
-            else:
-                print("Columns 'scholarship_status' already exist.")
                 
             res3 = conn.execute(text("""
                 SELECT column_name 
@@ -53,9 +67,6 @@ def migrate():
                 print("Adding 'scholarship_answers_json' column to 'users'...")
                 conn.execute(text("ALTER TABLE users ADD COLUMN scholarship_answers_json TEXT;"))
                 conn.commit()
-                print("Column 'scholarship_answers_json' added successfully.")
-            else:
-                print("Column 'scholarship_answers_json' already exists.")
 
     except Exception as e:
         print(f"Migration failed: {e}")

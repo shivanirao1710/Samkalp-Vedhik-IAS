@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Enum, Text, DateTime, Float, Boolean
+from sqlalchemy import Column, Integer, String, Enum, Text, DateTime, Float, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from database import Base
 import enum
 from datetime import datetime
@@ -35,11 +36,39 @@ class Course(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String)
-    modules = Column(Integer, default=0)
-    lessons = Column(Integer, default=0)
+    modules_count = Column(Integer, default=0) # Keeping as count for quick display
+    lessons_count = Column(Integer, default=0) # Keeping as count for quick display
     image_url = Column(String)
     status = Column(String, default="not_started") # not_started, in_progress, completed
     progress = Column(Integer, default=0)
+
+    # Relationships
+    course_modules = relationship("Module", back_populates="course", cascade="all, delete-orphan")
+
+class Module(Base):
+    __tablename__ = "modules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id"))
+    title = Column(String, nullable=False)
+    order = Column(Integer, default=0)
+
+    # Relationships
+    course = relationship("Course", back_populates="course_modules")
+    lessons = relationship("Lesson", back_populates="module", cascade="all, delete-orphan")
+
+class Lesson(Base):
+    __tablename__ = "lessons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    module_id = Column(Integer, ForeignKey("modules.id"))
+    title = Column(String, nullable=False)
+    content_type = Column(String) # video, pdf, quiz, text
+    content_url = Column(String, nullable=True)
+    order = Column(Integer, default=0)
+
+    # Relationships
+    module = relationship("Module", back_populates="lessons")
 
 class Test(Base):
     __tablename__ = "tests"

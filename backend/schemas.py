@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List, Any
 from datetime import datetime
 
 class UserCreate(BaseModel):
@@ -72,20 +72,47 @@ class UserAdminResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class LessonCreate(BaseModel):
+    title: str
+    content_type: str = "text"
+    content_url: Optional[str] = None
+    order: int = 0
+
+class Lesson(LessonCreate):
+    id: int
+    module_id: int
+    class Config:
+        from_attributes = True
+
+class ModuleCreate(BaseModel):
+    title: str
+    order: int = 0
+    lessons: List[LessonCreate] = []
+
+class ModuleResponse(BaseModel):
+    id: int
+    course_id: int
+    title: str
+    order: int
+    lessons: List[Lesson] = []
+    class Config:
+        from_attributes = True
+
 class CourseBase(BaseModel):
     title: str
     description: Optional[str] = None
-    modules: int = 0
-    lessons: int = 0
+    modules_count: int = 0
+    lessons_count: int = 0
     image_url: Optional[str] = None
     status: str = "not_started"
     progress: int = 0
 
 class CourseCreate(CourseBase):
-    pass
+    modules: Optional[str] = None # JSON string of modules if sent via Form
 
 class Course(CourseBase):
     id: int
+    course_modules: List[ModuleResponse] = []
 
     class Config:
         from_attributes = True
