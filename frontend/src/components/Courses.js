@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Courses.css';
 
-const Courses = ({ user }) => {
+const Courses = ({ user, onOpenCourse }) => {
   const [courses, setCourses] = useState([]);
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
@@ -121,7 +121,11 @@ const Courses = ({ user }) => {
                           <div className="progress-bar-fill" style={{ width: `${course.progress || 0}%` }}></div>
                         </div>
                       </div>
-                      <button className="continue-btn" style={{ background: course.status === 'completed' ? '#10b981' : '' }}>
+                      <button 
+                        className="continue-btn" 
+                        style={{ background: course.status === 'completed' ? '#10b981' : '', cursor: 'pointer' }}
+                        onClick={() => onOpenCourse(course.id)}
+                      >
                         {course.status === 'completed' ? 'Completed' : 'Continue Learning'}
                       </button>
                     </>

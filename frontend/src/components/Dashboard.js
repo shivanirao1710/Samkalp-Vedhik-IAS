@@ -13,10 +13,12 @@ import StudentProfile from './StudentProfile';
 import Settings from './Settings';
 import AIDoubtSolver from './AIDoubtSolver';
 import CurrentAffairs from './CurrentAffairs';
+import CoursePlayer from './CoursePlayer';
 import logo from '../images/logo.png';
 
 const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [isMentorToggle, setIsMentorToggle] = useState(false);
 
   const getGreeting = () => {
@@ -196,7 +198,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const renderContent = () => {
     switch (currentView) {
       case 'Courses':
-        return <Courses user={user} />;
+        return <Courses user={user} onOpenCourse={(id) => { setSelectedCourseId(id); setCurrentView('CoursePlayer'); }} />;
       case 'Mock Tests':
         return <Tests />;
       case 'Study Materials':
@@ -215,6 +217,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return <StudentProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setCurrentView('Dashboard')} />;
       case 'Settings':
         return <Settings user={user} onBack={() => setCurrentView('Dashboard')} />;
+      case 'CoursePlayer':
+        return <CoursePlayer courseId={selectedCourseId} user={user} onBack={() => setCurrentView('Courses')} />;
       case 'Dashboard':
       default:
         const mainCourse = enrolledCourses.length > 0 ? enrolledCourses[0] : null;
@@ -299,7 +303,10 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
                       <span>{mainCourse.modules_count || 0} modules</span>
                       <button
-                        onClick={() => setCurrentView('Courses')}
+                        onClick={() => {
+                          setSelectedCourseId(mainCourse.id);
+                          setCurrentView('CoursePlayer');
+                        }}
                         style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}
                       >
                         Continue Learning →
