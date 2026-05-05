@@ -666,12 +666,6 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const courseStats = [
-    { label: 'Total Courses', value: '18', icon: '📚', color: '#e0f2fe' },
-    { label: 'Total Enrollments', value: '1,245', icon: '👥', color: '#fff7ed' },
-    { label: 'Total Hours', value: '850', icon: '⏱️', color: '#fff7ed' },
-    { label: 'Draft Courses', value: '4', icon: '📝', color: '#fef2f2' },
-  ];
 
   const adminCourseData = [
     {
@@ -721,11 +715,68 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [liveCourses, setLiveCourses] = useState([]);
+  const [fetchedTests, setFetchedTests] = useState([]);
+  const [courseStats, setCourseStats] = useState([
+    { label: 'Total Courses', value: '0', icon: '📚', color: '#e0f2fe' },
+    { label: 'Total Enrollments', value: '0', icon: '👥', color: '#fff7ed' },
+    { label: 'Total Hours', value: '0', icon: '⏱️', color: '#fff7ed' },
+    { label: 'Draft Courses', value: '0', icon: '📝', color: '#fef2f2' },
+  ]);
+
+  useEffect(() => {
+    const total = liveCourses.length;
+    const drafts = liveCourses.filter(c => c.status === 'not_started' || c.status === 'Draft').length;
+    const totalHours = liveCourses.reduce((sum, c) => sum + (parseInt(c.lessons_count) || 0), 0);
+    const enrollments = studentData.reduce((sum, s) => sum + (parseInt(s.courses) || 0), 0);
+
+    setCourseStats([
+      { label: 'Total Courses', value: total.toString(), icon: '📚', color: '#e0f2fe' },
+      { label: 'Total Enrollments', value: enrollments.toLocaleString(), icon: '👥', color: '#fff7ed' },
+      { label: 'Total Hours', value: totalHours.toLocaleString(), icon: '⏱️', color: '#fff7ed' },
+      { label: 'Draft Courses', value: drafts.toString(), icon: '📝', color: '#fef2f2' },
+    ]);
+  }, [liveCourses, studentData]);
+
+  const [liveTestStats, setLiveTestStats] = useState([
+    { label: 'Total Tests', value: '0', icon: '📝', color: '#e0f2fe' },
+    { label: 'Total Attempts', value: '0', icon: '👥', color: '#fff7ed' },
+    { label: 'Avg Score', value: '0%', icon: '⏱️', color: '#fff7ed' },
+    { label: 'Draft Tests', value: '0', icon: '📋', color: '#fef2f2' },
+  ]);
+
+  useEffect(() => {
+    const total = fetchedTests.length;
+    const drafts = fetchedTests.filter(t => t.status === 'Draft' || t.status === 'not_started').length;
+    
+    // Sum of attempts from all tests
+    const totalAttempts = fetchedTests.reduce((sum, t) => sum + (t.attempts || 0), 0);
+    
+    // Average score across all tests (if attempts > 0)
+    let avgScoreSum = 0;
+    let testsWithAttempts = 0;
+    fetchedTests.forEach(t => {
+        if (t.attempts > 0) {
+            const score = parseFloat(t.avgScore) || 0;
+            avgScoreSum += score;
+            testsWithAttempts++;
+        }
+    });
+    const avgScore = testsWithAttempts > 0 ? (avgScoreSum / testsWithAttempts).toFixed(1) : "0";
+
+    setLiveTestStats([
+      { label: 'Total Tests', value: total.toString(), icon: '📝', color: '#e0f2fe' },
+      { label: 'Total Attempts', value: totalAttempts.toLocaleString(), icon: '👥', color: '#fff7ed' },
+      { label: 'Avg Score', value: `${avgScore}%`, icon: '⏱️', color: '#fff7ed' },
+      { label: 'Draft Tests', value: drafts.toString(), icon: '📋', color: '#fef2f2' },
+    ]);
+  }, [fetchedTests]);
 
   useEffect(() => {
     fetchLiveCourses();
+    fetchTests();
     fetchStudyMaterials();
   }, []);
+
 
   const fetchStudyMaterials = async () => {
     try {
@@ -1689,18 +1740,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const testStats = [
-    { label: 'Total Tests', value: '48', icon: '📝', color: '#e0f2fe' },
-    { label: 'Total Attempts', value: '1,429', icon: '👥', color: '#fff7ed' },
-    { label: 'Avg Score', value: '68.2%', icon: '⏱️', color: '#fff7ed' },
-    { label: 'Draft Tests', value: '6', icon: '📋', color: '#fef2f2' },
-  ];
 
-  const adminTestData = [
-    { id: 1, name: 'CSAT Paper II - Mock Test 1', type: 'Full Length', duration: '120 mins', questions: 80, attempts: 142, avgScore: '68.5%', status: 'Published' },
-    { id: 2, name: 'Prelims Mock Test - Series 1', type: 'Full Length', duration: '120 mins', questions: 100, attempts: 198, avgScore: '72.3%', status: 'Published' },
-    { id: 3, name: 'Polity Chapter Test - Parliament', type: 'Topic Wise', duration: '45 mins', questions: 30, attempts: 85, avgScore: '64.2%', status: 'Draft' },
-  ];
 
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [testModalStep, setTestModalStep] = useState(1); // 1: Info, 2: Questions
@@ -2195,14 +2235,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const [fetchedTests, setFetchedTests] = useState([]);
   const [isManagingQuestions, setIsManagingQuestions] = useState(false);
   const [testToManage, setTestToManage] = useState(null);
   const [testQuestions, setTestQuestions] = useState([]);
-
-  useEffect(() => {
-    fetchTests();
-  }, []);
 
   const fetchTests = async () => {
     try {
@@ -2442,7 +2477,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         </div>
 
         <div className="admin-stats-grid">
-          {testStats.map((stat) => (
+          {liveTestStats.map((stat) => (
             <div key={stat.label} className="adm-stat-card">
               <div className="adm-stat-top">
                 <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
