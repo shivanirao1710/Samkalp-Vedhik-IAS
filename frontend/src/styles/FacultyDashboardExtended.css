@@ -632,6 +632,82 @@ body.dark-mode .status-pill.suspended {
   cursor: not-allowed;
 }
 
+/* Action Buttons in Tables */
+.adm-actions-cell {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.icon-btn.analytics {
+  background: #f0fdf4;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.icon-btn.analytics:hover {
+  background: #dcfce7;
+  border-color: #16a34a;
+}
+
+.icon-btn.edit {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+}
+
+.icon-btn.edit:hover {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.icon-btn.delete {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.icon-btn.delete:hover {
+  background: #fee2e2;
+  border-color: #dc2626;
+}
+
+/* Dark Mode Adjustments */
+body.dark-mode .icon-btn.analytics {
+  background: rgba(22, 163, 74, 0.1);
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+body.dark-mode .icon-btn.edit {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+body.dark-mode .icon-btn.delete {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
 .adm-row-action {
   background: none;
   border: none;

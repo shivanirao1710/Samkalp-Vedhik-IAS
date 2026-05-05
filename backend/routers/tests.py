@@ -8,6 +8,7 @@ import google.generativeai as genai
 from groq import Groq
 import os
 import json
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -255,7 +256,7 @@ def submit_test_attempt(attempt: StudentAttempt, db: Session = Depends(get_db)):
         test_id=attempt.test_id,
         score=attempt.score,
         percentage=attempt.percentage,
-        completed_at=datetime.utcnow().isoformat()
+        completed_at=datetime.utcnow().isoformat() + "Z"
     )
     db.add(db_attempt)
     db.commit()

@@ -170,19 +170,23 @@ const Tests = ({ user, isMock }) => {
     const percentage = (score / activeTest.questions.length) * 100;
 
     // 1. Sync with Backend
-    try {
-      await fetch(`${process.env.REACT_APP_API_URL}/tests/attempts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id,
-          test_id: activeTest.id,
-          score: score,
-          percentage: Math.round(percentage)
-        })
-      });
-    } catch (err) {
-      console.error("Failed to sync score with backend:", err);
+    if (user?.id) {
+      try {
+        await fetch(`${process.env.REACT_APP_API_URL}/tests/attempts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user.id,
+            test_id: activeTest.id,
+            score: score,
+            percentage: Math.round(percentage)
+          })
+        });
+      } catch (err) {
+        console.error("Failed to sync score with backend:", err);
+      }
+    } else {
+      console.error("User ID missing, cannot sync score with backend");
     }
 
     // 2. Update Local State
