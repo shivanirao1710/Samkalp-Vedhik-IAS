@@ -6,6 +6,7 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [expandedModules, setExpandedModules] = useState({});
+  const [showFinishedModal, setShowFinishedModal] = useState(false);
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
@@ -82,6 +83,9 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
       if (parentModule && !expandedModules[parentModule.id]) {
         setExpandedModules(prev => ({ ...prev, [parentModule.id]: true }));
       }
+    } else {
+      // Last lesson finished
+      setShowFinishedModal(true);
     }
   };
 
@@ -111,9 +115,9 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
           </button>
           <h2 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#1e293b', lineHeight: 1.3 }}>{course.title}</h2>
           <div style={{ marginTop: '0.75rem', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: `${course.progress || 0}%`, height: '100%', background: '#F2921D' }}></div>
+            <div style={{ width: `${Math.min(100, course.progress || 0)}%`, height: '100%', background: '#F2921D' }}></div>
           </div>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem', fontWeight: '600' }}>{course.progress || 0}% Completed</p>
+          <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.4rem', fontWeight: '600' }}>{Math.min(100, course.progress || 0)}% Completed</p>
         </div>
 
         <div className="modules-list" style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
@@ -246,6 +250,88 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
           </div>
         )}
       </div>
+      
+      {/* Course Finished Modal */}
+      {showFinishedModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <div style={{
+            background: '#fff',
+            padding: '3rem',
+            borderRadius: '24px',
+            maxWidth: '500px',
+            width: '90%',
+            textAlign: 'center',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '8px',
+              background: 'linear-gradient(90deg, #F2921D, #fbbf24)'
+            }}></div>
+            
+            <div style={{ fontSize: '5rem', marginBottom: '1.5rem' }}>🎓</div>
+            <h2 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', marginBottom: '1rem' }}>Congratulations!</h2>
+            <p style={{ fontSize: '1.1rem', color: '#64748b', lineHeight: '1.6', marginBottom: '2rem' }}>
+              You have successfully completed <strong>{course.title}</strong>. Keep up the great work on your learning journey!
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <button 
+                onClick={onBack}
+                style={{
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  background: '#F2921D',
+                  color: '#fff',
+                  border: 'none',
+                  fontWeight: '700',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s',
+                  boxShadow: '0 4px 6px -1px rgba(242, 146, 29, 0.4)'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                Go Back to Courses
+              </button>
+              <button 
+                onClick={() => setShowFinishedModal(false)}
+                style={{
+                  padding: '1rem',
+                  borderRadius: '12px',
+                  background: 'transparent',
+                  color: '#64748b',
+                  border: '1px solid #e2e8f0',
+                  fontWeight: '600',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Review Lessons
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

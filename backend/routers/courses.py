@@ -275,8 +275,14 @@ def complete_lesson(course_id: int, lesson_id: int, user_id: int, db: Session = 
         
         # Update progress
         course = db.query(models.Course).filter(models.Course.id == course_id).first()
-        if course and course.lessons_count > 0:
-            enrollment.progress = int((len(completed) / course.lessons_count) * 100)
+        if course:
+            # Dynamically count total lessons for accuracy
+            total_lessons = db.query(models.Lesson).join(models.Module).filter(models.Module.course_id == course_id).count()
+            if total_lessons > 0:
+                enrollment.progress = min(100, int((len(completed) / total_lessons) * 100))
+            else:
+                enrollment.progress = 0
+                
             if enrollment.progress >= 100:
                 enrollment.status = "completed"
             else:
