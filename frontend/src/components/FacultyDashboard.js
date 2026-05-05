@@ -56,6 +56,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Scholarships', icon: '🎓' },
     { name: 'Courses', icon: '📖' },
     { name: 'Practice Test', icon: '📄' },
+    { name: 'Mock Test', icon: '⏱️' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'Study Materials', icon: '📚' },
     { name: 'Interviews', icon: '📹' },
@@ -1749,7 +1750,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     type: 'Full Length',
     duration: '',
     questions: [],
-    status: 'Draft'
+    status: 'Draft',
+    is_mock: false,
+    start_time: '',
+    end_time: ''
   });
 
   const [currentQuestion, setCurrentQuestion] = useState({
@@ -1871,7 +1875,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           title: testFormData.name,
           category: testFormData.type,
           duration_mins: parseInt(testFormData.duration),
-          questions: submissionQuestions
+          questions: submissionQuestions,
+          is_mock: testFormData.is_mock,
+          start_time: testFormData.start_time,
+          end_time: testFormData.end_time
         })
       });
 
@@ -1884,7 +1891,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           type: 'Full Length',
           duration: '',
           questions: [],
-          status: 'Draft'
+          status: 'Draft',
+          is_mock: false,
+          start_time: '',
+          end_time: ''
         });
         // REFRESH DATA IMMEDIATELY
         fetchTests();
@@ -1946,6 +1956,42 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   required
                 />
               </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={testFormData.is_mock}
+                  onChange={(e) => setTestFormData({ ...testFormData, is_mock: e.target.checked })}
+                  style={{ width: '1.2rem', height: '1.2rem', accentColor: '#F2921D' }}
+                />
+                <span style={{ fontWeight: '700', color: '#1e293b' }}>Conduct as Mock Test (Scheduled)</span>
+              </label>
+              <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.5rem 0 0 2rem' }}>Scheduled tests are only available to students during a specific time window.</p>
+
+              {testFormData.is_mock && (
+                <div className="form-row" style={{ marginTop: '1.5rem' }}>
+                  <div className="form-group">
+                    <label>Start Time</label>
+                    <input
+                      type="datetime-local"
+                      value={testFormData.start_time}
+                      onChange={(e) => setTestFormData({ ...testFormData, start_time: e.target.value })}
+                      required={testFormData.is_mock}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>End Time</label>
+                    <input
+                      type="datetime-local"
+                      value={testFormData.end_time}
+                      onChange={(e) => setTestFormData({ ...testFormData, end_time: e.target.value })}
+                      required={testFormData.is_mock}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="modal-actions">
               <button type="button" className="cancel-btn" onClick={() => setIsTestModalOpen(false)}>Cancel</button>
@@ -2238,6 +2284,23 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [isManagingQuestions, setIsManagingQuestions] = useState(false);
   const [testToManage, setTestToManage] = useState(null);
   const [testQuestions, setTestQuestions] = useState([]);
+  const [viewingTestResults, setViewingTestResults] = useState(null);
+  const [testResults, setTestResults] = useState([]);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
+
+  const fetchTestResults = async (test) => {
+    setViewingTestResults(test);
+    setIsLoadingResults(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/${test.id}/results`);
+      const data = await response.json();
+      setTestResults(data);
+    } catch (error) {
+      console.error("Error fetching results:", error);
+    } finally {
+      setIsLoadingResults(false);
+    }
+  };
 
   const fetchTests = async () => {
     try {
@@ -2461,18 +2524,23 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const renderTests = () => {
+  const renderTests = (isMockView) => {
     if (isManagingQuestions) return renderManageQuestionsView();
+
+    const filteredTests = fetchedTests.filter(t => !!t.is_mock === isMockView);
 
     return (
       <div className="test-management-page">
         <div className="view-page-header">
           <div style={{ flex: 1 }}>
-            <h1>Practice Test Management</h1>
-            <p>Create and manage test papers</p>
+            <h1>{isMockView ? 'Mock Test Management' : 'Practice Test Management'}</h1>
+            <p>{isMockView ? 'Schedule and monitor time-bound exams' : 'Create and manage self-paced practice papers'}</p>
           </div>
-          <button className="create-course-main-btn" onClick={() => setIsTestModalOpen(true)}>
-            <span>+</span> Create New Test
+          <button className="create-course-main-btn" onClick={() => {
+            setTestFormData({ ...testFormData, is_mock: isMockView });
+            setIsTestModalOpen(true);
+          }}>
+            <span>+</span> Create New {isMockView ? 'Mock' : 'Practice'} Test
           </button>
         </div>
 
@@ -2494,7 +2562,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
         <div className="admin-management-section">
           <div className="table-header-row">
-            <h2>All Tests ({fetchedTests.length})</h2>
+            <h2>{isMockView ? 'All Mock Tests' : 'All Practice Tests'} ({filteredTests.length})</h2>
           </div>
 
           <table className="adm-table tests-table">
@@ -2509,7 +2577,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </tr>
             </thead>
             <tbody>
-              {fetchedTests.map((test) => (
+              {filteredTests.map((test) => (
                 <tr key={test.id}>
                   <td style={{ fontWeight: '700', color: 'var(--text-main)' }}>{test.title}</td>
                   <td>
@@ -2518,30 +2586,98 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <td>{test.duration_mins} mins</td>
                   <td>{test.total_questions}</td>
                   <td>
-                    <span className={`status-pill ${test.status?.toLowerCase() || 'published'}`}>
-                      {test.status || 'Published'}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <span className={`status-pill ${test.status?.toLowerCase() || 'published'}`}>
+                        {test.status || 'Published'}
+                      </span>
+                      {test.is_mock === 1 && (
+                        <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 'bold' }}>
+                          ⏱️ {new Date(test.start_time).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <div className="adm-actions-cell">
+                      <button className="icon-btn analytics" onClick={() => fetchTestResults(test)} title="View Results" style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}>📊</button>
                       <button className="icon-btn edit" onClick={() => manageQuestions(test)} title="Manage Questions">✎</button>
                       <button className="icon-btn delete" onClick={() => handleDeleteTest(test.id)} title="Delete Test">🗑️</button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {fetchedTests.length === 0 && (
+              {filteredTests.length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No tests created yet.</td>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No tests found in this category.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
         {isTestModalOpen && renderCreateTestModal()}
+        {viewingTestResults && renderTestResultsModal()}
       </div>
     );
   };
+
+  const renderTestResultsModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content" style={{ maxWidth: '900px' }}>
+        <div className="adm-modal-header">
+          <h2>Detailed Results: {viewingTestResults?.title}</h2>
+          <button className="close-modal" onClick={() => setViewingTestResults(null)}>×</button>
+        </div>
+        <div style={{ padding: '2rem', maxHeight: '70vh', overflowY: 'auto' }}>
+          {isLoadingResults ? (
+            <div style={{ textAlign: 'center', padding: '3rem' }}>
+                <div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #F2921D', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem auto' }} />
+                <p>Fetching student performances...</p>
+            </div>
+          ) : testResults.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', background: 'var(--bg-main)', borderRadius: '16px', border: '2px dashed var(--border-color)' }}>
+              <span style={{ fontSize: '3rem' }}>📊</span>
+              <p style={{ marginTop: '1rem', fontWeight: '600' }}>No student has attempted this test yet.</p>
+              <p style={{ fontSize: '0.9rem' }}>Results will appear here as soon as students finish the exam.</p>
+            </div>
+          ) : (
+            <table className="adm-table students-full">
+              <thead>
+                <tr>
+                  <th>STUDENT NAME</th>
+                  <th>EMAIL ADDRESS</th>
+                  <th>RAW SCORE</th>
+                  <th>PERCENTAGE</th>
+                  <th>SUBMITTED AT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {testResults.map(res => (
+                  <tr key={res.id}>
+                    <td><span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{res.student_name}</span></td>
+                    <td style={{ color: 'var(--text-muted)' }}>{res.student_email}</td>
+                    <td><span style={{ fontWeight: '600' }}>{res.score}</span></td>
+                    <td>
+                      <span style={{ 
+                        fontWeight: '800', 
+                        color: res.percentage >= 60 ? '#16a34a' : '#ef4444',
+                        background: res.percentage >= 60 ? '#dcfce7' : '#fee2e2',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem'
+                      }}>
+                        {res.percentage}%
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{new Date(res.completed_at).toLocaleString('en-GB')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   const liveClassStats = [
     { label: 'Upcoming Classes', value: '12', icon: '📅', color: '#e0f2fe' },
@@ -3989,7 +4125,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       case 'Courses':
         return renderCourses();
       case 'Practice Test':
-        return renderTests();
+        return renderTests(false);
+      case 'Mock Test':
+        return renderTests(true);
       case 'Live Classes':
         return renderLiveClasses();
       case 'Study Materials':

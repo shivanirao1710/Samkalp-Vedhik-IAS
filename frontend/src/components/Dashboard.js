@@ -190,6 +190,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Courses', icon: '📖' },
     { name: 'Study Materials', icon: '📚' },
     { name: 'Practice Test', icon: '📝' },
+    { name: 'Mock Test', icon: '⏱️' },
     { name: 'Mock Interview', icon: '📹' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'Current Affairs', icon: '🌍' },
@@ -209,7 +210,9 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
       case 'Courses':
         return <Courses user={user} onOpenCourse={(id) => { setSelectedCourseId(id); setCurrentView('CoursePlayer'); }} />;
       case 'Practice Test':
-        return <Tests />;
+        return <Tests user={user} isMock={false} />;
+      case 'Mock Test':
+        return <Tests user={user} isMock={true} />;
       case 'Study Materials':
         return <StudyMaterials user={user} />;
       case 'Mock Interview':

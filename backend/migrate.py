@@ -80,6 +80,19 @@ def migrate():
                 conn.execute(text("UPDATE course_enrollments SET completed_lessons = '[]' WHERE completed_lessons IS NULL;"))
                 conn.commit()
 
+            # Mock Test Columns Migration
+            res_mock = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='tests' AND column_name='is_mock';
+            """))
+            if not res_mock.fetchone():
+                print("Adding mock-related columns to 'tests' table...")
+                conn.execute(text("ALTER TABLE tests ADD COLUMN is_mock INTEGER DEFAULT 0;"))
+                conn.execute(text("ALTER TABLE tests ADD COLUMN start_time VARCHAR;"))
+                conn.execute(text("ALTER TABLE tests ADD COLUMN end_time VARCHAR;"))
+                conn.commit()
+
     except Exception as e:
         print(f"Migration failed: {e}")
 

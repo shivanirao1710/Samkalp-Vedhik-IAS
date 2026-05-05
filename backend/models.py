@@ -79,6 +79,9 @@ class Test(Base):
     duration_mins = Column(Integer, default=60)
     total_questions = Column(Integer, default=0)
     status = Column(String, default="Published") # Published, Draft
+    is_mock = Column(Integer, default=0) # 0: Practice, 1: Mock
+    start_time = Column(String, nullable=True) # ISO format string for simplicity
+    end_time = Column(String, nullable=True)
 
 class Question(Base):
     __tablename__ = "questions"

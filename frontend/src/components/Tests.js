@@ -69,7 +69,7 @@ const MOCK_TESTS = [
   }
 ];
 
-const Tests = () => {
+const Tests = ({ user, isMock }) => {
   const [tests, setTests] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
@@ -78,6 +78,7 @@ const Tests = () => {
   const [loading, setLoading] = useState(true);
   const [startingTestId, setStartingTestId] = useState(null); // tracks which test button is loading
   const [filterTab, setFilterTab] = useState('All Tests');
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [attemptedTestIds, setAttemptedTestIds] = useState(() => {
     try {
       const stored = localStorage.getItem('samkalp_student_attemptedTestsMap');
@@ -87,6 +88,8 @@ const Tests = () => {
 
   React.useEffect(() => {
     fetchTests();
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000); // Update every minute
+    return () => clearInterval(timer);
   }, []);
 
   const fetchTests = async () => {
@@ -102,6 +105,22 @@ const Tests = () => {
   };
 
   const startTest = async (test) => {
+    // Check if test is active (for Mock Tests)
+    if (test.is_mock) {
+      const start = test.start_time ? new Date(test.start_time) : null;
+      const end = test.end_time ? new Date(test.end_time) : null;
+      const now = new Date();
+      
+      if (start && now < start) {
+        alert(`This test will be available on ${start.toLocaleString()}`);
+        return;
+      }
+      if (end && now > end) {
+        alert("This test has expired.");
+        return;
+      }
+    }
+
     setStartingTestId(test.id);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/${test.id}/questions`);
@@ -146,11 +165,27 @@ const Tests = () => {
     }
   };
 
-  const finishTest = () => {
+  const finishTest = async () => {
     const score = calculateScore();
     const percentage = (score / activeTest.questions.length) * 100;
 
-    // Save attempt
+    // 1. Sync with Backend
+    try {
+      await fetch(`${process.env.REACT_APP_API_URL}/tests/attempts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          test_id: activeTest.id,
+          score: score,
+          percentage: Math.round(percentage)
+        })
+      });
+    } catch (err) {
+      console.error("Failed to sync score with backend:", err);
+    }
+
+    // 2. Update Local State
     const newAttempts = { ...attemptedTestIds, [activeTest.id]: Math.max(percentage, attemptedTestIds[activeTest.id] || 0) };
     setAttemptedTestIds(newAttempts);
     localStorage.setItem('samkalp_student_attemptedTestsMap', JSON.stringify(newAttempts));
@@ -217,7 +252,7 @@ const Tests = () => {
             ))}
           </div>
 
-          <button className="back-btn" onClick={resetTests}>Back to Tests</button>
+          <button className="back-btn" onClick={resetTests}>Back to {isMock ? 'Mock Tests' : 'Practice Tests'}</button>
         </div>
       </div>
     );
@@ -307,12 +342,14 @@ const Tests = () => {
     );
   }
 
-  const testsCompletedCount = Object.keys(attemptedTestIds).length;
+  const testsInView = tests.filter(test => !!test.is_mock === isMock);
+  const testsCompletedCount = testsInView.filter(t => attemptedTestIds[t.id] !== undefined).length;
+  
   const avgScore = testsCompletedCount > 0
-    ? (Object.values(attemptedTestIds).reduce((sum, s) => sum + s, 0) / testsCompletedCount).toFixed(0)
+    ? (testsInView.filter(t => attemptedTestIds[t.id] !== undefined).reduce((sum, t) => sum + attemptedTestIds[t.id], 0) / testsCompletedCount).toFixed(0)
     : 0;
 
-  const filteredTests = tests.filter(test => {
+  const filteredTests = testsInView.filter(test => {
     const isAttempted = attemptedTestIds[test.id] !== undefined;
     if (filterTab === 'Attempted') return isAttempted;
     if (filterTab === 'Not Attempted') return !isAttempted;
@@ -323,22 +360,22 @@ const Tests = () => {
     <div className="tests-dashboard">
       <div className="tests-header">
         <div>
-          <h1>Practice Tests</h1>
-          <p>Test your knowledge and track your performance</p>
+          <h1>{isMock ? 'Mock Tests (Scheduled)' : 'Practice Tests'}</h1>
+          <p>{isMock ? 'Complete your scheduled exams within the time window' : 'Test your knowledge and track your performance anytime'}</p>
         </div>
         <div className="tests-stats-mini">
           <div className="mini-stat">
             <span className="icon">📝</span>
             <div>
               <span className="value">{testsCompletedCount}</span>
-              <span className="label">Tests Completed</span>
+              <span className="label">Completed</span>
             </div>
           </div>
           <div className="mini-stat">
             <span className="icon">🎯</span>
             <div>
               <span className="value">{avgScore}%</span>
-              <span className="label">Average Score</span>
+              <span className="label">Avg Score</span>
             </div>
           </div>
         </div>
@@ -358,16 +395,23 @@ const Tests = () => {
 
       <div className="tests-grid">
         {loading && <p>Loading tests...</p>}
-        {!loading && filteredTests.length === 0 && <p style={{ color: '#64748b' }}>No tests available in this category.</p>}
+        {!loading && filteredTests.length === 0 && <p style={{ color: '#64748b' }}>No {isMock ? 'mock' : 'practice'} tests available in this category.</p>}
         {filteredTests.map((test) => {
           const isAttempted = attemptedTestIds[test.id] !== undefined;
           const score = attemptedTestIds[test.id];
 
+          // Scheduling logic
+          const start = test.start_time ? new Date(test.start_time) : null;
+          const end = test.end_time ? new Date(test.end_time) : null;
+          const isUpcoming = start && currentTime < start;
+          const isOver = end && currentTime > end;
+          const isCurrent = (!start || currentTime >= start) && (!end || currentTime <= end);
+
           return (
-            <div key={test.id} className="test-card-alt" style={{ position: 'relative' }}>
+            <div key={test.id} className={`test-card-alt ${isUpcoming ? 'locked' : ''}`} style={{ position: 'relative', opacity: isOver ? 0.8 : 1 }}>
               <div className="test-card-top">
                 <span className={`difficulty-tag medium`}>
-                  Medium
+                   {isMock ? (isOver ? 'Expired' : (isUpcoming ? 'Upcoming' : 'Live Now')) : 'Medium'}
                 </span>
                 <span className="category-tag">{test.category}</span>
               </div>
@@ -377,48 +421,59 @@ const Tests = () => {
                 <span>⏱️ {test.duration_mins} mins</span>
               </div>
 
-              {isAttempted && (
-                <div style={{ padding: '0.4rem 0.75rem', background: '#dcfce7', color: '#166534', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', margin: '0.5rem 0', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>✓ Attempted</span>
-                  <span>High Score: {score.toFixed(0)}%</span>
+              {test.is_mock === 1 && (
+                <div style={{ marginTop: '0.75rem', padding: '0.6rem', background: 'rgba(242, 146, 29, 0.05)', borderRadius: '8px', border: '1px solid rgba(242, 146, 29, 0.2)' }}>
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Scheduled Window:</p>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
+                    {start ? start.toLocaleDateString() + ' ' + start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Anytime'} 
+                    {end ? ' - ' + end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}
+                  </p>
                 </div>
               )}
 
-              <button
-                className="start-test-btn"
-                onClick={() => startTest(test)}
-                disabled={startingTestId === test.id}
-                style={{
-                  marginTop: isAttempted ? '0.5rem' : '1.5rem',
-                  background: isAttempted ? '#f1f5f9' : undefined,
-                  color: isAttempted ? '#3b82f6' : undefined,
-                  border: isAttempted ? '1px solid #cbd5e1' : undefined,
-                  opacity: startingTestId === test.id ? 1 : undefined,
-                  cursor: startingTestId === test.id ? 'not-allowed' : undefined,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.6rem'
-                }}
-              >
-                {startingTestId === test.id ? (
-                  <>
-                    <span style={{
-                      width: '16px',
-                      height: '16px',
-                      border: '2px solid rgba(255,255,255,0.4)',
-                      borderTopColor: '#fff',
-                      borderRadius: '50%',
-                      display: 'inline-block',
-                      animation: 'spin 0.7s linear infinite',
-                      flexShrink: 0
-                    }} />
-                    Loading Test...
-                  </>
-                ) : (
-                  isAttempted ? 'Retake Test' : 'Start Test'
-                )}
-              </button>
+              {isAttempted && (
+                <div style={{ padding: '0.4rem 0.75rem', background: '#dcfce7', color: '#166534', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', margin: '0.5rem 0', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>✓ Attempted</span>
+                  <span>Score: {score.toFixed(0)}%</span>
+                </div>
+              )}
+
+              {!isAttempted && (
+                <button
+                  className="start-test-btn"
+                  onClick={() => startTest(test)}
+                  disabled={startingTestId === test.id || isUpcoming || (isOver && !isAttempted)}
+                  style={{
+                    marginTop: test.is_mock ? '0.5rem' : '1.5rem',
+                    background: isUpcoming ? '#f1f5f9' : (isOver && !isAttempted ? '#f1f5f9' : undefined),
+                    color: isUpcoming ? '#94a3b8' : (isOver && !isAttempted ? '#94a3b8' : undefined),
+                    border: isUpcoming || (isOver && !isAttempted) ? '1px solid #cbd5e1' : undefined,
+                    cursor: isUpcoming || (isOver && !isAttempted) ? 'not-allowed' : undefined,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.6rem'
+                  }}
+                >
+                  {startingTestId === test.id ? (
+                    <>
+                      <span style={{
+                        width: '16px',
+                        height: '16px',
+                        border: '2px solid rgba(255,255,255,0.4)',
+                        borderTopColor: '#fff',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        animation: 'spin 0.7s linear infinite',
+                        flexShrink: 0
+                      }} />
+                      Loading...
+                    </>
+                  ) : (
+                    isUpcoming ? 'Starts Soon' : (isOver ? 'Expired' : 'Start Test')
+                  )}
+                </button>
+              )}
             </div>
           );
         })}
