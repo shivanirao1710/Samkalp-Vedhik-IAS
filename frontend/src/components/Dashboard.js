@@ -127,21 +127,30 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
         // 2. Fetch Stats
         const statsResp = await fetch(`${process.env.REACT_APP_API_URL}/users/stats/${user.id}`);
+        let overall = 0;
+        
+        // 3. Fetch Enrolled Courses
+        const courseResp = await fetch(`${process.env.REACT_APP_API_URL}/courses/student/${user.id}`);
+        let courses = [];
+        if (courseResp.ok) {
+          courses = await courseResp.json();
+          const enrolled = courses.filter(c => c.is_enrolled);
+          setEnrolledCourses(enrolled);
+          
+          if (enrolled.length > 0) {
+            const total = enrolled.reduce((acc, c) => acc + (c.progress || 0), 0);
+            overall = Math.min(100, Math.round(total / enrolled.length));
+          }
+        }
+
         if (statsResp.ok) {
           const statsData = await statsResp.json();
           setDashboardStats({
-            overallProgress: '0%',
+            overallProgress: `${overall}%`,
             learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h',
             testsCompleted: `${statsData.tests_taken}/20`,
             dayStreak: statsData.study_streak.toString()
           });
-        }
-
-        // 3. Fetch Enrolled Courses
-        const courseResp = await fetch(`${process.env.REACT_APP_API_URL}/courses/student/${user.id}`);
-        if (courseResp.ok) {
-          const courses = await courseResp.json();
-          setEnrolledCourses(courses.filter(c => c.is_enrolled));
         }
 
         // 4. Fetch Tests
@@ -295,10 +304,10 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                   <div className="course-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h4 style={{ fontWeight: '700' }}>{mainCourse.title}</h4>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>{mainCourse.progress || 0}%</span>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>{Math.min(100, mainCourse.progress || 0)}%</span>
                     </div>
                     <div className="progress-bar">
-                      <div className="progress-inner" style={{ width: `${mainCourse.progress || 0}%` }}></div>
+                      <div className="progress-inner" style={{ width: `${Math.min(100, mainCourse.progress || 0)}%` }}></div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
                       <span>{mainCourse.modules_count || 0} modules</span>

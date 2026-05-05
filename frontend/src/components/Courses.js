@@ -115,15 +115,15 @@ const Courses = ({ user, onOpenCourse }) => {
                       <div className="course-progress">
                         <div className="progress-label">
                           <span>Progress</span>
-                          <span className="progress-percent">{course.progress || 0}%</span>
+                          <span className="progress-percent">{Math.min(100, course.progress || 0)}%</span>
                         </div>
                         <div className="progress-bar-container">
-                          <div className="progress-bar-fill" style={{ width: `${course.progress || 0}%` }}></div>
+                          <div className="progress-bar-fill" style={{ width: `${Math.min(100, course.progress || 0)}%` }}></div>
                         </div>
                       </div>
                       <button 
                         className="continue-btn" 
-                        style={{ background: course.status === 'completed' ? '#10b981' : '', cursor: 'pointer' }}
+                        style={{ background: course.status === 'completed' ? '#F2921D' : '', color: course.status === 'completed' ? 'white' : '', cursor: 'pointer' }}
                         onClick={() => onOpenCourse(course.id)}
                       >
                         {course.status === 'completed' ? 'Completed' : 'Continue Learning'}
