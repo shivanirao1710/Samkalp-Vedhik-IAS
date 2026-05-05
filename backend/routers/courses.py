@@ -232,10 +232,12 @@ def get_student_courses(user_id: int, db: Session = Depends(get_db)):
             c_dict["is_enrolled"] = True
             c_dict["status"] = enrolled_dict[c.id].status
             c_dict["progress"] = enrolled_dict[c.id].progress
+            c_dict["completed_lessons"] = json.loads(enrolled_dict[c.id].completed_lessons or "[]")
         else:
             c_dict["is_enrolled"] = False
             c_dict["status"] = "not_enrolled"
             c_dict["progress"] = 0
+            c_dict["completed_lessons"] = []
             
         result.append(c_dict)
     return result
@@ -255,3 +257,32 @@ def upload_lesson_content(file: UploadFile = File(...)):
         return {"url": file_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+@router.post("/{course_id}/lessons/{lesson_id}/complete/{user_id}")
+def complete_lesson(course_id: int, lesson_id: int, user_id: int, db: Session = Depends(get_db)):
+    enrollment = db.query(models.CourseEnrollment).filter(
+        models.CourseEnrollment.user_id == user_id,
+        models.CourseEnrollment.course_id == course_id
+    ).first()
+    
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+        
+    completed = json.loads(enrollment.completed_lessons or "[]")
+    if lesson_id not in completed:
+        completed.append(lesson_id)
+        enrollment.completed_lessons = json.dumps(completed)
+        
+        # Update progress
+        course = db.query(models.Course).filter(models.Course.id == course_id).first()
+        if course and course.lessons_count > 0:
+            enrollment.progress = int((len(completed) / course.lessons_count) * 100)
+            if enrollment.progress >= 100:
+                enrollment.status = "completed"
+            else:
+                enrollment.status = "in_progress"
+        
+        db.commit()
+        db.refresh(enrollment)
+        
+    return {"status": "success", "progress": enrollment.progress}

@@ -68,6 +68,18 @@ def migrate():
                 conn.execute(text("ALTER TABLE users ADD COLUMN scholarship_answers_json TEXT;"))
                 conn.commit()
 
+            res4 = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='course_enrollments' AND column_name='completed_lessons';
+            """))
+            if not res4.fetchone():
+                print("Adding 'completed_lessons' column to 'course_enrollments'...")
+                conn.execute(text("ALTER TABLE course_enrollments ADD COLUMN completed_lessons TEXT DEFAULT '[]';"))
+                # Also update existing rows to be sure
+                conn.execute(text("UPDATE course_enrollments SET completed_lessons = '[]' WHERE completed_lessons IS NULL;"))
+                conn.commit()
+
     except Exception as e:
         print(f"Migration failed: {e}")
 

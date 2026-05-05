@@ -152,6 +152,7 @@ class CourseEnrollment(Base):
     course_id = Column(Integer, index=True)
     status = Column(String, default="not_started")
     progress = Column(Integer, default=0)
+    completed_lessons = Column(Text, default="[]") # JSON list of lesson IDs
 
 class StudyMaterial(Base):
     __tablename__ = "study_materials"

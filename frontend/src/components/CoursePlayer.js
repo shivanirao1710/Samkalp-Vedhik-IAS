@@ -44,6 +44,60 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
     }));
   };
 
+  const allLessons = course?.course_modules?.flatMap(m => m.lessons) || [];
+  const currentIndex = allLessons.findIndex(l => l.id === selectedLesson?.id);
+
+  const handleNext = async () => {
+    if (!selectedLesson) return;
+
+    // Mark current lesson as complete
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/courses/${course.id}/lessons/${selectedLesson.id}/complete/${user.id}`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCourse(prev => {
+          const completed = prev.completed_lessons || [];
+          return {
+            ...prev,
+            progress: data.progress,
+            completed_lessons: completed.includes(selectedLesson.id) 
+              ? completed 
+              : [...completed, selectedLesson.id]
+          };
+        });
+      }
+    } catch (err) {
+      console.error("Failed to mark lesson complete:", err);
+    }
+
+    // Move to next lesson if available
+    if (currentIndex < allLessons.length - 1) {
+      const nextLesson = allLessons[currentIndex + 1];
+      setSelectedLesson(nextLesson);
+      
+      // Auto-expand module if needed
+      const parentModule = course.course_modules.find(m => m.lessons.some(l => l.id === nextLesson.id));
+      if (parentModule && !expandedModules[parentModule.id]) {
+        setExpandedModules(prev => ({ ...prev, [parentModule.id]: true }));
+      }
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      const prevLesson = allLessons[currentIndex - 1];
+      setSelectedLesson(prevLesson);
+
+      // Auto-expand module if needed
+      const parentModule = course.course_modules.find(m => m.lessons.some(l => l.id === prevLesson.id));
+      if (parentModule && !expandedModules[parentModule.id]) {
+        setExpandedModules(prev => ({ ...prev, [parentModule.id]: true }));
+      }
+    }
+  };
+
   if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading Course Player...</div>;
   if (!course) return <div style={{ padding: '2rem', textAlign: 'center' }}>Course not found or you are not enrolled.</div>;
 
@@ -65,15 +119,15 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
         <div className="modules-list" style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
           {course.course_modules.map((module, mIdx) => (
             <div key={module.id} style={{ marginBottom: '0.5rem' }}>
-              <div 
+              <div
                 onClick={() => toggleModule(module.id)}
-                style={{ 
-                  padding: '0.75rem', 
-                  background: expandedModules[module.id] ? '#fff' : 'transparent', 
-                  borderRadius: '8px', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
+                style={{
+                  padding: '0.75rem',
+                  background: expandedModules[module.id] ? '#fff' : 'transparent',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
                   border: expandedModules[module.id] ? '1px solid #e2e8f0' : '1px solid transparent'
                 }}
@@ -83,18 +137,18 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
                 </span>
                 <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{expandedModules[module.id] ? '▲' : '▼'}</span>
               </div>
-              
+
               {expandedModules[module.id] && (
                 <div style={{ marginTop: '0.25rem', marginLeft: '0.5rem' }}>
                   {module.lessons.map((lesson, lIdx) => (
-                    <div 
+                    <div
                       key={lesson.id}
                       onClick={() => setSelectedLesson(lesson)}
-                      style={{ 
-                        padding: '0.6rem 1rem', 
-                        borderRadius: '6px', 
-                        cursor: 'pointer', 
-                        fontSize: '0.85rem', 
+                      style={{
+                        padding: '0.6rem 1rem',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem',
                         color: selectedLesson?.id === lesson.id ? '#fff' : '#475569',
                         background: selectedLesson?.id === lesson.id ? '#F2921D' : 'transparent',
                         marginBottom: '2px',
@@ -103,8 +157,15 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
                         gap: '0.5rem'
                       }}
                     >
-                      <span>{lesson.content_type === 'video' ? '🎬' : (lesson.content_type === 'pdf' ? '📄' : '📝')}</span>
-                      <span style={{ fontWeight: selectedLesson?.id === lesson.id ? '700' : '500' }}>{lesson.title}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>{lesson.content_type === 'video' ? '🎬' : (lesson.content_type === 'pdf' ? '📄' : '📝')}</span>
+                            <span style={{ fontWeight: selectedLesson?.id === lesson.id ? '700' : '500' }}>{lesson.title}</span>
+                          </div>
+                          {(course.completed_lessons || []).includes(lesson.id) && (
+                            <span style={{ color: selectedLesson?.id === lesson.id ? '#fff' : '#10b981', fontSize: '0.8rem' }}>✓</span>
+                          )}
+                        </div>
                     </div>
                   ))}
                 </div>
@@ -119,11 +180,11 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
         {selectedLesson ? (
           <div style={{ maxWidth: '900px', margin: '0 auto' }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#1e293b', marginBottom: '1.5rem' }}>{selectedLesson.title}</h1>
-            
+
             <div className="content-viewer" style={{ minHeight: '400px', background: '#f8fafc', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
               {selectedLesson.content_type === 'video' ? (
                 <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-                  <iframe 
+                  <iframe
                     src={selectedLesson.content_url.includes('youtube.com') || selectedLesson.content_url.includes('youtu.be')
                       ? selectedLesson.content_url.replace('watch?v=', 'embed/').split('&')[0]
                       : (selectedLesson.content_url.startsWith('http') ? selectedLesson.content_url : `${process.env.REACT_APP_API_URL}${selectedLesson.content_url}`)
@@ -134,7 +195,7 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
                   ></iframe>
                 </div>
               ) : selectedLesson.content_type === 'pdf' ? (
-                <iframe 
+                <iframe
                   src={selectedLesson.content_url.startsWith('http') ? selectedLesson.content_url : `${process.env.REACT_APP_API_URL}${selectedLesson.content_url}`}
                   style={{ width: '100%', height: '800px', border: 'none' }}
                   title={selectedLesson.title}
@@ -147,12 +208,35 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
             </div>
 
             <div className="lesson-footer" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
-               <button style={{ padding: '0.75rem 1.5rem', borderRadius: '10px', background: '#f1f5f9', border: 'none', fontWeight: '700', color: '#64748b', cursor: 'pointer' }}>
-                  ← Previous Lesson
-               </button>
-               <button style={{ padding: '0.75rem 1.5rem', borderRadius: '10px', background: '#F2921D', border: 'none', fontWeight: '700', color: '#fff', cursor: 'pointer' }}>
-                  Complete & Next →
-               </button>
+              <button 
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+                style={{ 
+                  padding: '0.75rem 1.5rem', 
+                  borderRadius: '10px', 
+                  background: '#f1f5f9', 
+                  border: 'none', 
+                  fontWeight: '700', 
+                  color: currentIndex === 0 ? '#cbd5e1' : '#64748b', 
+                  cursor: currentIndex === 0 ? 'not-allowed' : 'pointer' 
+                }}
+              >
+                ← Previous Lesson
+              </button>
+              <button 
+                onClick={handleNext}
+                style={{ 
+                  padding: '0.75rem 1.5rem', 
+                  borderRadius: '10px', 
+                  background: '#F2921D', 
+                  border: 'none', 
+                  fontWeight: '700', 
+                  color: '#fff', 
+                  cursor: 'pointer' 
+                }}
+              >
+                {currentIndex === allLessons.length - 1 ? 'Finish Course' : 'Complete & Next →'}
+              </button>
             </div>
           </div>
         ) : (
