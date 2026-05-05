@@ -156,14 +156,14 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       }
     } catch (err) { console.error(err); }
   };
-  
+
   const fetchPendingScholarships = async () => {
     try {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/users/scholarship/pending`);
       if (res.ok) setPendingScholarships(await res.json());
     } catch (err) { console.error(err); }
   };
-  
+
   const handleEvaluateScholarship = async (userId, status) => {
     if (!window.confirm(`Are you sure you want to ${status} this scholarship?`)) return;
     try {
@@ -814,7 +814,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       fd.append('lessons_count', formData.hours || 0);
       fd.append('status', formData.status === 'Published' ? 'in_progress' : 'not_started');
       fd.append('progress', 0);
-      
+
       if (formData.courseModules && formData.courseModules.length > 0) {
         fd.append('modules', JSON.stringify(formData.courseModules));
       }
@@ -829,10 +829,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       if (res.ok) {
         alert('Course created successfully! It is now visible in the Student Dashboard.');
         setIsCreateModalOpen(false);
-        setFormData({ 
-          title: '', author: '', modules: '', hours: '', 
-          category: 'Art and Culture', status: 'Draft', 
-          description: '', courseModules: [] 
+        setFormData({
+          title: '', author: '', modules: '', hours: '',
+          category: 'Art and Culture', status: 'Draft',
+          description: '', courseModules: []
         });
         setThumbnailFile(null);
         setThumbnailPreview(null);
@@ -862,13 +862,32 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const openEditModal = (course) => {
     setEditCourse(course);
     const statusLabel = course.status === 'in_progress' ? 'Published' : 'Draft';
+    
+    // Transform flat lesson structure to multi-content structure for UI
+    const processedModules = (course.course_modules || []).map(module => ({
+        ...module,
+        lessons: (module.lessons || []).map(lesson => {
+            let parsedContents = [];
+            if (lesson.content_type === 'multi') {
+                try {
+                    parsedContents = JSON.parse(lesson.content_url);
+                } catch (e) {
+                    parsedContents = [{ type: 'video', url: lesson.content_url }];
+                }
+            } else {
+                parsedContents = [{ type: lesson.content_type || 'video', url: lesson.content_url || '' }];
+            }
+            return { ...lesson, contents: parsedContents };
+        })
+    }));
+
     setEditFormData({
       title: course.title || '',
       description: course.description || '',
       modules: course.modules_count || '',
       hours: course.lessons_count || '',
       status: statusLabel,
-      courseModules: course.course_modules || []
+      courseModules: processedModules
     });
     // Show existing thumbnail as preview
     if (course.image_url) {
@@ -902,7 +921,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       fd.append('lessons_count', editFormData.hours || 0);
       fd.append('status', editFormData.status === 'Published' ? 'in_progress' : 'not_started');
       fd.append('progress', editCourse.progress || 0);
-      
+
       if (editFormData.courseModules) {
         fd.append('modules', JSON.stringify(editFormData.courseModules));
       }
@@ -979,7 +998,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   };
 
   const addLesson = (mIdx, isEdit = false) => {
-    const newLesson = { title: '', content_type: 'video', content_url: '' };
+    const newLesson = { title: '', contents: [{ type: 'video', url: '' }] };
     if (isEdit) {
       const updated = [...editFormData.courseModules];
       updated[mIdx].lessons = [...updated[mIdx].lessons, newLesson];
@@ -1004,23 +1023,95 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   };
 
   const handleLessonChange = (mIdx, lIdx, field, val, isEdit = false) => {
-    if (isEdit) {
-      const updated = [...editFormData.courseModules];
-      updated[mIdx].lessons[lIdx][field] = val;
-      setEditFormData({ ...editFormData, courseModules: updated });
-    } else {
-      const updated = [...formData.courseModules];
-      updated[mIdx].lessons[lIdx][field] = val;
-      setFormData({ ...formData, courseModules: updated });
-    }
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        updated[mIdx].lessons = [...updated[mIdx].lessons];
+        updated[mIdx].lessons[lIdx] = { ...updated[mIdx].lessons[lIdx], [field]: val };
+        return { ...prev, courseModules: updated };
+    });
   };
 
-  const [isUploadingLesson, setIsUploadingLesson] = useState({}); // { 'mIdx-lIdx': true }
+  const handleLessonContentChange = (mIdx, lIdx, cIdx, field, val, isEdit = false) => {
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        const updatedLessons = [...updated[mIdx].lessons];
+        const updatedContents = [...updatedLessons[lIdx].contents];
+        updatedContents[cIdx] = { ...updatedContents[cIdx], [field]: val };
+        updatedLessons[lIdx] = { ...updatedLessons[lIdx], contents: updatedContents };
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
+        return { ...prev, courseModules: updated };
+    });
+  };
 
-  const handleLessonFileUpload = async (mIdx, lIdx, file, isEdit = false) => {
+  const addContentToLesson = (mIdx, lIdx, isEdit = false) => {
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        const updatedLessons = [...updated[mIdx].lessons];
+        updatedLessons[lIdx] = { 
+            ...updatedLessons[lIdx], 
+            contents: [...updatedLessons[lIdx].contents, { type: 'video', url: '' }] 
+        };
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
+        return { ...prev, courseModules: updated };
+    });
+  };
+
+  const removeContentFromLesson = (mIdx, lIdx, cIdx, isEdit = false) => {
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        const updatedLessons = [...updated[mIdx].lessons];
+        if (updatedLessons[lIdx].contents.length <= 1) return prev;
+        updatedLessons[lIdx].contents = updatedLessons[lIdx].contents.filter((_, i) => i !== cIdx);
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
+        return { ...prev, courseModules: updated };
+    });
+  };
+
+  const handleCourseBulkUpload = async (mIdx, files, isEdit = false) => {
+    if (!files || files.length === 0) return;
+    
+    const fileList = Array.from(files);
+    
+    const uploadFilesSequentially = async () => {
+        let currentLessonOffset = 0;
+        const currentData = isEdit ? editFormData : formData;
+        currentLessonOffset = currentData.courseModules[mIdx].lessons.length;
+
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            const contentType = file.type.startsWith('video/') ? 'video' : (file.type === 'application/pdf' ? 'pdf' : (file.type.startsWith('image/') ? 'image' : 'video'));
+            const lessonTitle = file.name.split('.').slice(0, -1).join('.');
+            const lIdx = currentLessonOffset + i;
+
+            // Add lesson with the content already in it
+            const addAction = isEdit ? setEditFormData : setFormData;
+            addAction(prev => {
+                const updated = [...prev.courseModules];
+                updated[mIdx].lessons = [...updated[mIdx].lessons, { 
+                    title: lessonTitle, 
+                    contents: [{ type: contentType, url: '' }] 
+                }];
+                return { ...prev, courseModules: updated };
+            });
+
+            // Upload (always to the first content item for bulk)
+            await handleLessonFileUpload(mIdx, lIdx, 0, file, isEdit);
+        }
+    };
+    
+    uploadFilesSequentially();
+  };
+
+  const [isUploadingLesson, setIsUploadingLesson] = useState({}); // { 'mIdx-lIdx-cIdx': true }
+
+  const handleLessonFileUpload = async (mIdx, lIdx, cIdx, file, isEdit = false) => {
     if (!file) return;
     
-    const key = `${mIdx}-${lIdx}`;
+    const key = `${mIdx}-${lIdx}-${cIdx}`;
     setIsUploadingLesson(prev => ({ ...prev, [key]: true }));
     
     try {
@@ -1034,7 +1125,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       
       if (res.ok) {
         const data = await res.json();
-        handleLessonChange(mIdx, lIdx, 'content_url', data.url, isEdit);
+        handleLessonContentChange(mIdx, lIdx, cIdx, 'url', data.url, isEdit);
       } else {
         alert("Upload failed. Please try again.");
       }
@@ -1065,13 +1156,27 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
         {currentModules.map((module, mIdx) => (
           <div key={mIdx} className="module-item-card" style={{ background: '#f8fafc', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e2e8f0' }}>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', alignItems: 'center' }}>
               <input
                 type="text"
                 placeholder={`Module ${mIdx + 1} Title`}
                 value={module.title}
                 onChange={(e) => handleModuleTitleChange(mIdx, e.target.value, isEdit)}
-                style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: '1.5px solid #cbd5e1' }}
+                style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontWeight: 600 }}
+              />
+              <button 
+                type="button" 
+                onClick={() => document.getElementById(`bulk-upload-${mIdx}`).click()}
+                style={{ padding: '0.5rem 0.75rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}
+              >
+                + Bulk Content
+              </button>
+              <input 
+                id={`bulk-upload-${mIdx}`} 
+                type="file" 
+                multiple 
+                style={{ display: 'none' }} 
+                onChange={(e) => handleCourseBulkUpload(mIdx, e.target.files, isEdit)} 
               />
               <button type="button" onClick={() => removeModule(mIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
             </div>
@@ -1079,113 +1184,99 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             <div className="lessons-list" style={{ marginLeft: '1rem', borderLeft: '2px solid #e2e8f0', paddingLeft: '1rem' }}>
               {module.lessons.map((lesson, lIdx) => (
                 <div key={lIdx} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: '#fff', padding: '0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <input
                       type="text"
                       placeholder="Lesson Title"
                       value={lesson.title}
                       onChange={(e) => handleLessonChange(mIdx, lIdx, 'title', e.target.value, isEdit)}
-                      style={{ flex: 2, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                      style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 700 }}
                     />
-                    <select
-                      value={lesson.content_type}
-                      onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_type', e.target.value, isEdit)}
-                      style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
-                    >
-                      <option value="video">Video</option>
-                      <option value="pdf">PDF</option>
-                      <option value="text">Text</option>
-                    </select>
-                    <button type="button" onClick={() => removeLesson(mIdx, lIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.1rem' }}>×</button>
+                    <button type="button" onClick={() => removeLesson(mIdx, lIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
                   </div>
-                  
-                  {lesson.content_type === 'text' ? (
-                    <textarea
-                      placeholder="Enter lesson text content..."
-                      value={lesson.content_url}
-                      onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_url', e.target.value, isEdit)}
-                      style={{ width: '100%', padding: '0.85rem', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '0.95rem', minHeight: '100px', resize: 'vertical', outline: 'none' }}
-                    />
-                  ) : (
-                    <div className="lesson-content-upload-area" style={{ marginTop: '0.25rem' }}>
-                      {lesson.content_url ? (
-                        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: '#f1f5f9', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                          <span style={{ fontSize: '1.1rem' }}>{lesson.content_type === 'video' ? '🎬' : '📄'}</span>
-                          <span style={{ flex: 1, fontSize: '0.85rem', color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {lesson.content_url.split('/').pop()}
-                          </span>
-                          <button 
-                            type="button" 
-                            onClick={() => handleLessonChange(mIdx, lIdx, 'content_url', '', isEdit)} 
-                            style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, cursor: 'pointer', fontSize: '0.75rem' }}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          <div 
-                            className="upload-drop-zone"
-                            onClick={() => document.getElementById(`lesson-file-${mIdx}-${lIdx}`).click()}
-                            style={{
-                              border: '1.5px dashed #F2921D',
-                              borderRadius: '10px',
-                              padding: '1.25rem',
-                              textAlign: 'center',
-                              cursor: 'pointer',
-                              background: isUploadingLesson[`${mIdx}-${lIdx}`] ? '#fff7ed' : '#fff',
-                              transition: 'all 0.2s',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              gap: '0.5rem'
-                            }}
-                          >
-                            {isUploadingLesson[`${mIdx}-${lIdx}`] ? (
-                              <>
-                                <div className="spinner-mini" style={{ width: '20px', height: '20px', border: '2px solid #F2921D', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F2921D' }}>Uploading...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span style={{ fontSize: '1.5rem' }}>📤</span>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#F2921D' }}>Click to upload {lesson.content_type} from files</span>
-                                <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{lesson.content_type === 'video' ? 'MP4, WEBM, MOV' : 'PDF Document'}</span>
-                              </>
-                            )}
-                            <input 
-                              id={`lesson-file-${mIdx}-${lIdx}`}
-                              type="file" 
-                              accept={lesson.content_type === 'video' ? "video/*" : "application/pdf"} 
-                              style={{ display: 'none' }} 
-                              onChange={(e) => handleLessonFileUpload(mIdx, lIdx, e.target.files[0], isEdit)}
-                              disabled={isUploadingLesson[`${mIdx}-${lIdx}`]}
-                            />
-                          </div>
-                          
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
-                            <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>OR USE URL</span>
-                            <div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div>
-                          </div>
 
-                          <input
-                            type="text"
-                            placeholder="Paste external link instead..."
-                            value={lesson.content_url}
-                            onChange={(e) => handleLessonChange(mIdx, lIdx, 'content_url', e.target.value, isEdit)}
-                            style={{ padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
-                          />
+                  {(lesson.contents || []).map((content, cIdx) => (
+                    <div key={cIdx} style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <select
+                          value={content.type}
+                          onChange={(e) => handleLessonContentChange(mIdx, lIdx, cIdx, 'type', e.target.value, isEdit)}
+                          style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                        >
+                          <option value="video">Video</option>
+                          <option value="pdf">PDF</option>
+                          <option value="image">Image</option>
+                          <option value="text">Text</option>
+                        </select>
+                        <button type="button" onClick={() => removeContentFromLesson(mIdx, lIdx, cIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>×</button>
+                      </div>
+
+                      {content.type === 'text' ? (
+                        <textarea
+                          placeholder="Enter text content..."
+                          value={content.url}
+                          onChange={(e) => handleLessonContentChange(mIdx, lIdx, cIdx, 'url', e.target.value, isEdit)}
+                          style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', minHeight: '80px', resize: 'vertical' }}
+                        />
+                      ) : (
+                        <div className="content-upload-area">
+                          {content.url ? (
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#fff', padding: '0.5rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                              <span>{content.type === 'video' ? '🎬' : (content.type === 'pdf' ? '📄' : '🖼️')}</span>
+                              <span style={{ flex: 1, fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{content.url.split('/').pop()}</span>
+                              <button type="button" onClick={() => handleLessonContentChange(mIdx, lIdx, cIdx, 'url', '', isEdit)} style={{ color: '#ef4444', border: 'none', background: 'none', fontSize: '0.7rem' }}>Remove</button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              <div
+                                onClick={() => document.getElementById(`file-${mIdx}-${lIdx}-${cIdx}`).click()}
+                                style={{ border: '1.5px dashed #F2921D', borderRadius: '8px', padding: '1rem', textAlign: 'center', cursor: 'pointer', background: isUploadingLesson[`${mIdx}-${lIdx}-${cIdx}`] ? '#fff7ed' : '#fff' }}
+                              >
+                                {isUploadingLesson[`${mIdx}-${lIdx}-${cIdx}`] ? 'Uploading...' : `Click to upload ${content.type}`}
+                                <input id={`file-${mIdx}-${lIdx}-${cIdx}`} type="file" style={{ display: 'none' }} onChange={(e) => handleLessonFileUpload(mIdx, lIdx, cIdx, e.target.files[0], isEdit)} />
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Or paste URL..."
+                                value={content.url}
+                                onChange={(e) => handleLessonContentChange(mIdx, lIdx, cIdx, 'url', e.target.value, isEdit)}
+                                style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
+                  ))}
+                  
+                  <button type="button" onClick={() => addContentToLesson(mIdx, lIdx, isEdit)} style={{ alignSelf: 'center', fontSize: '0.75rem', color: '#64748b', background: '#f1f5f9', border: 'none', padding: '0.4rem 1rem', borderRadius: '20px', cursor: 'pointer' }}>
+                    + Add More Content (Video, PDF, etc.)
+                  </button>
                 </div>
               ))}
-              <button type="button" onClick={() => addLesson(mIdx, isEdit)} style={{ fontSize: '0.8rem', color: '#F2921D', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, padding: '0.2rem 0' }}>
-                + Add Lesson
+              <button 
+                type="button" 
+                onClick={() => addLesson(mIdx, isEdit)} 
+                style={{ 
+                  marginTop: '0.5rem',
+                  padding: '0.6rem 1rem', 
+                  background: '#f8fafc', 
+                  color: '#F2921D', 
+                  border: '1.5px dashed #F2921D', 
+                  borderRadius: '10px',
+                  cursor: 'pointer', 
+                  fontWeight: 700, 
+                  fontSize: '0.85rem',
+                  width: '100%',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#fff7ed'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#f8fafc'}
+              >
+                + Add Another Lesson
               </button>
             </div>
+
           </div>
         ))}
       </div>
@@ -3706,19 +3797,19 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           <h1>Scholarship Evaluation</h1>
           <p>Review and approve pending scholarship tests</p>
         </div>
-        <button 
-          onClick={() => { fetchSettings(); setIsScheduleModalOpen(true); }} 
+        <button
+          onClick={() => { fetchSettings(); setIsScheduleModalOpen(true); }}
           style={{ background: '#F2921D', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <span>📅</span> Schedule Test
         </button>
       </div>
-      
+
       <div className="admin-management-section">
         <div className="table-header-row">
           <h2>All Evaluations</h2>
         </div>
-        
+
         <table className="adm-table students-full">
           <thead>
             <tr>
@@ -3746,27 +3837,27 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   </span>
                 </td>
                 <td>
-                  <span className={`status-pill ${student.scholarship_status === 'approved' ? 'published' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? 'inactive' : 'pending'}`} style={{ 
-                    background: student.scholarship_status === 'approved' ? '#dcfce7' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#fee2e2' : '#fef9c3', 
-                    color: student.scholarship_status === 'approved' ? '#166534' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#991b1b' : '#854d0e', 
-                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontWeight: 'bold' 
+                  <span className={`status-pill ${student.scholarship_status === 'approved' ? 'published' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? 'inactive' : 'pending'}`} style={{
+                    background: student.scholarship_status === 'approved' ? '#dcfce7' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#fee2e2' : '#fef9c3',
+                    color: student.scholarship_status === 'approved' ? '#166534' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#991b1b' : '#854d0e',
+                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontWeight: 'bold'
                   }}>
                     {student.scholarship_status === 'under_evaluation' ? 'Pending' : (student.scholarship_status === 'rejected_acknowledged' ? 'Rejected' : student.scholarship_status.charAt(0).toUpperCase() + student.scholarship_status.slice(1))}
                   </span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
+                    <button
                       onClick={() => setViewingAnswersStudent(student)}
                       style={{ padding: '0.5rem 1rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                     >View Answers</button>
                     {student.scholarship_status === 'under_evaluation' && (
                       <>
-                        <button 
+                        <button
                           onClick={() => handleEvaluateScholarship(student.id, 'approved')}
                           style={{ padding: '0.5rem 1rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                         >Approve</button>
-                        <button 
+                        <button
                           onClick={() => handleEvaluateScholarship(student.id, 'rejected')}
                           style={{ padding: '0.5rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                         >Reject</button>
@@ -3792,8 +3883,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 let answers = {};
                 try {
                   answers = JSON.parse(viewingAnswersStudent.scholarship_answers_json || '{}');
-                } catch(e){}
-                
+                } catch (e) { }
+
                 if (Object.keys(answers).length === 0) {
                   return <p style={{ textAlign: 'center', color: '#64748b' }}>No answers recorded for this student.</p>;
                 }
@@ -3826,20 +3917,20 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             <form onSubmit={handleScheduleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div className="form-group">
                 <label>Start Date & Time</label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   value={scheduleForm.start}
-                  onChange={(e) => setScheduleForm({...scheduleForm, start: e.target.value})}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, start: e.target.value })}
                   required
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                 />
               </div>
               <div className="form-group">
                 <label>End Date & Time</label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   value={scheduleForm.end}
-                  onChange={(e) => setScheduleForm({...scheduleForm, end: e.target.value})}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, end: e.target.value })}
                   required
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                 />

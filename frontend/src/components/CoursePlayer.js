@@ -63,8 +63,8 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
           return {
             ...prev,
             progress: data.progress,
-            completed_lessons: completed.includes(selectedLesson.id) 
-              ? completed 
+            completed_lessons: completed.includes(selectedLesson.id)
+              ? completed
               : [...completed, selectedLesson.id]
           };
         });
@@ -77,7 +77,7 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
     if (currentIndex < allLessons.length - 1) {
       const nextLesson = allLessons[currentIndex + 1];
       setSelectedLesson(nextLesson);
-      
+
       // Auto-expand module if needed
       const parentModule = course.course_modules.find(m => m.lessons.some(l => l.id === nextLesson.id));
       if (parentModule && !expandedModules[parentModule.id]) {
@@ -99,6 +99,49 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
       if (parentModule && !expandedModules[parentModule.id]) {
         setExpandedModules(prev => ({ ...prev, [parentModule.id]: true }));
       }
+    }
+  };
+
+  const renderContentItem = (type, url, title) => {
+    if (!url) return null;
+    if (type === 'video') {
+      return (
+        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, marginBottom: '2rem', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
+          <iframe
+            src={url.includes('youtube.com') || url.includes('youtu.be')
+              ? url.replace('watch?v=', 'embed/').split('&')[0]
+              : (url.startsWith('http') ? url : `${process.env.REACT_APP_API_URL}${url}`)
+            }
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+            allowFullScreen
+            title={title}
+          ></iframe>
+        </div>
+      );
+    } else if (type === 'pdf') {
+      return (
+        <iframe
+          src={url.startsWith('http') ? url : `${process.env.REACT_APP_API_URL}${url}`}
+          style={{ width: '100%', height: '800px', border: 'none', marginBottom: '2rem', borderRadius: '12px' }}
+          title={title}
+        ></iframe>
+      );
+    } else if (type === 'image') {
+      return (
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
+          <img 
+            src={url.startsWith('http') ? url : `${process.env.REACT_APP_API_URL}${url}`} 
+            style={{ maxWidth: '100%', height: 'auto', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} 
+            alt={title}
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div style={{ padding: '2rem', lineHeight: '1.8', color: '#334155', fontSize: '1.1rem', whiteSpace: 'pre-wrap', background: '#fff', borderRadius: '12px', marginBottom: '2rem', border: '1px solid #e2e8f0' }}>
+          {url}
+        </div>
+      );
     }
   };
 
@@ -161,15 +204,15 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
                         gap: '0.5rem'
                       }}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <span>{lesson.content_type === 'video' ? '🎬' : (lesson.content_type === 'pdf' ? '📄' : '📝')}</span>
-                            <span style={{ fontWeight: selectedLesson?.id === lesson.id ? '700' : '500' }}>{lesson.title}</span>
-                          </div>
-                          {(course.completed_lessons || []).includes(lesson.id) && (
-                            <span style={{ color: selectedLesson?.id === lesson.id ? '#fff' : '#10b981', fontSize: '0.8rem' }}>✓</span>
-                          )}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span>{lesson.content_type === 'video' ? '🎬' : (lesson.content_type === 'pdf' ? '📄' : (lesson.content_type === 'multi' ? '📚' : '📝'))}</span>
+                          <span style={{ fontWeight: selectedLesson?.id === lesson.id ? '700' : '500' }}>{lesson.title}</span>
                         </div>
+                        {(course.completed_lessons || []).includes(lesson.id) && (
+                          <span style={{ color: selectedLesson?.id === lesson.id ? '#fff' : '#10b981', fontSize: '0.8rem' }}>✓</span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -185,58 +228,59 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
           <div style={{ maxWidth: '900px', margin: '0 auto' }}>
             <h1 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#1e293b', marginBottom: '1.5rem' }}>{selectedLesson.title}</h1>
 
-            <div className="content-viewer" style={{ minHeight: '400px', background: '#f8fafc', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-              {selectedLesson.content_type === 'video' ? (
-                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-                  <iframe
-                    src={selectedLesson.content_url.includes('youtube.com') || selectedLesson.content_url.includes('youtu.be')
-                      ? selectedLesson.content_url.replace('watch?v=', 'embed/').split('&')[0]
-                      : (selectedLesson.content_url.startsWith('http') ? selectedLesson.content_url : `${process.env.REACT_APP_API_URL}${selectedLesson.content_url}`)
-                    }
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                    allowFullScreen
-                    title={selectedLesson.title}
-                  ></iframe>
+            <div className="content-viewer" style={{ minHeight: '400px', background: '#f8fafc', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', padding: selectedLesson.content_type === 'multi' ? '1.5rem' : '0' }}>
+              {selectedLesson.content_type === 'multi' ? (
+                <div className="multi-content-wrapper">
+                    {(() => {
+                        try {
+                            const contents = JSON.parse(selectedLesson.content_url);
+                            return Array.isArray(contents) ? contents.map((c, i) => (
+                                <div key={i} className="content-block" style={{ marginBottom: i === contents.length - 1 ? 0 : '3rem' }}>
+                                    {contents.length > 1 && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
+                                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#F2921D', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '0.8rem' }}>{i + 1}</div>
+                                            <h3 style={{ fontSize: '1.1rem', color: '#334155', margin: 0, fontWeight: '700' }}>Part {i + 1}</h3>
+                                        </div>
+                                    )}
+                                    {renderContentItem(c.type, c.url, selectedLesson.title)}
+                                </div>
+                            )) : null;
+                        } catch (e) {
+                            return <div style={{ padding: '2rem', color: '#ef4444' }}>Error parsing lesson content.</div>;
+                        }
+                    })()}
                 </div>
-              ) : selectedLesson.content_type === 'pdf' ? (
-                <iframe
-                  src={selectedLesson.content_url.startsWith('http') ? selectedLesson.content_url : `${process.env.REACT_APP_API_URL}${selectedLesson.content_url}`}
-                  style={{ width: '100%', height: '800px', border: 'none' }}
-                  title={selectedLesson.title}
-                ></iframe>
               ) : (
-                <div style={{ padding: '2rem', lineHeight: '1.8', color: '#334155', fontSize: '1.1rem', whiteSpace: 'pre-wrap' }}>
-                  {selectedLesson.content_url}
-                </div>
+                renderContentItem(selectedLesson.content_type, selectedLesson.content_url, selectedLesson.title)
               )}
             </div>
 
             <div className="lesson-footer" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
-              <button 
+              <button
                 onClick={handlePrevious}
                 disabled={currentIndex === 0}
-                style={{ 
-                  padding: '0.75rem 1.5rem', 
-                  borderRadius: '10px', 
-                  background: '#f1f5f9', 
-                  border: 'none', 
-                  fontWeight: '700', 
-                  color: currentIndex === 0 ? '#cbd5e1' : '#64748b', 
-                  cursor: currentIndex === 0 ? 'not-allowed' : 'pointer' 
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '10px',
+                  background: '#f1f5f9',
+                  border: 'none',
+                  fontWeight: '700',
+                  color: currentIndex === 0 ? '#cbd5e1' : '#64748b',
+                  cursor: currentIndex === 0 ? 'not-allowed' : 'pointer'
                 }}
               >
                 ← Previous Lesson
               </button>
-              <button 
+              <button
                 onClick={handleNext}
-                style={{ 
-                  padding: '0.75rem 1.5rem', 
-                  borderRadius: '10px', 
-                  background: '#F2921D', 
-                  border: 'none', 
-                  fontWeight: '700', 
-                  color: '#fff', 
-                  cursor: 'pointer' 
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '10px',
+                  background: '#F2921D',
+                  border: 'none',
+                  fontWeight: '700',
+                  color: '#fff',
+                  cursor: 'pointer'
                 }}
               >
                 {currentIndex === allLessons.length - 1 ? 'Finish Course' : 'Complete & Next →'}
@@ -250,7 +294,7 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
           </div>
         )}
       </div>
-      
+
       {/* Course Finished Modal */}
       {showFinishedModal && (
         <div style={{
@@ -286,15 +330,15 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
               height: '8px',
               background: 'linear-gradient(90deg, #F2921D, #fbbf24)'
             }}></div>
-            
+
             <div style={{ fontSize: '5rem', marginBottom: '1.5rem' }}>🎓</div>
             <h2 style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b', marginBottom: '1rem' }}>Congratulations!</h2>
             <p style={{ fontSize: '1.1rem', color: '#64748b', lineHeight: '1.6', marginBottom: '2rem' }}>
               You have successfully completed <strong>{course.title}</strong>. Keep up the great work on your learning journey!
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <button 
+              <button
                 onClick={onBack}
                 style={{
                   padding: '1rem',
@@ -313,7 +357,7 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
               >
                 Go Back to Courses
               </button>
-              <button 
+              <button
                 onClick={() => setShowFinishedModal(false)}
                 style={{
                   padding: '1rem',

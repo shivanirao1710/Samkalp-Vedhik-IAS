@@ -16,6 +16,21 @@ router = APIRouter(
     tags=["courses"]
 )
 
+@router.post("/lessons/upload")
+def upload_lesson_content(file: UploadFile = File(...)):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No filename")
+    
+    # Determine folder based on content type
+    folder = "videos"
+    if file.content_type == "application/pdf":
+        folder = "pdfs"
+    elif file.content_type.startswith("image/"):
+        folder = "images"
+    
+    url = save_file(file, folder)
+    return {"url": url}
+
 @router.post("/", response_model=schemas.Course)
 def create_course(
     title: str = Form(...),
@@ -61,11 +76,20 @@ def create_course(
 
                 lessons_data = m_data.get("lessons", [])
                 for l_idx, l_data in enumerate(lessons_data):
+                    # Handle multi-content lessons
+                    contents = l_data.get("contents")
+                    if contents:
+                        c_type = "multi"
+                        c_url = json.dumps(contents)
+                    else:
+                        c_type = l_data.get("content_type", "video")
+                        c_url = l_data.get("content_url")
+
                     db_lesson = models.Lesson(
                         module_id=db_module.id,
                         title=l_data.get("title", f"Lesson {l_idx + 1}"),
-                        content_type=l_data.get("content_type", "video"),
-                        content_url=l_data.get("content_url"),
+                        content_type=c_type,
+                        content_url=c_url,
                         order=l_idx
                     )
                     db.add(db_lesson)
@@ -144,11 +168,20 @@ def update_course(
 
                 lessons_data = m_data.get("lessons", [])
                 for l_idx, l_data in enumerate(lessons_data):
+                    # Handle multi-content lessons
+                    contents = l_data.get("contents")
+                    if contents:
+                        c_type = "multi"
+                        c_url = json.dumps(contents)
+                    else:
+                        c_type = l_data.get("content_type", "video")
+                        c_url = l_data.get("content_url")
+
                     db_lesson = models.Lesson(
                         module_id=db_module.id,
                         title=l_data.get("title", f"Lesson {l_idx + 1}"),
-                        content_type=l_data.get("content_type", "video"),
-                        content_url=l_data.get("content_url"),
+                        content_type=c_type,
+                        content_url=c_url,
                         order=l_idx
                     )
                     db.add(db_lesson)
