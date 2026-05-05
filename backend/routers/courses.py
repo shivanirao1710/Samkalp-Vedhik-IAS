@@ -228,8 +228,8 @@ def enroll_in_course(course_id: int, user_id: int, db: Session = Depends(get_db)
 
 @router.get("/student/{user_id}")
 def get_student_courses(user_id: int, db: Session = Depends(get_db)):
-    # Fetch courses with their modules
-    courses = db.query(models.Course).all()
+    # Fetch only published courses (status='in_progress')
+    courses = db.query(models.Course).filter(models.Course.status == "in_progress").all()
     enrollments = db.query(models.CourseEnrollment).filter(models.CourseEnrollment.user_id == user_id).all()
     enrolled_dict = {e.course_id: e for e in enrollments}
     

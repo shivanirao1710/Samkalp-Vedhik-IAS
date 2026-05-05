@@ -7,6 +7,19 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [expandedModules, setExpandedModules] = useState({});
   const [showFinishedModal, setShowFinishedModal] = useState(false);
+  const [currentPartIndex, setCurrentPartIndex] = useState(0);
+
+  const getLessonParts = (lesson) => {
+    if (!lesson || lesson.content_type !== 'multi') return [];
+    try {
+      const parts = JSON.parse(lesson.content_url);
+      return Array.isArray(parts) ? parts : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const currentLessonParts = getLessonParts(selectedLesson);
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
@@ -22,6 +35,7 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
               const firstModule = currentCourse.course_modules[0];
               if (firstModule.lessons && firstModule.lessons.length > 0) {
                 setSelectedLesson(firstModule.lessons[0]);
+                setCurrentPartIndex(0);
               }
               // Expand first module by default
               setExpandedModules({ [firstModule.id]: true });
@@ -51,6 +65,15 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
   const handleNext = async () => {
     if (!selectedLesson) return;
 
+    // If multi-part lesson, check if there's a next part
+    if (selectedLesson.content_type === 'multi' && currentPartIndex < currentLessonParts.length - 1) {
+      setCurrentPartIndex(prev => prev + 1);
+      // Find the main content area and scroll to top
+      const mainArea = document.querySelector('.course-player-main');
+      if (mainArea) mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     // Mark current lesson as complete
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL}/courses/${course.id}/lessons/${selectedLesson.id}/complete/${user.id}`, {
@@ -77,6 +100,7 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
     if (currentIndex < allLessons.length - 1) {
       const nextLesson = allLessons[currentIndex + 1];
       setSelectedLesson(nextLesson);
+      setCurrentPartIndex(0);
 
       // Auto-expand module if needed
       const parentModule = course.course_modules.find(m => m.lessons.some(l => l.id === nextLesson.id));
@@ -90,9 +114,25 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
   };
 
   const handlePrevious = () => {
+    // If multi-part lesson, check if there's a previous part
+    if (selectedLesson?.content_type === 'multi' && currentPartIndex > 0) {
+      setCurrentPartIndex(prev => prev - 1);
+      const mainArea = document.querySelector('.course-player-main');
+      if (mainArea) mainArea.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (currentIndex > 0) {
       const prevLesson = allLessons[currentIndex - 1];
       setSelectedLesson(prevLesson);
+
+      // If the previous lesson is multi-part, set it to its LAST part
+      if (prevLesson.content_type === 'multi') {
+        const parts = getLessonParts(prevLesson);
+        setCurrentPartIndex(parts.length > 0 ? parts.length - 1 : 0);
+      } else {
+        setCurrentPartIndex(0);
+      }
 
       // Auto-expand module if needed
       const parentModule = course.course_modules.find(m => m.lessons.some(l => l.id === prevLesson.id));
@@ -190,7 +230,10 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
                   {module.lessons.map((lesson, lIdx) => (
                     <div
                       key={lesson.id}
-                      onClick={() => setSelectedLesson(lesson)}
+                      onClick={() => {
+                        setSelectedLesson(lesson);
+                        setCurrentPartIndex(0);
+                      }}
                       style={{
                         padding: '0.6rem 1rem',
                         borderRadius: '6px',
@@ -234,17 +277,20 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
                     {(() => {
                         try {
                             const contents = JSON.parse(selectedLesson.content_url);
-                            return Array.isArray(contents) ? contents.map((c, i) => (
-                                <div key={i} className="content-block" style={{ marginBottom: i === contents.length - 1 ? 0 : '3rem' }}>
+                            const currentPart = contents[currentPartIndex];
+                            if (!currentPart) return <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Select a lesson to start</div>;
+                            
+                            return (
+                                <div className="content-block" style={{ animation: 'fadeIn 0.5s ease-out' }}>
                                     {contents.length > 1 && (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
-                                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#F2921D', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '0.8rem' }}>{i + 1}</div>
-                                            <h3 style={{ fontSize: '1.1rem', color: '#334155', margin: 0, fontWeight: '700' }}>Part {i + 1}</h3>
+                                            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#F2921D', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '0.8rem' }}>{currentPartIndex + 1}</div>
+                                            <h3 style={{ fontSize: '1.1rem', color: '#334155', margin: 0, fontWeight: '700' }}>Part {currentPartIndex + 1} of {contents.length}</h3>
                                         </div>
                                     )}
-                                    {renderContentItem(c.type, c.url, selectedLesson.title)}
+                                    {renderContentItem(currentPart.type, currentPart.url, selectedLesson.title)}
                                 </div>
-                            )) : null;
+                            );
                         } catch (e) {
                             return <div style={{ padding: '2rem', color: '#ef4444' }}>Error parsing lesson content.</div>;
                         }
@@ -258,15 +304,15 @@ const CoursePlayer = ({ courseId, user, onBack }) => {
             <div className="lesson-footer" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
               <button
                 onClick={handlePrevious}
-                disabled={currentIndex === 0}
+                disabled={currentIndex === 0 && currentPartIndex === 0}
                 style={{
                   padding: '0.75rem 1.5rem',
                   borderRadius: '10px',
                   background: '#f1f5f9',
                   border: 'none',
                   fontWeight: '700',
-                  color: currentIndex === 0 ? '#cbd5e1' : '#64748b',
-                  cursor: currentIndex === 0 ? 'not-allowed' : 'pointer'
+                  color: (currentIndex === 0 && currentPartIndex === 0) ? '#cbd5e1' : '#64748b',
+                  cursor: (currentIndex === 0 && currentPartIndex === 0) ? 'not-allowed' : 'pointer'
                 }}
               >
                 ← Previous Lesson
