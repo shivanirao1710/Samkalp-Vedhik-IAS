@@ -55,7 +55,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Students', icon: '👥' },
     { name: 'Scholarships', icon: '🎓' },
     { name: 'Courses', icon: '📖' },
-    { name: 'Tests', icon: '📄' },
+    { name: 'Practice Test', icon: '📄' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'Study Materials', icon: '📚' },
     { name: 'Interviews', icon: '📹' },
@@ -67,7 +67,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const actions = [
     { title: 'Add Course', subtitle: 'Create new course', icon: '＋', target: 'Courses', trigger: () => setIsCreateModalOpen(true) },
     { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
-    { title: 'Create Test', subtitle: 'Add new test', icon: '＋', target: 'Tests', trigger: () => setIsTestModalOpen(true) },
+    { title: 'Create Practice Test', subtitle: 'Add new test', icon: '＋', target: 'Practice Test', trigger: () => setIsTestModalOpen(true) },
     { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '＋', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
     { title: 'Send Announcement', subtitle: 'Message all students', icon: '🔔', target: 'Announcements' },
     {
@@ -2389,7 +2389,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     <div className="test-management-page">
       <div className="view-page-header">
         <button
-          onClick={() => setIsManagingQuestions(false)}
+          onClick={() => { setIsManagingQuestions(false); setActiveMenu('Practice Test'); }}
           className="back-btn"
           style={{
             background: '#F2921D',
@@ -2410,7 +2410,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
           onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
-          ← Back to Tests
+          ← Back to Practice Test
         </button>
         <div style={{ flex: 1 }}>
           <h1>Managing: {testToManage.title}</h1>
@@ -2468,7 +2468,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       <div className="test-management-page">
         <div className="view-page-header">
           <div style={{ flex: 1 }}>
-            <h1>Tests Management</h1>
+            <h1>Practice Test Management</h1>
             <p>Create and manage test papers</p>
           </div>
           <button className="create-course-main-btn" onClick={() => setIsTestModalOpen(true)}>
@@ -3988,7 +3988,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         return renderStudents();
       case 'Courses':
         return renderCourses();
-      case 'Tests':
+      case 'Practice Test':
         return renderTests();
       case 'Live Classes':
         return renderLiveClasses();
