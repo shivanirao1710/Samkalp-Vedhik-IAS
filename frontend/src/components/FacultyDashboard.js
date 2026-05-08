@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/shared-layout.css';
 import '../styles/FacultyDashboardExtended.css';
 import ThemeToggle from './ThemeToggle';
@@ -15,6 +15,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [activeTab, setActiveTab] = useState('Students');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [bulkContentMenu, setBulkContentMenu] = useState(null);
+  const bulkTypeRef = useRef('video');
 
   useEffect(() => {
     // Sync profile data on mount
@@ -1078,8 +1080,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     const addAction = isEdit ? setEditFormData : setFormData;
     addAction(prev => {
         const updated = [...prev.courseModules];
-        updated[mIdx].lessons = [...updated[mIdx].lessons];
-        updated[mIdx].lessons[lIdx] = { ...updated[mIdx].lessons[lIdx], [field]: val };
+        const updatedLessons = [...updated[mIdx].lessons];
+        updatedLessons[lIdx] = { ...updatedLessons[lIdx], [field]: val };
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
         return { ...prev, courseModules: updated };
     });
   };
@@ -1117,13 +1120,45 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         const updated = [...prev.courseModules];
         const updatedLessons = [...updated[mIdx].lessons];
         if (updatedLessons[lIdx].contents.length <= 1) return prev;
-        updatedLessons[lIdx].contents = updatedLessons[lIdx].contents.filter((_, i) => i !== cIdx);
+        updatedLessons[lIdx] = {
+             ...updatedLessons[lIdx],
+             contents: updatedLessons[lIdx].contents.filter((_, i) => i !== cIdx)
+        };
         updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
         return { ...prev, courseModules: updated };
     });
   };
 
-  const handleCourseBulkUpload = async (mIdx, files, isEdit = false) => {
+  const handleBulkTypeSelection = (mIdx, type, isEdit) => {
+    bulkTypeRef.current = type;
+    setBulkContentMenu(null);
+    if (type === 'text') {
+      const count = window.prompt("How many text lessons do you want to add?", "1");
+      if (count && !isNaN(count) && parseInt(count) > 0) {
+        const num = parseInt(count);
+        const addAction = isEdit ? setEditFormData : setFormData;
+        addAction(prev => {
+          const updated = [...prev.courseModules];
+          const newLessons = [];
+          for (let i = 0; i < num; i++) {
+            newLessons.push({ 
+                title: `New Text Lesson`, 
+                contents: [{ type: 'text', url: '' }] 
+            });
+          }
+          updated[mIdx] = {
+              ...updated[mIdx],
+              lessons: [...updated[mIdx].lessons, ...newLessons]
+          };
+          return { ...prev, courseModules: updated };
+        });
+      }
+    } else {
+      document.getElementById(`bulk-upload-${mIdx}`).click();
+    }
+  };
+
+  const handleCourseBulkUpload = async (mIdx, files, isEdit = false, explicitType = null) => {
     if (!files || files.length === 0) return;
     
     const fileList = Array.from(files);
@@ -1135,7 +1170,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
         for (let i = 0; i < fileList.length; i++) {
             const file = fileList[i];
-            const contentType = file.type.startsWith('video/') ? 'video' : (file.type === 'application/pdf' ? 'pdf' : (file.type.startsWith('image/') ? 'image' : 'video'));
+            const contentType = explicitType ? explicitType : (file.type.startsWith('video/') ? 'video' : (file.type === 'application/pdf' ? 'pdf' : (file.type.startsWith('image/') ? 'image' : 'video')));
             const lessonTitle = file.name.split('.').slice(0, -1).join('.');
             const lIdx = currentLessonOffset + i;
 
@@ -1143,10 +1178,13 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             const addAction = isEdit ? setEditFormData : setFormData;
             addAction(prev => {
                 const updated = [...prev.courseModules];
-                updated[mIdx].lessons = [...updated[mIdx].lessons, { 
-                    title: lessonTitle, 
-                    contents: [{ type: contentType, url: '' }] 
-                }];
+                updated[mIdx] = {
+                    ...updated[mIdx],
+                    lessons: [...updated[mIdx].lessons, { 
+                        title: lessonTitle, 
+                        contents: [{ type: contentType, url: '' }] 
+                    }]
+                };
                 return { ...prev, courseModules: updated };
             });
 
@@ -1216,19 +1254,50 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 onChange={(e) => handleModuleTitleChange(mIdx, e.target.value, isEdit)}
                 style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontWeight: 600 }}
               />
-              <button 
-                type="button" 
-                onClick={() => document.getElementById(`bulk-upload-${mIdx}`).click()}
-                style={{ padding: '0.5rem 0.75rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}
-              >
-                + Bulk Content
-              </button>
+              <div style={{ position: 'relative' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setBulkContentMenu(bulkContentMenu === mIdx ? null : mIdx)}
+                  style={{ padding: '0.5rem 0.75rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}
+                >
+                  + Bulk Content
+                </button>
+                {bulkContentMenu === mIdx && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '0.5rem',
+                    background: 'white',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minWidth: '120px',
+                    overflow: 'hidden'
+                  }}>
+                    {['video', 'image', 'pdf'].map(type => (
+                      <div 
+                        key={type}
+                        onClick={() => handleBulkTypeSelection(mIdx, type, isEdit)}
+                        style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.85rem', color: '#1e293b', borderBottom: '1px solid #f1f5f9', background: '#fff' }}
+                        onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
+                        onMouseOut={e => e.currentTarget.style.background = '#fff'}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <input 
                 id={`bulk-upload-${mIdx}`} 
                 type="file" 
                 multiple 
                 style={{ display: 'none' }} 
-                onChange={(e) => handleCourseBulkUpload(mIdx, e.target.files, isEdit)} 
+                onChange={(e) => handleCourseBulkUpload(mIdx, e.target.files, isEdit, bulkTypeRef.current)} 
               />
               <button type="button" onClick={() => removeModule(mIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
             </div>
