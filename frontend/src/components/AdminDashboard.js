@@ -119,6 +119,24 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleAssignMentor = async (userId, mentorId) => {
+    try {
+      const resp = await fetch(`${process.env.REACT_APP_API_URL}/admin/assign-mentor`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, mentor_id: mentorId ? parseInt(mentorId) : null })
+      });
+      if (resp.ok) {
+        fetchUsers();
+      } else {
+        alert("Failed to assign mentor");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error assigning mentor");
+    }
+  };
+
   const renderOverview = () => {
     const totalStudents = users.filter(u => u.role === 'student').length;
     const totalFaculty = users.filter(u => u.role === 'faculty').length;
@@ -156,12 +174,13 @@ const AdminDashboard = ({ user, onLogout }) => {
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
+              {title === "Students" && <th>Assigned Mentor</th>}
               {showActions && <th>Actions</th>}
             </tr>
           </thead>
           <tbody>
             {userList.length === 0 ? (
-              <tr><td colSpan={showActions ? 4 : 3} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No {title.toLowerCase()} found.</td></tr>
+              <tr><td colSpan={showActions ? (title === "Students" ? 5 : 4) : (title === "Students" ? 4 : 3)} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No {title.toLowerCase()} found.</td></tr>
             ) : (
               userList.map(u => (
                 <tr key={u.id}>
@@ -170,6 +189,21 @@ const AdminDashboard = ({ user, onLogout }) => {
                   <td>
                     <span className={`role-badge ${u.role}`}>{u.role}</span>
                   </td>
+                  {title === "Students" && (
+                    <td>
+                      <select 
+                        value={u.assigned_mentor_id || ""}
+                        onChange={(e) => handleAssignMentor(u.id, e.target.value)}
+                        className="modal-input"
+                        style={{ padding: '0.4rem', width: 'auto', display: 'inline-block', fontSize: '0.8rem', border: '1px solid var(--border-color)', borderRadius: '6px' }}
+                      >
+                        <option value="">Unassigned</option>
+                        {users.filter(f => f.role === 'faculty').map(f => (
+                          <option key={f.id} value={f.id}>{f.name && f.name !== 'N/A' ? f.name : f.email.split('@')[0]}</option>
+                        ))}
+                      </select>
+                    </td>
+                  )}
                   {showActions && (
                     <td className="actions-cell">
                       <button className="table-btn reset" onClick={() => {

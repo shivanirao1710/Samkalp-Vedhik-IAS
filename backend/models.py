@@ -29,6 +29,7 @@ class User(Base):
     scholarship_status = Column(String, default="pending") # pending, under_evaluation, approved, rejected
     scholarship_score = Column(Integer, nullable=True)
     scholarship_answers_json = Column(Text, nullable=True)
+    assigned_mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
 class Course(Base):
     __tablename__ = "courses"

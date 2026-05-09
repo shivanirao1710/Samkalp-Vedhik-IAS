@@ -294,7 +294,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const fetchStudents = async () => {
     setLoadingStudents(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/students-detailed`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/students-detailed?faculty_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setStudentData(data);

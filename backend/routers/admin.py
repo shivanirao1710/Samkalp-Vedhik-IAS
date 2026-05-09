@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import Optional
 import models, schemas, database
 from utils import hash_password
 
@@ -60,14 +61,23 @@ def delete_user(user_id: int, db: Session = Depends(database.get_db)):
     return {"message": "User deleted successfully"}
 
 @router.get("/students-detailed")
-def get_students_detailed(db: Session = Depends(database.get_db)):
+def get_students_detailed(faculty_id: Optional[int] = None, db: Session = Depends(database.get_db)):
     """Fetch all students with extra metrics like course/test counts."""
-    students = db.query(models.User).filter(models.User.role == "student").all()
+    query = db.query(models.User).filter(models.User.role == "student")
+    if faculty_id:
+        query = query.filter(models.User.assigned_mentor_id == faculty_id)
+    students = query.all()
     result = []
     for s in students:
         course_count = db.query(models.CourseEnrollment).filter(models.CourseEnrollment.user_id == s.id).count()
         test_count = db.query(models.StudentTestAttempt).filter(models.StudentTestAttempt.user_id == s.id).count()
         
+        mentor_name = None
+        if s.assigned_mentor_id:
+            mentor = db.query(models.User).filter(models.User.id == s.assigned_mentor_id).first()
+            if mentor:
+                mentor_name = mentor.name if mentor.name and mentor.name != "N/A" else mentor.email.split('@')[0]
+                
         result.append({
             "id": s.id,
             "name": s.name if s.name and s.name != "N/A" else s.email.split('@')[0],
@@ -78,6 +88,8 @@ def get_students_detailed(db: Session = Depends(database.get_db)):
             "tests": test_count,
             "status": "Suspended" if s.is_suspended else "Active",
             "is_suspended": s.is_suspended,
+            "assigned_mentor_id": s.assigned_mentor_id,
+            "assigned_mentor_name": mentor_name,
             "color": "#F2921D" # Placeholder color
         })
     return result
@@ -131,3 +143,21 @@ def toggle_user_suspension(user_id: int, db: Session = Depends(database.get_db))
         "message": f"User {'suspended' if user.is_suspended else 'activated'} successfully",
         "is_suspended": user.is_suspended
     }
+
+@router.post("/assign-mentor")
+def assign_mentor(req: schemas.AssignMentorRequest, db: Session = Depends(database.get_db)):
+    """Assign a mentor to a student."""
+    user = db.query(models.User).filter(models.User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    if req.mentor_id:
+        mentor = db.query(models.User).filter(models.User.id == req.mentor_id, models.User.role == "faculty").first()
+        if not mentor:
+            raise HTTPException(status_code=404, detail="Faculty not found")
+        user.assigned_mentor_id = mentor.id
+    else:
+        user.assigned_mentor_id = None
+        
+    db.commit()
+    return {"message": "Mentor assigned successfully"}
