@@ -61,6 +61,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const [expandedBatchId, setExpandedBatchId] = useState(null);
   const [expandedFacultyId, setExpandedFacultyId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -677,43 +678,67 @@ const AdminDashboard = ({ user, onLogout }) => {
   );
 
   const renderUserList = () => {
-    const facultyList = users.filter(
-      (u) => u.role === 'faculty'
-    );
+    const filteredUsers = users.filter((u) => {
+      const name = u.name || '';
+      const email = u.email || '';
+      const search = searchTerm.toLowerCase();
+      return (
+        name.toLowerCase().includes(search) ||
+        email.toLowerCase().includes(search)
+      );
+    });
 
-    const studentList = users.filter(
-      (u) => u.role === 'student'
-    );
-
-    const adminList = users.filter(
-      (u) => u.role === 'admin'
-    );
+    const facultyList = filteredUsers.filter((u) => u.role === 'faculty');
+    const studentList = filteredUsers.filter((u) => u.role === 'student');
+    const adminList = filteredUsers.filter((u) => u.role === 'admin');
 
     return (
       <div className="admin-user-list">
-        <h2 className="admin-title">
-          User Management
-        </h2>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '2rem'
+          }}
+        >
+          <h2 className="admin-title" style={{ marginBottom: 0 }}>
+            User Management
+          </h2>
 
-        {renderUserTable(
-          'Faculty Members',
-          facultyList,
-          facultyList
-        )}
+          <div className="search-wrapper" style={{ position: 'relative' }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                opacity: 0.5
+              }}
+            >
+              🔍
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="modal-input"
+              style={{
+                paddingLeft: '2.5rem',
+                minWidth: '300px',
+                marginBottom: 0
+              }}
+            />
+          </div>
+        </div>
 
-        {renderUserTable(
-          'Students',
-          studentList,
-          facultyList
-        )}
+        {renderUserTable('Faculty Members', facultyList, facultyList)}
+
+        {renderUserTable('Students', studentList, facultyList)}
 
         {adminList.length > 0 &&
-          renderUserTable(
-            'Administrators',
-            adminList,
-            facultyList,
-            false
-          )}
+          renderUserTable('Administrators', adminList, facultyList, false)}
       </div>
     );
   };

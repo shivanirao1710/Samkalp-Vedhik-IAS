@@ -245,6 +245,25 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                     ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
                     : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
                 </p>
+                <div style={{ 
+                    display: 'flex', 
+                    gap: '1.5rem', 
+                    marginTop: '0.75rem', 
+                    fontSize: '0.95rem', 
+                    fontWeight: '600',
+                    opacity: 0.9
+                }}>
+                  {user.batch_name && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      🏷️ Batch: <span style={{ color: '#fff', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>{user.batch_name}</span>
+                    </span>
+                  )}
+                  {user.assigned_mentor_name && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      👨‍🏫 Mentor: <span style={{ color: '#fff', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>{user.assigned_mentor_name}</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               {showCAPopup && latestCA && (

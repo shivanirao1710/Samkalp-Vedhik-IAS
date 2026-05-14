@@ -36,7 +36,41 @@ def get_user_me(user_id: int, db: Session = Depends(database.get_db)):
         except Exception:
             pass
             
-    return user
+    # Populate extra fields for response
+    mentor_name = None
+    if user.assigned_mentor_id:
+        mentor = db.query(models.User).filter(models.User.id == user.assigned_mentor_id).first()
+        if mentor:
+            mentor_name = mentor.name if mentor.name and mentor.name != "N/A" else mentor.email.split('@')[0]
+            
+    batch_name = None
+    if user.batch_id:
+        batch = db.query(models.Batch).filter(models.Batch.id == user.batch_id).first()
+        if batch:
+            batch_name = batch.name
+            
+    user_data = {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "role": user.role,
+        "phone": user.phone,
+        "location": user.location,
+        "target_exam": user.target_exam,
+        "department": user.department,
+        "profile_image": user.profile_image,
+        "member_since": user.member_since,
+        "is_suspended": user.is_suspended,
+        "scholarship_status": user.scholarship_status,
+        "scholarship_score": user.scholarship_score,
+        "scholarship_answers_json": user.scholarship_answers_json,
+        "assigned_mentor_id": user.assigned_mentor_id,
+        "assigned_mentor_name": mentor_name,
+        "batch_id": user.batch_id,
+        "batch_name": batch_name
+    }
+            
+    return user_data
 
 @router.get("/stats/{user_id}")
 def get_user_stats(user_id: int, db: Session = Depends(database.get_db)):

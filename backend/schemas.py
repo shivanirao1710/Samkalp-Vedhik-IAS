@@ -36,6 +36,9 @@ class UserResponse(BaseModel):
     scholarship_score: Optional[int] = None
     scholarship_answers_json: Optional[str] = None
     assigned_mentor_id: Optional[int] = None
+    assigned_mentor_name: Optional[str] = None
+    batch_id: Optional[int] = None
+    batch_name: Optional[str] = None
 
     class Config:
         from_attributes = True
