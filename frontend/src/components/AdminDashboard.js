@@ -59,6 +59,9 @@ const AdminDashboard = ({ user, onLogout }) => {
     description: ''
   });
 
+  const [expandedBatchId, setExpandedBatchId] = useState(null);
+  const [expandedFacultyId, setExpandedFacultyId] = useState(null);
+
   useEffect(() => {
     fetchUsers();
     fetchRequests();
@@ -255,6 +258,33 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleAssignMentor = async (userId, mentorId) => {
+    try {
+      const resp = await fetch(
+        `${process.env.REACT_APP_API_URL}/admin/assign-mentor`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            mentor_id: mentorId ? parseInt(mentorId) : null
+          })
+        }
+      );
+
+      if (resp.ok) {
+        fetchUsers();
+      } else {
+        alert('Failed to assign mentor');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error assigning mentor');
+    }
+  };
+
   const handleResetPassword = async () => {
     try {
       const resp = await fetch(
@@ -362,6 +392,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   const renderUserTable = (
     title,
     userList,
+    facultyList = [],
     showActions = true
   ) => (
     <div
@@ -401,7 +432,14 @@ const AdminDashboard = ({ user, onLogout }) => {
               <th>Role</th>
 
               {title === 'Students' && (
-                <th>Assigned Batch</th>
+                <>
+                  <th>Assigned Batch</th>
+                  <th>Assigned Mentor</th>
+                </>
+              )}
+
+              {title === 'Faculty Members' && (
+                <th>Assigned Students</th>
               )}
 
               {showActions && (
@@ -500,6 +538,104 @@ const AdminDashboard = ({ user, onLogout }) => {
                       </td>
                     )}
 
+                  {title === 'Students' && (
+                    <td>
+                      <select
+                        value={u.assigned_mentor_id || ''}
+                        onChange={(e) =>
+                          handleAssignMentor(u.id, e.target.value)
+                        }
+                        className="modal-input"
+                      >
+                        <option value="">Unassigned</option>
+                        {facultyList.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name && f.name !== 'N/A'
+                              ? f.name
+                              : f.email.split('@')[0]}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                  )}
+
+                  {title === 'Faculty Members' && (
+                    <td>
+                      {(() => {
+                        const mentees = users.filter(
+                          (stu) => stu.assigned_mentor_id === u.id
+                        );
+                        if (mentees.length === 0) {
+                          return (
+                            <span style={{ color: 'var(--text-muted)' }}>
+                              No Mentees
+                            </span>
+                          );
+                        }
+                        return (
+                          <div className="mentee-wrapper">
+                            <button
+                              className="table-btn"
+                              style={{
+                                background: 'var(--bg-main)',
+                                color: 'var(--text-main)',
+                                border: '1px solid var(--border-color)',
+                                fontSize: '0.75rem',
+                                padding: '0.4rem 0.8rem'
+                              }}
+                              onClick={() =>
+                                setExpandedFacultyId(
+                                  expandedFacultyId === u.id ? null : u.id
+                                )
+                              }
+                            >
+                              {expandedFacultyId === u.id
+                                ? 'Hide Students'
+                                : `View ${mentees.length} Students`}
+                            </button>
+
+                            {expandedFacultyId === u.id && (
+                              <div
+                                style={{
+                                  marginTop: '0.5rem',
+                                  padding: '0.75rem',
+                                  background: 'var(--bg-card)',
+                                  borderRadius: '8px',
+                                  border: '1px solid var(--border-color)',
+                                  maxHeight: '150px',
+                                  overflowY: 'auto'
+                                }}
+                              >
+                                <ul
+                                  style={{
+                                    listStyle: 'none',
+                                    padding: 0,
+                                    margin: 0,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.4rem'
+                                  }}
+                                >
+                                  {mentees.map((m) => (
+                                    <li
+                                      key={m.id}
+                                      style={{
+                                        fontSize: '0.8rem',
+                                        color: 'var(--text-muted)'
+                                      }}
+                                    >
+                                      • {m.name || m.email.split('@')[0]}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </td>
+                  )}
+
                   {showActions && (
                     <td className="actions-cell">
                       <button
@@ -561,18 +697,21 @@ const AdminDashboard = ({ user, onLogout }) => {
 
         {renderUserTable(
           'Faculty Members',
+          facultyList,
           facultyList
         )}
 
         {renderUserTable(
           'Students',
-          studentList
+          studentList,
+          facultyList
         )}
 
         {adminList.length > 0 &&
           renderUserTable(
             'Administrators',
             adminList,
+            facultyList,
             false
           )}
       </div>
@@ -740,6 +879,7 @@ const AdminDashboard = ({ user, onLogout }) => {
               <tr>
                 <th>Batch Name</th>
                 <th>Description</th>
+                <th>Assigned Students</th>
               </tr>
             </thead>
 
@@ -747,36 +887,114 @@ const AdminDashboard = ({ user, onLogout }) => {
               {batches.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="2"
+                    colSpan="3"
                     style={{
-                      textAlign:
-                        'center'
+                      textAlign: 'center'
                     }}
                   >
-                    No batches created
-                    yet.
+                    No batches created yet.
                   </td>
                 </tr>
               ) : (
-                batches.map(
-                  (batch) => (
-                    <tr
-                      key={batch.id}
-                    >
-                      <td>
-                        {
-                          batch.name
-                        }
+                batches.map((batch) => {
+                  const assignedStudents = users.filter(
+                    (u) => u.batch_id === batch.id
+                  );
+                  return (
+                    <tr key={batch.id}>
+                      <td style={{ fontWeight: '700' }}>
+                        {batch.name}
                       </td>
 
+                      <td>{batch.description}</td>
+
                       <td>
-                        {
-                          batch.description
-                        }
+                        {assignedStudents.length === 0 ? (
+                          <span style={{ color: 'var(--text-muted)' }}>
+                            No students
+                          </span>
+                        ) : (
+                          <div className="batch-students-wrapper">
+                            <button
+                              className="table-btn"
+                              style={{
+                                background: 'var(--bg-main)',
+                                color: 'var(--text-main)',
+                                border: '1px solid var(--border-color)',
+                                fontSize: '0.75rem',
+                                padding: '0.4rem 0.8rem'
+                              }}
+                              onClick={() =>
+                                setExpandedBatchId(
+                                  expandedBatchId === batch.id ? null : batch.id
+                                )
+                              }
+                            >
+                              {expandedBatchId === batch.id
+                                ? 'Hide Students'
+                                : `View ${assignedStudents.length} Students`}
+                            </button>
+
+                            {expandedBatchId === batch.id && (
+                              <div
+                                style={{
+                                  marginTop: '1rem',
+                                  padding: '1rem',
+                                  background: 'var(--bg-main)',
+                                  borderRadius: '8px',
+                                  border: '1px solid var(--border-color)',
+                                  maxHeight: '200px',
+                                  overflowY: 'auto'
+                                }}
+                              >
+                                <ul
+                                  style={{
+                                    listStyle: 'none',
+                                    padding: 0,
+                                    margin: 0,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.5rem'
+                                  }}
+                                >
+                                  {assignedStudents.map((s) => (
+                                    <li
+                                      key={s.id}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        fontSize: '0.85rem'
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          width: '8px',
+                                          height: '8px',
+                                          borderRadius: '50%',
+                                          background: '#F2921D'
+                                        }}
+                                      />
+                                      {s.name || s.email.split('@')[0]}
+                                      <span
+                                        style={{
+                                          color: 'var(--text-muted)',
+                                          fontSize: '0.75rem'
+                                        }}
+                                      >
+                                        ({s.email})
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </td>
                     </tr>
-                  )
-                )
+                  );
+                })
               )}
             </tbody>
           </table>

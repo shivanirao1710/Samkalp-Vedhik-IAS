@@ -501,6 +501,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               <th>CONTACT INFO</th>
               <th>ENROLLED DATE</th>
               <th>COURSES</th>
+              <th>BATCH</th>
               <th>STATUS</th>
               <th>ACTIONS</th>
             </tr>
@@ -533,6 +534,18 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     <td>{student.enrolled_date}</td>
                     <td>
                       <span className="course-count-tag">{student.courses} Courses</span>
+                    </td>
+                    <td>
+                      <span className="batch-tag" style={{ 
+                        padding: '0.25rem 0.6rem', 
+                        borderRadius: '6px', 
+                        fontSize: '0.75rem', 
+                        background: '#f1f5f9', 
+                        color: '#475569',
+                        fontWeight: '600'
+                      }}>
+                        {student.batch_name || 'No Batch'}
+                      </span>
                     </td>
                     <td>
                       <span className={`status-pill ${(student.status || 'Active').toLowerCase()}`}>

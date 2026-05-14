@@ -30,6 +30,7 @@ class User(Base):
     scholarship_score = Column(Integer, nullable=True)
     scholarship_answers_json = Column(Text, nullable=True)
     assigned_mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    batch_id = Column(Integer, ForeignKey("batches.id"), nullable=True)
 
 class Course(Base):
     __tablename__ = "courses"
@@ -242,3 +243,10 @@ class AppSetting(Base):
     id = Column(Integer, primary_key=True, index=True)
     setting_key = Column(String, unique=True, index=True, nullable=False)
     setting_value = Column(String, nullable=False)
+
+class Batch(Base):
+    __tablename__ = "batches"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -70,6 +70,7 @@ class UserAdminResponse(BaseModel):
     scholarship_score: Optional[int] = None
     scholarship_answers_json: Optional[str] = None
     assigned_mentor_id: Optional[int] = None
+    batch_id: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -201,3 +202,19 @@ class ScholarshipEvaluate(BaseModel):
 class AssignMentorRequest(BaseModel):
     user_id: int
     mentor_id: Optional[int] = None
+
+class BatchCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class BatchResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class AssignBatchRequest(BaseModel):
+    user_id: int
+    batch_id: Optional[int] = None

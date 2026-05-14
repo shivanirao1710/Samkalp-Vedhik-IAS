@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 import models, schemas, database
 from utils import hash_password
 
@@ -78,6 +78,8 @@ def get_students_detailed(faculty_id: Optional[int] = None, db: Session = Depend
             if mentor:
                 mentor_name = mentor.name if mentor.name and mentor.name != "N/A" else mentor.email.split('@')[0]
                 
+        batch = db.query(models.Batch).filter(models.Batch.id == s.batch_id).first() if s.batch_id else None
+        
         result.append({
             "id": s.id,
             "name": s.name if s.name and s.name != "N/A" else s.email.split('@')[0],
@@ -90,6 +92,8 @@ def get_students_detailed(faculty_id: Optional[int] = None, db: Session = Depend
             "is_suspended": s.is_suspended,
             "assigned_mentor_id": s.assigned_mentor_id,
             "assigned_mentor_name": mentor_name,
+            "batch_id": s.batch_id,
+            "batch_name": batch.name if batch else None,
             "color": "#F2921D" # Placeholder color
         })
     return result
@@ -161,3 +165,38 @@ def assign_mentor(req: schemas.AssignMentorRequest, db: Session = Depends(databa
         
     db.commit()
     return {"message": "Mentor assigned successfully"}
+
+@router.get("/batches", response_model=List[schemas.BatchResponse])
+def get_all_batches(db: Session = Depends(database.get_db)):
+    """Fetch all batches."""
+    return db.query(models.Batch).all()
+
+@router.post("/batches", response_model=schemas.BatchResponse, status_code=status.HTTP_201_CREATED)
+def create_batch(batch: schemas.BatchCreate, db: Session = Depends(database.get_db)):
+    """Create a new batch."""
+    new_batch = models.Batch(
+        name=batch.name,
+        description=batch.description
+    )
+    db.add(new_batch)
+    db.commit()
+    db.refresh(new_batch)
+    return new_batch
+
+@router.post("/assign-batch")
+def assign_batch(req: schemas.AssignBatchRequest, db: Session = Depends(database.get_db)):
+    """Assign a student to a batch."""
+    user = db.query(models.User).filter(models.User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    if req.batch_id:
+        batch = db.query(models.Batch).filter(models.Batch.id == req.batch_id).first()
+        if not batch:
+            raise HTTPException(status_code=404, detail="Batch not found")
+        user.batch_id = batch.id
+    else:
+        user.batch_id = None
+        
+    db.commit()
+    return {"message": "Batch assigned successfully"}
