@@ -15,6 +15,15 @@ class InitSessionRequest(BaseModel):
     reportData: Dict[str, Any]
     candidateName: str
 
+class MentorInfo(BaseModel):
+    id: str
+    name: str
+    role: str
+    description: str
+    avatar_id: str
+    image: str
+    specialty: str
+
 # Simple in-memory cache for Agent IDs to speed up initialization
 AGENT_CACHE = {}
 
@@ -109,6 +118,75 @@ def get_or_update_agent(headers: dict, name: str, avatar_id: str, system_prompt:
     AGENT_CACHE[name] = new_id # Cache it
     return new_id
 
+# Single Source of Truth for Mentor Metadata
+MENTOR_DATA = {
+    "2ed7477f-3961-4ce1-b331-5e4530c55a57": {
+        "id": "chairman",
+        "name": "The Chairman",
+        "role": "Board Head",
+        "description": "Senior retired bureaucrat focusing on administrative aptitude, ethics, and leadership.",
+        "specialty": "Ethics & Governance",
+        "image": "/src/images/aryan.png",
+        "focus": "overall administrative aptitude, personality, and ethics",
+        "bio": "Senior retired bureaucrat with decades of experience in governance."
+    },
+    "2bc759ab-a7e5-4b91-941d-9e42450d6546": {
+        "id": "mehta",
+        "name": "Dr. Mehta",
+        "role": "Economics Expert",
+        "description": "Specialist in Indian Economy and global trade dynamics. Known for her sharp fiscal analysis.",
+        "specialty": "Economy & Trade",
+        "image": "/src/images/mehta.png",
+        "focus": "Indian Economy, fiscal policies, and global trade",
+        "bio": "Renowned Economics expert known for her sharp fiscal analysis."
+    },
+    "1c7a7291-ee28-4800-8f34-acfbfc2d07c0": {
+        "id": "reddy",
+        "name": "Prof. Reddy",
+        "role": "History & Culture",
+        "description": "Expert in Indian heritage, social issues, and constitutional history.",
+        "specialty": "History & Society",
+        "image": "/src/images/reddy.png",
+        "focus": "Indian heritage, social issues, and constitutional history",
+        "bio": "Distinguished historian and culture specialist."
+    },
+    "b5bebaf9-ae80-4e43-b97f-4506136ed926": {
+        "id": "verma",
+        "name": "Ms. Verma",
+        "role": "Science & Tech",
+        "description": "Focuses on digitalization, AI ethics, environment, and climate change.",
+        "specialty": "S&T, Environment",
+        "image": "/src/images/verma.png",
+        "focus": "digitalization, AI ethics, environment, and climate change",
+        "bio": "Science & Tech visionary focusing on modern challenges."
+    },
+    "6a2c8805-d15d-4b57-b98d-699c05a4d624": {
+        "id": "khanna",
+        "name": "Col. Khanna",
+        "role": "Security & IR",
+        "description": "Focuses on internal security, border management, and international relations.",
+        "specialty": "Security & IR",
+        "image": "/src/images/khanna.png",
+        "focus": "internal security, border management, and international relations",
+        "bio": "Defense expert with a deep understanding of global geopolitics."
+    }
+}
+
+@router.get("/mentors")
+async def get_mentors():
+    """Returns a list of all AI mentors/panelists."""
+    return [
+        {
+            "id": data["id"],
+            "name": data["name"],
+            "role": data["role"],
+            "description": data["description"],
+            "avatar_id": avatar_id,
+            "image": data["image"],
+            "specialty": data["specialty"]
+        } for avatar_id, data in MENTOR_DATA.items()
+    ]
+
 @router.post("/init-session")
 async def init_session(req: InitSessionRequest):
     load_dotenv()
@@ -169,7 +247,7 @@ You MUST:
         raise HTTPException(status_code=500, detail=f"Failed to handle Bey Agent: {str(e)}")
 
 @router.post("/init-interview")
-async def init_interview(user_name: str = "Candidate"):
+async def init_interview(user_name: str = "Candidate", avatar_id: str = None):
     load_dotenv()
     bey_key = os.getenv("BEY_API_KEY")
     if not bey_key:
@@ -182,25 +260,30 @@ async def init_interview(user_name: str = "Candidate"):
 
     name = user_name.split(' ')[0] if user_name else 'Candidate'
 
-    system_prompt = f"""You are a senior UPSC Board Interview Panelist conducting a mock interview for {name}.
-You are professional, serious yet encouraging, and highly intellectually sharp.
-Your goal is to evaluate the candidate's personality, ethics, and administrative aptitude.
+    # Fallback to Chairman if ID is missing or unknown
+    primary_avatar_id = avatar_id or "2ed7477f-3961-4ce1-b331-5e4530c55a57"
+    expert = MENTOR_DATA.get(primary_avatar_id, MENTOR_DATA["2ed7477f-3961-4ce1-b331-5e4530c55a57"])
 
-Instructions:
-1. Conduct the interview strictly as a UPSC Board Member.
-2. Ask questions one by one.
-3. Be attentive to the candidate's answers.
-4. Maintain a neutral but professional persona.
-5. Your name is 'Chairman'.
+    system_prompt = f"""You are {expert['name']}, a UPSC (Union Public Service Commission) Interview Board member conducting a mock personality test for {name}.
+Your focus area is {expert['focus']}. You are a {expert['bio']}.
+
+INTERVIEW PROTOCOL:
+- CONVERSATIONAL: This is a 1-on-1 real-time voice interview. Keep your questions and responses concise (1-3 sentences).
+- ATMOSPHERE: Maintain a formal, high-gravity atmosphere consistent with the real UPSC interview.
+- CHARACTER: Be sharp, logical, and assess the candidate's character and aptitude, not just facts.
+- ROLE: Stick strictly to your persona as {expert['name']}.
 """
 
-    greeting = f"Welcome {name}. I am the Chairman of this board. We shall begin your mock interview now. Please take a seat and relax. Are you ready to begin?...."
+    greeting = f"Welcome {name}. I am {expert['name']}. Today, I will be conducting your mock interview with a focus on {expert['focus']}. I have reviewed your profile and we shall begin now. Please be seated and feel comfortable. Are you ready?...."
 
     try:
+        # Using provided avatar_id or falling back to Aryan as Chairman
+        primary_avatar_id = avatar_id or "2ed7477f-3961-4ce1-b331-5e4530c55a57"
+        
         agent_id = get_or_update_agent(
             headers=headers,
-            name="UPSC Interviewer",
-            avatar_id="2ed7477f-3961-4ce1-b331-5e4530c55a57",
+            name="UPSC 5-Member Panel",
+            avatar_id=primary_avatar_id,
             system_prompt=system_prompt,
             greeting=greeting
         )

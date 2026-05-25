@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import VideoInterview from './VideoInterview';
+import MentorsGallery from './MentorsGallery';
 import '../styles/Interview.css';
 
 const Interview = ({ user }) => {
@@ -8,6 +9,8 @@ const Interview = ({ user }) => {
     const [history, setHistory] = useState([]);
     const [activeTab, setActiveTab] = useState('start'); // start | history
     const [difficulty, setDifficulty] = useState('Medium'); // Easy | Medium | Hard
+    const [selectedAvatarId, setSelectedAvatarId] = useState(null);
+    const [selectedMentorName, setSelectedMentorName] = useState(null);
     const [stats, setStats] = useState({ total_interviews: 0, avg_score: 0, improvement: '0%' });
 
     useEffect(() => {
@@ -26,7 +29,9 @@ const Interview = ({ user }) => {
         }
     };
 
-    const startInterview = () => {
+    const startInterview = (avatarId = null, mentorName = null) => {
+        setSelectedAvatarId(avatarId);
+        setSelectedMentorName(mentorName);
         setPhase('interview');
     };
 
@@ -91,6 +96,8 @@ const Interview = ({ user }) => {
             user={user} 
             onComplete={handleInterviewComplete} 
             difficulty={difficulty} 
+            avatarId={selectedAvatarId}
+            mentorName={selectedMentorName}
             onAbort={() => setPhase('landing')}
         />;
     }
@@ -189,6 +196,62 @@ const Interview = ({ user }) => {
         );
     }
 
+    const renderStart = () => (
+        <div className="interview-start-view">
+            <MentorsGallery 
+                title="Meet the UPSC Interview Board" 
+                subtitle="Select a board member to begin your session. The board will collectively evaluate your performance."
+                filterType="panel"
+                onSelect={(mentor) => {
+                    startInterview(mentor.avatar_id, mentor.name);
+                }}
+            />
+            
+            <div className="guidelines-summary" style={{ padding: '0 2rem 4rem' }}>
+                <div className="stats-row" style={{ maxWidth: '1000px', margin: '0 auto 3rem' }}>
+                    <div className="stat-card">
+                        <div className="stat-value text-blue">{stats.total_interviews}</div>
+                        <div className="stat-label">Interviews<br />Completed</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value text-green">{stats.avg_score}%</div>
+                        <div className="stat-label">Avg Score<br />Lifetime</div>
+                    </div>
+                    <div className="stat-card">
+                        <div className="stat-value text-purple">{stats.improvement}</div>
+                        <div className="stat-label">Improvement<br />Velocity</div>
+                    </div>
+                </div>
+
+                <div className="difficulty-selector" style={{ maxWidth: '600px', margin: '0 auto 2rem', padding: '1.5rem', background: 'var(--bg-card)', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
+                    <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Choose Interview Level</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                        {['Easy', 'Medium', 'Hard'].map(level => (
+                            <button 
+                                key={level}
+                                onClick={() => setDifficulty(level)}
+                                style={{ 
+                                    padding: '0.75rem', 
+                                    borderRadius: '12px', 
+                                    border: '1.5px solid',
+                                    borderColor: difficulty === level ? 'var(--primary)' : 'var(--border-color)',
+                                    background: difficulty === level ? 'rgba(242, 146, 29, 0.1)' : 'transparent',
+                                    color: difficulty === level ? 'var(--primary)' : 'var(--text-muted)',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {level}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="interview-container">
             <div className="interview-header text-center">
@@ -213,108 +276,7 @@ const Interview = ({ user }) => {
                 </div>
             </div>
 
-            {activeTab === 'start' ? (
-                <div className="interview-content">
-                    <div className="interview-left">
-                        <div className="interview-banner">
-                            <div className="banner-overlay">
-                                <h3>Master Your Interview Skills</h3>
-                                <p>Build confidence with AI-powered practice</p>
-                            </div>
-                        </div>
-
-                        <div className="stats-row">
-                            <div className="stat-card">
-                                <div className="stat-value text-blue">{stats.total_interviews}</div>
-                                <div className="stat-label">Interviews<br />Completed</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value text-green">{stats.avg_score}%</div>
-                                <div className="stat-label">Avg Score<br />Lifetime</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value text-purple">{stats.improvement}</div>
-                                <div className="stat-label">Improvement<br />Velocity</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="interview-right">
-                        <div className="guidelines-card">
-                            <h3>Before You Begin</h3>
-
-                            <div className="guideline-item">
-                                <div className="guideline-icon bg-blue">💻</div>
-                                <div className="guideline-text">
-                                    <h4>Enable Camera & Microphone</h4>
-                                    <p>Allow browser permissions to use your camera and microphone for the interview</p>
-                                </div>
-                            </div>
-
-                            <div className="guideline-item">
-                                <div className="guideline-icon bg-green">✓</div>
-                                <div className="guideline-text">
-                                    <h4>Find a Quiet Space</h4>
-                                    <p>Ensure you're in a well-lit, quiet environment with minimal distractions</p>
-                                </div>
-                            </div>
-
-                            <div className="guideline-item">
-                                <div className="guideline-icon bg-orange">⏱</div>
-                                <div className="guideline-text">
-                                    <h4>Estimated Duration</h4>
-                                    <p>The interview will take approximately 15-20 minutes to complete</p>
-                                </div>
-                            </div>
-
-                            <div className="guideline-item">
-                                <div className="guideline-icon bg-purple">!</div>
-                                <div className="guideline-text">
-                                    <h4>AI Analysis</h4>
-                                    <p>Get instant feedback on communication, emotions, and content quality</p>
-                                </div>
-                            </div>
-
-                            <div className="expectations-box">
-                                <h4>What to Expect</h4>
-                                <ul>
-                                    <li>5 questions covering your background, knowledge, and situational responses</li>
-                                    <li>Real-time board member feedback</li>
-                                    <li>Detailed report with improvement suggestions</li>
-                                </ul>
-                            </div>
-
-                        <div className="difficulty-selector" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                            <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Choose Interview Level</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                                {['Easy', 'Medium', 'Hard'].map(level => (
-                                    <button 
-                                        key={level}
-                                        onClick={() => setDifficulty(level)}
-                                        style={{ 
-                                            padding: '0.5rem', 
-                                            borderRadius: '8px', 
-                                            border: '1px solid',
-                                            borderColor: difficulty === level ? 'var(--primary)' : 'var(--border-color)',
-                                            background: difficulty === level ? 'rgba(242, 146, 29, 0.1)' : 'transparent',
-                                            color: difficulty === level ? 'var(--primary)' : 'var(--text-muted)',
-                                            fontSize: '0.75rem',
-                                            fontWeight: '700',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        {level}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <button className="start-interview-btn" onClick={startInterview}>Start AI Interview</button>
-                            <p className="consent-text">By starting, you consent to video and audio recording for analysis</p>
-                        </div>
-                    </div>
-                </div>
-            ) : (
+            {activeTab === 'start' ? renderStart() : (
                 <div className="interview-history-list">
                     {history.length > 0 ? (
                         <div className="history-grid">
