@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import VideoAvatarCounselling from './VideoAvatarCounselling';
+import aryanImg from '../images/aryan.png';
 import '../styles/PsychometricTest.css';
 
 const API = `${process.env.REACT_APP_API_URL}`;
@@ -542,27 +543,24 @@ const PsychometricTest = ({ user }) => {
             gap: '1rem',
             width: '100%'
         }}>
-          {/* Main Prominent Action - Brand Orange Gradient with Pop Styling */}
-          <button 
-            className="psy-btn-primary psy-mentor-btn-premium" 
-            style={{ 
-              padding: '1.2rem', 
-              fontSize: '1.1rem', 
-              fontWeight: '800',
-              borderRadius: '16px',
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              color: 'white',
-              cursor: 'pointer'
-            }} 
-            onClick={() => setView('video_counselling')}
-          >
-            <span style={{ fontSize: '1.5rem', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>📹</span> 
-            <span>Chat with Mentor</span>
-          </button>
+          {/* Premium Mentor CTA Card */}
+          <div className="psy-mentor-cta-card">
+            <div className="psy-mentor-cta-image">
+              <img src={aryanImg} alt="Aryan Mentor" />
+            </div>
+            <div className="psy-mentor-cta-content">
+              <h3>Personalized Session with Aryan</h3>
+              <p>Discuss your psychometric report in detail and get a tailored preparation strategy.</p>
+            </div>
+            <button 
+              className="psy-btn-primary psy-mentor-btn-premium" 
+              onClick={() => setView('video_counselling')}
+              style={{ width: 'auto', minWidth: '220px', whiteSpace: 'nowrap' }}
+            >
+              <span className="psy-btn-icon">📹</span> 
+              <span>Chat with Mentor</span>
+            </button>
+          </div>
 
           {/* Secondary Actions Row */}
           <div style={{ 

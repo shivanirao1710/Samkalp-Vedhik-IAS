@@ -13,10 +13,12 @@ import StudentProfile from './StudentProfile';
 import Settings from './Settings';
 import AIDoubtSolver from './AIDoubtSolver';
 import CurrentAffairs from './CurrentAffairs';
+import CoursePlayer from './CoursePlayer';
 import logo from '../images/logo.png';
 
 const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const [currentView, setCurrentView] = useState('Dashboard');
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [isMentorToggle, setIsMentorToggle] = useState(false);
 
   const getGreeting = () => {
@@ -125,21 +127,30 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
 
         // 2. Fetch Stats
         const statsResp = await fetch(`${process.env.REACT_APP_API_URL}/users/stats/${user.id}`);
+        let overall = 0;
+        
+        // 3. Fetch Enrolled Courses
+        const courseResp = await fetch(`${process.env.REACT_APP_API_URL}/courses/student/${user.id}`);
+        let courses = [];
+        if (courseResp.ok) {
+          courses = await courseResp.json();
+          const enrolled = courses.filter(c => c.is_enrolled);
+          setEnrolledCourses(enrolled);
+          
+          if (enrolled.length > 0) {
+            const total = enrolled.reduce((acc, c) => acc + (c.progress || 0), 0);
+            overall = Math.min(100, Math.round(total / enrolled.length));
+          }
+        }
+
         if (statsResp.ok) {
           const statsData = await statsResp.json();
           setDashboardStats({
-            overallProgress: '0%',
+            overallProgress: `${overall}%`,
             learningHours: statsData.study_streak > 0 ? (statsData.study_streak * 1.5).toFixed(1) + 'h' : '0h',
             testsCompleted: `${statsData.tests_taken}/20`,
             dayStreak: statsData.study_streak.toString()
           });
-        }
-
-        // 3. Fetch Enrolled Courses
-        const courseResp = await fetch(`${process.env.REACT_APP_API_URL}/courses/student/${user.id}`);
-        if (courseResp.ok) {
-          const courses = await courseResp.json();
-          setEnrolledCourses(courses.filter(c => c.is_enrolled));
         }
 
         // 4. Fetch Tests
@@ -178,7 +189,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Psychometric Test', icon: '🧠' },
     { name: 'Courses', icon: '📖' },
     { name: 'Study Materials', icon: '📚' },
-    { name: 'Mock Tests', icon: '📝' },
+    { name: 'Practice Test', icon: '📝' },
+    { name: 'Mock Test', icon: '⏱️' },
     { name: 'Mock Interview', icon: '📹' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'Current Affairs', icon: '🌍' },
@@ -196,9 +208,11 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
   const renderContent = () => {
     switch (currentView) {
       case 'Courses':
-        return <Courses user={user} />;
-      case 'Mock Tests':
-        return <Tests />;
+        return <Courses user={user} onOpenCourse={(id) => { setSelectedCourseId(id); setCurrentView('CoursePlayer'); }} />;
+      case 'Practice Test':
+        return <Tests user={user} isMock={false} />;
+      case 'Mock Test':
+        return <Tests user={user} isMock={true} />;
       case 'Study Materials':
         return <StudyMaterials user={user} />;
       case 'Mock Interview':
@@ -215,6 +229,8 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
         return <StudentProfile user={user} onUserUpdate={onUserUpdate} onLogout={onLogout} onBack={() => setCurrentView('Dashboard')} />;
       case 'Settings':
         return <Settings user={user} onBack={() => setCurrentView('Dashboard')} />;
+      case 'CoursePlayer':
+        return <CoursePlayer courseId={selectedCourseId} user={user} onBack={() => setCurrentView('Courses')} />;
       case 'Dashboard':
       default:
         const mainCourse = enrolledCourses.length > 0 ? enrolledCourses[0] : null;
@@ -223,12 +239,31 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
           <>
             <section className="hero-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'visible' }}>
               <div style={{ flex: 1 }}>
-                <h2 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{getGreeting()}, {user.name || user.email.split('@')[0]}! 👋</h2>
+                <h2 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{getGreeting()}, {user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}! 👋</h2>
                 <p className="hero-subtitle" style={{ opacity: 0.9, fontSize: '1.1rem' }}>
                     {enrolledCourses.length > 0
                     ? `You are currently enrolled in ${enrolledCourses.length} courses. Keep going!`
                     : "Welcome to Samkalp Vedhik. Find a course to start your mission!"}
                 </p>
+                <div style={{ 
+                    display: 'flex', 
+                    gap: '1.5rem', 
+                    marginTop: '0.75rem', 
+                    fontSize: '0.95rem', 
+                    fontWeight: '600',
+                    opacity: 0.9
+                }}>
+                  {user.batch_name && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      🏷️ Batch: <span style={{ color: '#fff', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>{user.batch_name}</span>
+                    </span>
+                  )}
+                  {user.assigned_mentor_name && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      👨‍🏫 Mentor: <span style={{ color: '#fff', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '6px' }}>{user.assigned_mentor_name}</span>
+                    </span>
+                  )}
+                </div>
               </div>
 
               {showCAPopup && latestCA && (
@@ -291,15 +326,18 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                   <div className="course-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h4 style={{ fontWeight: '700' }}>{mainCourse.title}</h4>
-                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>{mainCourse.progress || 0}%</span>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: '600' }}>{Math.min(100, mainCourse.progress || 0)}%</span>
                     </div>
                     <div className="progress-bar">
-                      <div className="progress-inner" style={{ width: `${mainCourse.progress || 0}%` }}></div>
+                      <div className="progress-inner" style={{ width: `${Math.min(100, mainCourse.progress || 0)}%` }}></div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', color: '#64748b' }}>
-                      <span>{mainCourse.modules} modules</span>
+                      <span>{mainCourse.modules_count || 0} modules</span>
                       <button
-                        onClick={() => setCurrentView('Courses')}
+                        onClick={() => {
+                          setSelectedCourseId(mainCourse.id);
+                          setCurrentView('CoursePlayer');
+                        }}
                         style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer' }}
                       >
                         Continue Learning →
@@ -438,7 +476,7 @@ const Dashboard = ({ user, onLogout, onUserUpdate }) => {
                 setIsProfileOpen(newState);
                 if (newState) setShowNotifications(false);
               }}>
-                <div className="user-name">{user.name || user.email.split('@')[0]}</div>
+                <div className="user-name">{user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}</div>
                 <div className="user-role">Student</div>
               </div>
 

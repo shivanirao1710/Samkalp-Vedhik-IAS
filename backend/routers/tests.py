@@ -8,6 +8,7 @@ import google.generativeai as genai
 from groq import Groq
 import os
 import json
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,6 +34,9 @@ class TestCreate(BaseModel):
     category: str
     duration_mins: int
     questions: List[QuestionCreate]
+    is_mock: bool = False
+    start_time: str = None
+    end_time: str = None
 
 @router.post("/")
 def create_test(test: TestCreate, db: Session = Depends(get_db)):
@@ -41,7 +45,10 @@ def create_test(test: TestCreate, db: Session = Depends(get_db)):
         category=test.category,
         duration_mins=test.duration_mins,
         total_questions=len(test.questions),
-        status="Published"
+        status="Published",
+        is_mock=1 if test.is_mock else 0,
+        start_time=test.start_time,
+        end_time=test.end_time
     )
     db.add(db_test)
     db.commit()
@@ -235,3 +242,43 @@ def parse_ai_questions(request: RawTextRequest):
             return json.loads(text_resp)
         except Exception as e2:
             raise HTTPException(status_code=500, detail=f"AI Parsing failed: {str(e)}")
+
+class StudentAttempt(BaseModel):
+    user_id: int
+    test_id: int
+    score: int
+    percentage: int
+
+@router.post("/attempts")
+def submit_test_attempt(attempt: StudentAttempt, db: Session = Depends(get_db)):
+    db_attempt = models.StudentTestAttempt(
+        user_id=attempt.user_id,
+        test_id=attempt.test_id,
+        score=attempt.score,
+        percentage=attempt.percentage,
+        completed_at=datetime.utcnow().isoformat() + "Z"
+    )
+    db.add(db_attempt)
+    db.commit()
+    db.refresh(db_attempt)
+    return db_attempt
+
+@router.get("/{test_id}/results")
+def get_test_results(test_id: int, db: Session = Depends(get_db)):
+    attempts = db.query(models.StudentTestAttempt).filter(models.StudentTestAttempt.test_id == test_id).all()
+    
+    results = []
+    for attempt in attempts:
+        user = db.query(models.User).filter(models.User.id == attempt.user_id).first()
+        results.append({
+            "id": attempt.id,
+            "student_name": user.name if user else "Unknown",
+            "student_email": user.email if user else "N/A",
+            "score": attempt.score,
+            "percentage": attempt.percentage,
+            "completed_at": attempt.completed_at
+        })
+    
+    # Sort by percentage descending
+    results.sort(key=lambda x: x["percentage"], reverse=True)
+    return results

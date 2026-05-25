@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Courses.css';
 
-const Courses = ({ user }) => {
+const Courses = ({ user, onOpenCourse }) => {
   const [courses, setCourses] = useState([]);
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
@@ -106,8 +106,8 @@ const Courses = ({ user }) => {
                     <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.5rem', lineHeight: 1.5 }}>{course.description}</p>
                   )}
                   <div className="course-stats">
-                    <span>📖 {course.modules} Modules</span>
-                    <span>⏱️ {course.lessons} Hours</span>
+                    <span>📖 {course.modules_count || 0} Modules</span>
+                    <span>⏱️ {course.lessons_count || 0} Hours</span>
                   </div>
 
                   {course.is_enrolled ? (
@@ -115,13 +115,17 @@ const Courses = ({ user }) => {
                       <div className="course-progress">
                         <div className="progress-label">
                           <span>Progress</span>
-                          <span className="progress-percent">{course.progress || 0}%</span>
+                          <span className="progress-percent">{Math.min(100, course.progress || 0)}%</span>
                         </div>
                         <div className="progress-bar-container">
-                          <div className="progress-bar-fill" style={{ width: `${course.progress || 0}%` }}></div>
+                          <div className="progress-bar-fill" style={{ width: `${Math.min(100, course.progress || 0)}%` }}></div>
                         </div>
                       </div>
-                      <button className="continue-btn" style={{ background: course.status === 'completed' ? '#10b981' : '' }}>
+                      <button 
+                        className="continue-btn" 
+                        style={{ background: course.status === 'completed' ? '#F2921D' : '', color: course.status === 'completed' ? 'white' : '', cursor: 'pointer' }}
+                        onClick={() => onOpenCourse(course.id)}
+                      >
                         {course.status === 'completed' ? 'Completed' : 'Continue Learning'}
                       </button>
                     </>

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List, Any
 from datetime import datetime
 
 class UserCreate(BaseModel):
@@ -35,6 +35,10 @@ class UserResponse(BaseModel):
     scholarship_status: Optional[str] = "pending"
     scholarship_score: Optional[int] = None
     scholarship_answers_json: Optional[str] = None
+    assigned_mentor_id: Optional[int] = None
+    assigned_mentor_name: Optional[str] = None
+    batch_id: Optional[int] = None
+    batch_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -68,24 +72,53 @@ class UserAdminResponse(BaseModel):
     scholarship_status: Optional[str] = "pending"
     scholarship_score: Optional[int] = None
     scholarship_answers_json: Optional[str] = None
+    assigned_mentor_id: Optional[int] = None
+    batch_id: Optional[int] = None
 
+    class Config:
+        from_attributes = True
+
+class LessonCreate(BaseModel):
+    title: str
+    content_type: str = "text"
+    content_url: Optional[str] = None
+    order: int = 0
+
+class Lesson(LessonCreate):
+    id: int
+    module_id: int
+    class Config:
+        from_attributes = True
+
+class ModuleCreate(BaseModel):
+    title: str
+    order: int = 0
+    lessons: List[LessonCreate] = []
+
+class ModuleResponse(BaseModel):
+    id: int
+    course_id: int
+    title: str
+    order: int
+    lessons: List[Lesson] = []
     class Config:
         from_attributes = True
 
 class CourseBase(BaseModel):
     title: str
     description: Optional[str] = None
-    modules: int = 0
-    lessons: int = 0
+    modules_count: int = 0
+    lessons_count: int = 0
     image_url: Optional[str] = None
     status: str = "not_started"
     progress: int = 0
 
 class CourseCreate(CourseBase):
-    pass
+    modules: Optional[str] = None # JSON string of modules if sent via Form
 
 class Course(CourseBase):
     id: int
+    course_modules: List[ModuleResponse] = []
 
     class Config:
         from_attributes = True
@@ -168,3 +201,23 @@ class ScholarshipSubmit(BaseModel):
 
 class ScholarshipEvaluate(BaseModel):
     status: str
+
+class AssignMentorRequest(BaseModel):
+    user_id: int
+    mentor_id: Optional[int] = None
+
+class BatchCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class BatchResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class AssignBatchRequest(BaseModel):
+    user_id: int
+    batch_id: Optional[int] = None

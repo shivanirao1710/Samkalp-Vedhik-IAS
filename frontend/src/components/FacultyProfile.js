@@ -200,7 +200,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
               </div>
             )}
 
-            <h2>{user.name || user.email.split('@')[0]}</h2>
+            <h2>{user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}</h2>
             <div className="profile-subtitle">Faculty Member</div>
 
             <div className="member-since">
@@ -266,7 +266,7 @@ const FacultyProfile = ({ user, onUserUpdate, onLogout, onBack }) => {
                     onChange={handleInputChange}
                   />
                 ) : (
-                  <div className="info-field">{user.name || user.email.split('@')[0]}</div>
+                  <div className="info-field">{user.name && user.name !== 'N/A' ? user.name : user.email.split('@')[0]}</div>
                 )}
               </div>
               <div className="info-group">

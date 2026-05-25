@@ -54,6 +54,7 @@ class AnswerPayload(BaseModel):
 class InterviewAnalysisRequest(BaseModel):
     user_id: int
     answers: List[AnswerPayload]
+    mentor_name: Optional[str] = "The Board"
 
 class SaveResultRequest(BaseModel):
     user_id: int
@@ -136,8 +137,8 @@ async def analyze_interview(req: InterviewAnalysisRequest):
     Candidate Responses:
     {answers_text}
     
-    Evaluate based on UPSC standards:
-    - Relevancy to the question.
+    Evaluation based on UPSC standards for a session led by {req.mentor_name}:
+    - Relevancy to the question and the expert's focus area.
     - depth of understanding.
     - Administrative aptitude.
     - Clarity of expression.

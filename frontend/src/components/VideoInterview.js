@@ -3,7 +3,7 @@ import '../styles/VideoAvatarCounselling.css';
 
 const API = `${process.env.REACT_APP_API_URL}`;
 
-const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) => {
+const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium', avatarId = null, mentorName = null }) => {
   const [beyCallLink, setBeyCallLink] = useState(null);
   const [callId, setCallId] = useState(null);
   const [error, setError] = useState(null);
@@ -18,7 +18,12 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
 
     const init = async () => {
       try {
-        const beyRes = await fetch(`${API}/api/beyond-presence/init-interview?user_name=${encodeURIComponent(user?.name || 'Candidate')}`, { method: 'POST' });
+        const queryParams = new URLSearchParams({
+          user_name: user?.name || 'Candidate',
+        });
+        if (avatarId) queryParams.append('avatar_id', avatarId);
+
+        const beyRes = await fetch(`${API}/api/beyond-presence/init-interview?${queryParams.toString()}`, { method: 'POST' });
         
         if (beyRes.ok) {
           const data = await beyRes.json();
@@ -103,6 +108,7 @@ const VideoInterview = ({ user, onComplete, onAbort, difficulty = 'Medium' }) =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user?.id || 0,
+          mentor_name: mentorName || "The Chairman",
           answers: [
             { question: "Overall Interview Performance", answer: userText }
           ]

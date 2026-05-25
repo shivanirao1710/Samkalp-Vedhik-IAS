@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/shared-layout.css';
 import '../styles/FacultyDashboardExtended.css';
 import ThemeToggle from './ThemeToggle';
@@ -15,6 +15,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [activeMenu, setActiveMenu] = useState('Dashboard');
   const [activeTab, setActiveTab] = useState('Students');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [bulkContentMenu, setBulkContentMenu] = useState(null);
+  const bulkTypeRef = useRef('video');
 
   useEffect(() => {
     // Sync profile data on mount
@@ -55,7 +57,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     { name: 'Students', icon: '👥' },
     { name: 'Scholarships', icon: '🎓' },
     { name: 'Courses', icon: '📖' },
-    { name: 'Tests', icon: '📄' },
+    { name: 'Practice Test', icon: '📄' },
+    { name: 'Mock Test', icon: '⏱️' },
     { name: 'Live Classes', icon: '📺' },
     { name: 'Study Materials', icon: '📚' },
     { name: 'Interviews', icon: '📹' },
@@ -67,7 +70,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const actions = [
     { title: 'Add Course', subtitle: 'Create new course', icon: '＋', target: 'Courses', trigger: () => setIsCreateModalOpen(true) },
     { title: 'Schedule Class', subtitle: 'Create live session', icon: '＋', target: 'Live Classes' },
-    { title: 'Create Test', subtitle: 'Add new test', icon: '＋', target: 'Tests', trigger: () => setIsTestModalOpen(true) },
+    { title: 'Create Practice Test', subtitle: 'Add new test', icon: '＋', target: 'Practice Test', trigger: () => setIsTestModalOpen(true) },
     { title: 'Add Study Material', subtitle: 'Upload PDFs & E-books', icon: '＋', target: 'Study Materials', trigger: () => setIsStudyMaterialModalOpen(true) },
     { title: 'Send Announcement', subtitle: 'Message all students', icon: '🔔', target: 'Announcements' },
     {
@@ -156,14 +159,14 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       }
     } catch (err) { console.error(err); }
   };
-  
+
   const fetchPendingScholarships = async () => {
     try {
       const res = await fetch(`${process.env.REACT_APP_API_URL}/users/scholarship/pending`);
       if (res.ok) setPendingScholarships(await res.json());
     } catch (err) { console.error(err); }
   };
-  
+
   const handleEvaluateScholarship = async (userId, status) => {
     if (!window.confirm(`Are you sure you want to ${status} this scholarship?`)) return;
     try {
@@ -291,7 +294,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const fetchStudents = async () => {
     setLoadingStudents(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/students-detailed`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/students-detailed?faculty_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setStudentData(data);
@@ -498,6 +501,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               <th>CONTACT INFO</th>
               <th>ENROLLED DATE</th>
               <th>COURSES</th>
+              <th>BATCH</th>
               <th>STATUS</th>
               <th>ACTIONS</th>
             </tr>
@@ -530,6 +534,18 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                     <td>{student.enrolled_date}</td>
                     <td>
                       <span className="course-count-tag">{student.courses} Courses</span>
+                    </td>
+                    <td>
+                      <span className="batch-tag" style={{ 
+                        padding: '0.25rem 0.6rem', 
+                        borderRadius: '6px', 
+                        fontSize: '0.75rem', 
+                        background: '#f1f5f9', 
+                        color: '#475569',
+                        fontWeight: '600'
+                      }}>
+                        {student.batch_name || 'No Batch'}
+                      </span>
                     </td>
                     <td>
                       <span className={`status-pill ${(student.status || 'Active').toLowerCase()}`}>
@@ -666,12 +682,6 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const courseStats = [
-    { label: 'Total Courses', value: '18', icon: '📚', color: '#e0f2fe' },
-    { label: 'Total Enrollments', value: '1,245', icon: '👥', color: '#fff7ed' },
-    { label: 'Total Hours', value: '850', icon: '⏱️', color: '#fff7ed' },
-    { label: 'Draft Courses', value: '4', icon: '📝', color: '#fef2f2' },
-  ];
 
   const adminCourseData = [
     {
@@ -710,21 +720,79 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [formData, setFormData] = useState({
     title: '',
     author: '',
-    modules: '',
+    modules: '', // This will still hold the total count (auto-updated or manual)
     hours: '',
     category: 'Art and Culture',
     status: 'Draft',
-    description: ''
+    description: '',
+    courseModules: [] // Added for module-wise content
   });
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [liveCourses, setLiveCourses] = useState([]);
+  const [fetchedTests, setFetchedTests] = useState([]);
+  const [courseStats, setCourseStats] = useState([
+    { label: 'Total Courses', value: '0', icon: '📚', color: '#e0f2fe' },
+    { label: 'Total Enrollments', value: '0', icon: '👥', color: '#fff7ed' },
+    { label: 'Total Hours', value: '0', icon: '⏱️', color: '#fff7ed' },
+    { label: 'Draft Courses', value: '0', icon: '📝', color: '#fef2f2' },
+  ]);
+
+  useEffect(() => {
+    const total = liveCourses.length;
+    const drafts = liveCourses.filter(c => c.status === 'not_started' || c.status === 'Draft').length;
+    const totalHours = liveCourses.reduce((sum, c) => sum + (parseInt(c.lessons_count) || 0), 0);
+    const enrollments = studentData.reduce((sum, s) => sum + (parseInt(s.courses) || 0), 0);
+
+    setCourseStats([
+      { label: 'Total Courses', value: total.toString(), icon: '📚', color: '#e0f2fe' },
+      { label: 'Total Enrollments', value: enrollments.toLocaleString(), icon: '👥', color: '#fff7ed' },
+      { label: 'Total Hours', value: totalHours.toLocaleString(), icon: '⏱️', color: '#fff7ed' },
+      { label: 'Draft Courses', value: drafts.toString(), icon: '📝', color: '#fef2f2' },
+    ]);
+  }, [liveCourses, studentData]);
+
+  const [liveTestStats, setLiveTestStats] = useState([
+    { label: 'Total Tests', value: '0', icon: '📝', color: '#e0f2fe' },
+    { label: 'Total Attempts', value: '0', icon: '👥', color: '#fff7ed' },
+    { label: 'Avg Score', value: '0%', icon: '⏱️', color: '#fff7ed' },
+    { label: 'Draft Tests', value: '0', icon: '📋', color: '#fef2f2' },
+  ]);
+
+  useEffect(() => {
+    const total = fetchedTests.length;
+    const drafts = fetchedTests.filter(t => t.status === 'Draft' || t.status === 'not_started').length;
+    
+    // Sum of attempts from all tests
+    const totalAttempts = fetchedTests.reduce((sum, t) => sum + (t.attempts || 0), 0);
+    
+    // Average score across all tests (if attempts > 0)
+    let avgScoreSum = 0;
+    let testsWithAttempts = 0;
+    fetchedTests.forEach(t => {
+        if (t.attempts > 0) {
+            const score = parseFloat(t.avgScore) || 0;
+            avgScoreSum += score;
+            testsWithAttempts++;
+        }
+    });
+    const avgScore = testsWithAttempts > 0 ? (avgScoreSum / testsWithAttempts).toFixed(1) : "0";
+
+    setLiveTestStats([
+      { label: 'Total Tests', value: total.toString(), icon: '📝', color: '#e0f2fe' },
+      { label: 'Total Attempts', value: totalAttempts.toLocaleString(), icon: '👥', color: '#fff7ed' },
+      { label: 'Avg Score', value: `${avgScore}%`, icon: '⏱️', color: '#fff7ed' },
+      { label: 'Draft Tests', value: drafts.toString(), icon: '📋', color: '#fef2f2' },
+    ]);
+  }, [fetchedTests]);
 
   useEffect(() => {
     fetchLiveCourses();
+    fetchTests();
     fetchStudyMaterials();
   }, []);
+
 
   const fetchStudyMaterials = async () => {
     try {
@@ -809,10 +877,15 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       const fd = new FormData();
       fd.append('title', formData.title);
       fd.append('description', formData.description || formData.category);
-      fd.append('modules', formData.modules || 0);
-      fd.append('lessons', formData.hours || 0);
+      fd.append('modules_count', formData.modules || 0);
+      fd.append('lessons_count', formData.hours || 0);
       fd.append('status', formData.status === 'Published' ? 'in_progress' : 'not_started');
       fd.append('progress', 0);
+
+      if (formData.courseModules && formData.courseModules.length > 0) {
+        fd.append('modules', JSON.stringify(formData.courseModules));
+      }
+
       if (thumbnailFile) fd.append('thumbnail', thumbnailFile);
 
       const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/`, {
@@ -823,7 +896,11 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       if (res.ok) {
         alert('Course created successfully! It is now visible in the Student Dashboard.');
         setIsCreateModalOpen(false);
-        setFormData({ title: '', author: '', modules: '', hours: '', category: 'Art and Culture', status: 'Draft', description: '' });
+        setFormData({
+          title: '', author: '', modules: '', hours: '',
+          category: 'Art and Culture', status: 'Draft',
+          description: '', courseModules: []
+        });
         setThumbnailFile(null);
         setThumbnailPreview(null);
         fetchLiveCourses();
@@ -843,7 +920,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCourse, setEditCourse] = useState(null);
   const [editFormData, setEditFormData] = useState({
-    title: '', description: '', modules: '', hours: '', status: 'Draft'
+    title: '', description: '', modules: '', hours: '', status: 'Draft', courseModules: []
   });
   const [editThumbnailFile, setEditThumbnailFile] = useState(null);
   const [editThumbnailPreview, setEditThumbnailPreview] = useState(null);
@@ -852,12 +929,32 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
   const openEditModal = (course) => {
     setEditCourse(course);
     const statusLabel = course.status === 'in_progress' ? 'Published' : 'Draft';
+    
+    // Transform flat lesson structure to multi-content structure for UI
+    const processedModules = (course.course_modules || []).map(module => ({
+        ...module,
+        lessons: (module.lessons || []).map(lesson => {
+            let parsedContents = [];
+            if (lesson.content_type === 'multi') {
+                try {
+                    parsedContents = JSON.parse(lesson.content_url);
+                } catch (e) {
+                    parsedContents = [{ type: 'video', url: lesson.content_url }];
+                }
+            } else {
+                parsedContents = [{ type: lesson.content_type || 'video', url: lesson.content_url || '' }];
+            }
+            return { ...lesson, contents: parsedContents };
+        })
+    }));
+
     setEditFormData({
       title: course.title || '',
       description: course.description || '',
-      modules: course.modules || '',
-      hours: course.lessons || '',
-      status: statusLabel
+      modules: course.modules_count || '',
+      hours: course.lessons_count || '',
+      status: statusLabel,
+      courseModules: processedModules
     });
     // Show existing thumbnail as preview
     if (course.image_url) {
@@ -887,10 +984,15 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       const fd = new FormData();
       fd.append('title', editFormData.title);
       fd.append('description', editFormData.description);
-      fd.append('modules', editFormData.modules || 0);
-      fd.append('lessons', editFormData.hours || 0);
+      fd.append('modules_count', editFormData.modules || 0);
+      fd.append('lessons_count', editFormData.hours || 0);
       fd.append('status', editFormData.status === 'Published' ? 'in_progress' : 'not_started');
       fd.append('progress', editCourse.progress || 0);
+
+      if (editFormData.courseModules) {
+        fd.append('modules', JSON.stringify(editFormData.courseModules));
+      }
+
       if (editThumbnailFile) fd.append('thumbnail', editThumbnailFile);
 
       const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/${editCourse.id}`, {
@@ -928,6 +1030,391 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
       console.error('Delete error:', error);
       alert('Failed to connect to backend');
     }
+  };
+
+  // ── Modules Management Helpers ────────────────────────────────────
+  const addModule = (isEdit = false) => {
+    const newModule = { title: '', lessons: [] };
+    if (isEdit) {
+      setEditFormData({ ...editFormData, courseModules: [...editFormData.courseModules, newModule] });
+    } else {
+      setFormData({ ...formData, courseModules: [...formData.courseModules, newModule] });
+    }
+  };
+
+  const removeModule = (mIdx, isEdit = false) => {
+    if (isEdit) {
+      const updated = editFormData.courseModules.filter((_, i) => i !== mIdx);
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = formData.courseModules.filter((_, i) => i !== mIdx);
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const handleModuleTitleChange = (mIdx, val, isEdit = false) => {
+    if (isEdit) {
+      const updated = [...editFormData.courseModules];
+      updated[mIdx].title = val;
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = [...formData.courseModules];
+      updated[mIdx].title = val;
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const addLesson = (mIdx, isEdit = false) => {
+    const newLesson = { title: '', contents: [{ type: 'video', url: '' }] };
+    if (isEdit) {
+      const updated = [...editFormData.courseModules];
+      updated[mIdx].lessons = [...updated[mIdx].lessons, newLesson];
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = [...formData.courseModules];
+      updated[mIdx].lessons = [...updated[mIdx].lessons, newLesson];
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const removeLesson = (mIdx, lIdx, isEdit = false) => {
+    if (isEdit) {
+      const updated = [...editFormData.courseModules];
+      updated[mIdx].lessons = updated[mIdx].lessons.filter((_, i) => i !== lIdx);
+      setEditFormData({ ...editFormData, courseModules: updated });
+    } else {
+      const updated = [...formData.courseModules];
+      updated[mIdx].lessons = updated[mIdx].lessons.filter((_, i) => i !== lIdx);
+      setFormData({ ...formData, courseModules: updated });
+    }
+  };
+
+  const handleLessonChange = (mIdx, lIdx, field, val, isEdit = false) => {
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        const updatedLessons = [...updated[mIdx].lessons];
+        updatedLessons[lIdx] = { ...updatedLessons[lIdx], [field]: val };
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
+        return { ...prev, courseModules: updated };
+    });
+  };
+
+  const handleLessonContentChange = (mIdx, lIdx, cIdx, field, val, isEdit = false) => {
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        const updatedLessons = [...updated[mIdx].lessons];
+        const updatedContents = [...updatedLessons[lIdx].contents];
+        updatedContents[cIdx] = { ...updatedContents[cIdx], [field]: val };
+        updatedLessons[lIdx] = { ...updatedLessons[lIdx], contents: updatedContents };
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
+        return { ...prev, courseModules: updated };
+    });
+  };
+
+  const addContentToLesson = (mIdx, lIdx, isEdit = false) => {
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        const updatedLessons = [...updated[mIdx].lessons];
+        updatedLessons[lIdx] = { 
+            ...updatedLessons[lIdx], 
+            contents: [...updatedLessons[lIdx].contents, { type: 'video', url: '' }] 
+        };
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
+        return { ...prev, courseModules: updated };
+    });
+  };
+
+  const removeContentFromLesson = (mIdx, lIdx, cIdx, isEdit = false) => {
+    const addAction = isEdit ? setEditFormData : setFormData;
+    addAction(prev => {
+        const updated = [...prev.courseModules];
+        const updatedLessons = [...updated[mIdx].lessons];
+        if (updatedLessons[lIdx].contents.length <= 1) return prev;
+        updatedLessons[lIdx] = {
+             ...updatedLessons[lIdx],
+             contents: updatedLessons[lIdx].contents.filter((_, i) => i !== cIdx)
+        };
+        updated[mIdx] = { ...updated[mIdx], lessons: updatedLessons };
+        return { ...prev, courseModules: updated };
+    });
+  };
+
+  const handleBulkTypeSelection = (mIdx, type, isEdit) => {
+    bulkTypeRef.current = type;
+    setBulkContentMenu(null);
+    if (type === 'text') {
+      const count = window.prompt("How many text lessons do you want to add?", "1");
+      if (count && !isNaN(count) && parseInt(count) > 0) {
+        const num = parseInt(count);
+        const addAction = isEdit ? setEditFormData : setFormData;
+        addAction(prev => {
+          const updated = [...prev.courseModules];
+          const newLessons = [];
+          for (let i = 0; i < num; i++) {
+            newLessons.push({ 
+                title: `New Text Lesson`, 
+                contents: [{ type: 'text', url: '' }] 
+            });
+          }
+          updated[mIdx] = {
+              ...updated[mIdx],
+              lessons: [...updated[mIdx].lessons, ...newLessons]
+          };
+          return { ...prev, courseModules: updated };
+        });
+      }
+    } else {
+      document.getElementById(`bulk-upload-${mIdx}`).click();
+    }
+  };
+
+  const handleCourseBulkUpload = async (mIdx, files, isEdit = false, explicitType = null) => {
+    if (!files || files.length === 0) return;
+    
+    const fileList = Array.from(files);
+    
+    const uploadFilesSequentially = async () => {
+        let currentLessonOffset = 0;
+        const currentData = isEdit ? editFormData : formData;
+        currentLessonOffset = currentData.courseModules[mIdx].lessons.length;
+
+        for (let i = 0; i < fileList.length; i++) {
+            const file = fileList[i];
+            const contentType = explicitType ? explicitType : (file.type.startsWith('video/') ? 'video' : (file.type === 'application/pdf' ? 'pdf' : (file.type.startsWith('image/') ? 'image' : 'video')));
+            const lessonTitle = file.name.split('.').slice(0, -1).join('.');
+            const lIdx = currentLessonOffset + i;
+
+            // Add lesson with the content already in it
+            const addAction = isEdit ? setEditFormData : setFormData;
+            addAction(prev => {
+                const updated = [...prev.courseModules];
+                updated[mIdx] = {
+                    ...updated[mIdx],
+                    lessons: [...updated[mIdx].lessons, { 
+                        title: lessonTitle, 
+                        contents: [{ type: contentType, url: '' }] 
+                    }]
+                };
+                return { ...prev, courseModules: updated };
+            });
+
+            // Upload (always to the first content item for bulk)
+            await handleLessonFileUpload(mIdx, lIdx, 0, file, isEdit);
+        }
+    };
+    
+    uploadFilesSequentially();
+  };
+
+  const [isUploadingLesson, setIsUploadingLesson] = useState({}); // { 'mIdx-lIdx-cIdx': true }
+
+  const handleLessonFileUpload = async (mIdx, lIdx, cIdx, file, isEdit = false) => {
+    if (!file) return;
+    
+    const key = `${mIdx}-${lIdx}-${cIdx}`;
+    setIsUploadingLesson(prev => ({ ...prev, [key]: true }));
+    
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/courses/lessons/upload`, {
+        method: 'POST',
+        body: fd
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        handleLessonContentChange(mIdx, lIdx, cIdx, 'url', data.url, isEdit);
+      } else {
+        alert("Upload failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Lesson upload error:", err);
+      alert("Failed to connect to backend for upload.");
+    } finally {
+      setIsUploadingLesson(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const renderModulesSection = (isEdit = false) => {
+    const currentModules = isEdit ? editFormData.courseModules : formData.courseModules;
+    return (
+      <div className="modules-management-section" style={{ marginTop: '1.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b' }}>Course Modules</h3>
+          <button type="button" onClick={() => addModule(isEdit)} style={{ padding: '0.4rem 0.8rem', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>
+            + Add Module
+          </button>
+        </div>
+
+        {currentModules.length === 0 && (
+          <p style={{ fontSize: '0.9rem', color: '#64748b', textAlign: 'center', padding: '1rem', background: '#f8fafc', borderRadius: '12px' }}>
+            No modules added yet. Add modules to structure your course.
+          </p>
+        )}
+
+        {currentModules.map((module, mIdx) => (
+          <div key={mIdx} className="module-item-card" style={{ background: '#f8fafc', borderRadius: '12px', padding: '1rem', marginBottom: '1rem', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder={`Module ${mIdx + 1} Title`}
+                value={module.title}
+                onChange={(e) => handleModuleTitleChange(mIdx, e.target.value, isEdit)}
+                style={{ flex: 1, padding: '0.6rem', borderRadius: '8px', border: '1.5px solid #cbd5e1', fontWeight: 600 }}
+              />
+              <div style={{ position: 'relative' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setBulkContentMenu(bulkContentMenu === mIdx ? null : mIdx)}
+                  style={{ padding: '0.5rem 0.75rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700 }}
+                >
+                  + Bulk Content
+                </button>
+                {bulkContentMenu === mIdx && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '0.5rem',
+                    background: 'white',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minWidth: '120px',
+                    overflow: 'hidden'
+                  }}>
+                    {['video', 'image', 'pdf'].map(type => (
+                      <div 
+                        key={type}
+                        onClick={() => handleBulkTypeSelection(mIdx, type, isEdit)}
+                        style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.85rem', color: '#1e293b', borderBottom: '1px solid #f1f5f9', background: '#fff' }}
+                        onMouseOver={e => e.currentTarget.style.background = '#f8fafc'}
+                        onMouseOut={e => e.currentTarget.style.background = '#fff'}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <input 
+                id={`bulk-upload-${mIdx}`} 
+                type="file" 
+                multiple 
+                style={{ display: 'none' }} 
+                onChange={(e) => handleCourseBulkUpload(mIdx, e.target.files, isEdit, bulkTypeRef.current)} 
+              />
+              <button type="button" onClick={() => removeModule(mIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+            </div>
+
+            <div className="lessons-list" style={{ marginLeft: '1rem', borderLeft: '2px solid #e2e8f0', paddingLeft: '1rem' }}>
+              {module.lessons.map((lesson, lIdx) => (
+                <div key={lIdx} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: '#fff', padding: '0.75rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <input
+                      type="text"
+                      placeholder="Lesson Title"
+                      value={lesson.title}
+                      onChange={(e) => handleLessonChange(mIdx, lIdx, 'title', e.target.value, isEdit)}
+                      style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 700 }}
+                    />
+                    <button type="button" onClick={() => removeLesson(mIdx, lIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+                  </div>
+
+                  {(lesson.contents || []).map((content, cIdx) => (
+                    <div key={cIdx} style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <select
+                          value={content.type}
+                          onChange={(e) => handleLessonContentChange(mIdx, lIdx, cIdx, 'type', e.target.value, isEdit)}
+                          style={{ flex: 1, padding: '0.4rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                        >
+                          <option value="video">Video</option>
+                          <option value="pdf">PDF</option>
+                          <option value="image">Image</option>
+                          <option value="text">Text</option>
+                        </select>
+                        <button type="button" onClick={() => removeContentFromLesson(mIdx, lIdx, cIdx, isEdit)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1rem' }}>×</button>
+                      </div>
+
+                      {content.type === 'text' ? (
+                        <textarea
+                          placeholder="Enter text content..."
+                          value={content.url}
+                          onChange={(e) => handleLessonContentChange(mIdx, lIdx, cIdx, 'url', e.target.value, isEdit)}
+                          style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', minHeight: '80px', resize: 'vertical' }}
+                        />
+                      ) : (
+                        <div className="content-upload-area">
+                          {content.url ? (
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#fff', padding: '0.5rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                              <span>{content.type === 'video' ? '🎬' : (content.type === 'pdf' ? '📄' : '🖼️')}</span>
+                              <span style={{ flex: 1, fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{content.url.split('/').pop()}</span>
+                              <button type="button" onClick={() => handleLessonContentChange(mIdx, lIdx, cIdx, 'url', '', isEdit)} style={{ color: '#ef4444', border: 'none', background: 'none', fontSize: '0.7rem' }}>Remove</button>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                              <div
+                                onClick={() => document.getElementById(`file-${mIdx}-${lIdx}-${cIdx}`).click()}
+                                style={{ border: '1.5px dashed #F2921D', borderRadius: '8px', padding: '1rem', textAlign: 'center', cursor: 'pointer', background: isUploadingLesson[`${mIdx}-${lIdx}-${cIdx}`] ? '#fff7ed' : '#fff' }}
+                              >
+                                {isUploadingLesson[`${mIdx}-${lIdx}-${cIdx}`] ? 'Uploading...' : `Click to upload ${content.type}`}
+                                <input id={`file-${mIdx}-${lIdx}-${cIdx}`} type="file" style={{ display: 'none' }} onChange={(e) => handleLessonFileUpload(mIdx, lIdx, cIdx, e.target.files[0], isEdit)} />
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Or paste URL..."
+                                value={content.url}
+                                onChange={(e) => handleLessonContentChange(mIdx, lIdx, cIdx, 'url', e.target.value, isEdit)}
+                                style={{ padding: '0.4rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.8rem' }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <button type="button" onClick={() => addContentToLesson(mIdx, lIdx, isEdit)} style={{ alignSelf: 'center', fontSize: '0.75rem', color: '#64748b', background: '#f1f5f9', border: 'none', padding: '0.4rem 1rem', borderRadius: '20px', cursor: 'pointer' }}>
+                    + Add More Content (Video, PDF, etc.)
+                  </button>
+                </div>
+              ))}
+              <button 
+                type="button" 
+                onClick={() => addLesson(mIdx, isEdit)} 
+                style={{ 
+                  marginTop: '0.5rem',
+                  padding: '0.6rem 1rem', 
+                  background: '#f8fafc', 
+                  color: '#F2921D', 
+                  border: '1.5px dashed #F2921D', 
+                  borderRadius: '10px',
+                  cursor: 'pointer', 
+                  fontWeight: 700, 
+                  fontSize: '0.85rem',
+                  width: '100%',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#fff7ed'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#f8fafc'}
+              >
+                + Add Another Lesson
+              </button>
+            </div>
+
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const renderEditModal = () => (
@@ -1056,6 +1543,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </label>
             </div>
           </div>
+
+          {renderModulesSection(true)}
 
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={() => setIsEditModalOpen(false)}>Cancel</button>
@@ -1224,6 +1713,9 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </label>
             </div>
           </div>
+
+          {renderModulesSection(false)}
+
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
             <button type="submit" className="submit-btn" disabled={isSubmitting}>
@@ -1300,11 +1792,11 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <p className="author" style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '0.75rem' }}>{course.description || 'No description'}</p>
                   <div className="course-mini-stats">
                     <div className="mini-item">
-                      <span className="val">{course.modules}</span>
+                      <span className="val">{course.modules_count}</span>
                       <span className="lbl">Modules</span>
                     </div>
                     <div className="mini-item">
-                      <span className="val">{course.lessons}</span>
+                      <span className="val">{course.lessons_count}</span>
                       <span className="lbl">Hours</span>
                     </div>
                     <div className="mini-item">
@@ -1331,18 +1823,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const testStats = [
-    { label: 'Total Tests', value: '48', icon: '📝', color: '#e0f2fe' },
-    { label: 'Total Attempts', value: '1,429', icon: '👥', color: '#fff7ed' },
-    { label: 'Avg Score', value: '68.2%', icon: '⏱️', color: '#fff7ed' },
-    { label: 'Draft Tests', value: '6', icon: '📋', color: '#fef2f2' },
-  ];
 
-  const adminTestData = [
-    { id: 1, name: 'CSAT Paper II - Mock Test 1', type: 'Full Length', duration: '120 mins', questions: 80, attempts: 142, avgScore: '68.5%', status: 'Published' },
-    { id: 2, name: 'Prelims Mock Test - Series 1', type: 'Full Length', duration: '120 mins', questions: 100, attempts: 198, avgScore: '72.3%', status: 'Published' },
-    { id: 3, name: 'Polity Chapter Test - Parliament', type: 'Topic Wise', duration: '45 mins', questions: 30, attempts: 85, avgScore: '64.2%', status: 'Draft' },
-  ];
 
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [testModalStep, setTestModalStep] = useState(1); // 1: Info, 2: Questions
@@ -1351,7 +1832,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     type: 'Full Length',
     duration: '',
     questions: [],
-    status: 'Draft'
+    status: 'Draft',
+    is_mock: false,
+    start_time: '',
+    end_time: ''
   });
 
   const [currentQuestion, setCurrentQuestion] = useState({
@@ -1473,7 +1957,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           title: testFormData.name,
           category: testFormData.type,
           duration_mins: parseInt(testFormData.duration),
-          questions: submissionQuestions
+          questions: submissionQuestions,
+          is_mock: testFormData.is_mock,
+          start_time: testFormData.start_time,
+          end_time: testFormData.end_time
         })
       });
 
@@ -1486,7 +1973,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           type: 'Full Length',
           duration: '',
           questions: [],
-          status: 'Draft'
+          status: 'Draft',
+          is_mock: false,
+          start_time: '',
+          end_time: ''
         });
         // REFRESH DATA IMMEDIATELY
         fetchTests();
@@ -1548,6 +2038,42 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   required
                 />
               </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={testFormData.is_mock}
+                  onChange={(e) => setTestFormData({ ...testFormData, is_mock: e.target.checked })}
+                  style={{ width: '1.2rem', height: '1.2rem', accentColor: '#F2921D' }}
+                />
+                <span style={{ fontWeight: '700', color: '#1e293b' }}>Conduct as Mock Test (Scheduled)</span>
+              </label>
+              <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.5rem 0 0 2rem' }}>Scheduled tests are only available to students during a specific time window.</p>
+
+              {testFormData.is_mock && (
+                <div className="form-row" style={{ marginTop: '1.5rem' }}>
+                  <div className="form-group">
+                    <label>Start Time</label>
+                    <input
+                      type="datetime-local"
+                      value={testFormData.start_time}
+                      onChange={(e) => setTestFormData({ ...testFormData, start_time: e.target.value })}
+                      required={testFormData.is_mock}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>End Time</label>
+                    <input
+                      type="datetime-local"
+                      value={testFormData.end_time}
+                      onChange={(e) => setTestFormData({ ...testFormData, end_time: e.target.value })}
+                      required={testFormData.is_mock}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="modal-actions">
               <button type="button" className="cancel-btn" onClick={() => setIsTestModalOpen(false)}>Cancel</button>
@@ -1837,14 +2363,26 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const [fetchedTests, setFetchedTests] = useState([]);
   const [isManagingQuestions, setIsManagingQuestions] = useState(false);
   const [testToManage, setTestToManage] = useState(null);
   const [testQuestions, setTestQuestions] = useState([]);
+  const [viewingTestResults, setViewingTestResults] = useState(null);
+  const [testResults, setTestResults] = useState([]);
+  const [isLoadingResults, setIsLoadingResults] = useState(false);
 
-  useEffect(() => {
-    fetchTests();
-  }, []);
+  const fetchTestResults = async (test) => {
+    setViewingTestResults(test);
+    setIsLoadingResults(true);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tests/${test.id}/results`);
+      const data = await response.json();
+      setTestResults(data);
+    } catch (error) {
+      console.error("Error fetching results:", error);
+    } finally {
+      setIsLoadingResults(false);
+    }
+  };
 
   const fetchTests = async () => {
     try {
@@ -1996,7 +2534,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     <div className="test-management-page">
       <div className="view-page-header">
         <button
-          onClick={() => setIsManagingQuestions(false)}
+          onClick={() => { setIsManagingQuestions(false); setActiveMenu('Practice Test'); }}
           className="back-btn"
           style={{
             background: '#F2921D',
@@ -2017,7 +2555,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
           onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
-          ← Back to Tests
+          ← Back to Practice Test
         </button>
         <div style={{ flex: 1 }}>
           <h1>Managing: {testToManage.title}</h1>
@@ -2068,23 +2606,28 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
     </div>
   );
 
-  const renderTests = () => {
+  const renderTests = (isMockView) => {
     if (isManagingQuestions) return renderManageQuestionsView();
+
+    const filteredTests = fetchedTests.filter(t => !!t.is_mock === isMockView);
 
     return (
       <div className="test-management-page">
         <div className="view-page-header">
           <div style={{ flex: 1 }}>
-            <h1>Tests Management</h1>
-            <p>Create and manage test papers</p>
+            <h1>{isMockView ? 'Mock Test Management' : 'Practice Test Management'}</h1>
+            <p>{isMockView ? 'Schedule and monitor time-bound exams' : 'Create and manage self-paced practice papers'}</p>
           </div>
-          <button className="create-course-main-btn" onClick={() => setIsTestModalOpen(true)}>
-            <span>+</span> Create New Test
+          <button className="create-course-main-btn" onClick={() => {
+            setTestFormData({ ...testFormData, is_mock: isMockView });
+            setIsTestModalOpen(true);
+          }}>
+            <span>+</span> Create New {isMockView ? 'Mock' : 'Practice'} Test
           </button>
         </div>
 
         <div className="admin-stats-grid">
-          {testStats.map((stat) => (
+          {liveTestStats.map((stat) => (
             <div key={stat.label} className="adm-stat-card">
               <div className="adm-stat-top">
                 <div className="adm-stat-icon-wrap" style={{ backgroundColor: stat.color }}>
@@ -2101,7 +2644,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
 
         <div className="admin-management-section">
           <div className="table-header-row">
-            <h2>All Tests ({fetchedTests.length})</h2>
+            <h2>{isMockView ? 'All Mock Tests' : 'All Practice Tests'} ({filteredTests.length})</h2>
           </div>
 
           <table className="adm-table tests-table">
@@ -2116,7 +2659,7 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
               </tr>
             </thead>
             <tbody>
-              {fetchedTests.map((test) => (
+              {filteredTests.map((test) => (
                 <tr key={test.id}>
                   <td style={{ fontWeight: '700', color: 'var(--text-main)' }}>{test.title}</td>
                   <td>
@@ -2125,30 +2668,98 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   <td>{test.duration_mins} mins</td>
                   <td>{test.total_questions}</td>
                   <td>
-                    <span className={`status-pill ${test.status?.toLowerCase() || 'published'}`}>
-                      {test.status || 'Published'}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <span className={`status-pill ${test.status?.toLowerCase() || 'published'}`}>
+                        {test.status || 'Published'}
+                      </span>
+                      {test.is_mock === 1 && (
+                        <span style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 'bold' }}>
+                          ⏱️ {new Date(test.start_time).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <div className="adm-actions-cell">
+                      <button className="icon-btn analytics" onClick={() => fetchTestResults(test)} title="View Results" style={{ background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}>📊</button>
                       <button className="icon-btn edit" onClick={() => manageQuestions(test)} title="Manage Questions">✎</button>
                       <button className="icon-btn delete" onClick={() => handleDeleteTest(test.id)} title="Delete Test">🗑️</button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {fetchedTests.length === 0 && (
+              {filteredTests.length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No tests created yet.</td>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No tests found in this category.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
         {isTestModalOpen && renderCreateTestModal()}
+        {viewingTestResults && renderTestResultsModal()}
       </div>
     );
   };
+
+  const renderTestResultsModal = () => (
+    <div className="adm-modal-overlay">
+      <div className="adm-modal-content" style={{ maxWidth: '900px' }}>
+        <div className="adm-modal-header">
+          <h2>Detailed Results: {viewingTestResults?.title}</h2>
+          <button className="close-modal" onClick={() => setViewingTestResults(null)}>×</button>
+        </div>
+        <div style={{ padding: '2rem', maxHeight: '70vh', overflowY: 'auto' }}>
+          {isLoadingResults ? (
+            <div style={{ textAlign: 'center', padding: '3rem' }}>
+                <div style={{ width: '40px', height: '40px', border: '4px solid #f3f3f3', borderTop: '4px solid #F2921D', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem auto' }} />
+                <p>Fetching student performances...</p>
+            </div>
+          ) : testResults.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', background: 'var(--bg-main)', borderRadius: '16px', border: '2px dashed var(--border-color)' }}>
+              <span style={{ fontSize: '3rem' }}>📊</span>
+              <p style={{ marginTop: '1rem', fontWeight: '600' }}>No student has attempted this test yet.</p>
+              <p style={{ fontSize: '0.9rem' }}>Results will appear here as soon as students finish the exam.</p>
+            </div>
+          ) : (
+            <table className="adm-table students-full">
+              <thead>
+                <tr>
+                  <th>STUDENT NAME</th>
+                  <th>EMAIL ADDRESS</th>
+                  <th>RAW SCORE</th>
+                  <th>PERCENTAGE</th>
+                  <th>SUBMITTED AT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {testResults.map(res => (
+                  <tr key={res.id}>
+                    <td><span style={{ fontWeight: '700', color: 'var(--text-main)' }}>{res.student_name}</span></td>
+                    <td style={{ color: 'var(--text-muted)' }}>{res.student_email}</td>
+                    <td><span style={{ fontWeight: '600' }}>{res.score}</span></td>
+                    <td>
+                      <span style={{ 
+                        fontWeight: '800', 
+                        color: res.percentage >= 60 ? '#16a34a' : '#ef4444',
+                        background: res.percentage >= 60 ? '#dcfce7' : '#fee2e2',
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem'
+                      }}>
+                        {res.percentage}%
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{new Date(res.completed_at).toLocaleString('en-GB')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   const liveClassStats = [
     { label: 'Upcoming Classes', value: '12', icon: '📅', color: '#e0f2fe' },
@@ -3439,19 +4050,19 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
           <h1>Scholarship Evaluation</h1>
           <p>Review and approve pending scholarship tests</p>
         </div>
-        <button 
-          onClick={() => { fetchSettings(); setIsScheduleModalOpen(true); }} 
+        <button
+          onClick={() => { fetchSettings(); setIsScheduleModalOpen(true); }}
           style={{ background: '#F2921D', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
           <span>📅</span> Schedule Test
         </button>
       </div>
-      
+
       <div className="admin-management-section">
         <div className="table-header-row">
           <h2>All Evaluations</h2>
         </div>
-        
+
         <table className="adm-table students-full">
           <thead>
             <tr>
@@ -3479,27 +4090,27 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                   </span>
                 </td>
                 <td>
-                  <span className={`status-pill ${student.scholarship_status === 'approved' ? 'published' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? 'inactive' : 'pending'}`} style={{ 
-                    background: student.scholarship_status === 'approved' ? '#dcfce7' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#fee2e2' : '#fef9c3', 
-                    color: student.scholarship_status === 'approved' ? '#166534' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#991b1b' : '#854d0e', 
-                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontWeight: 'bold' 
+                  <span className={`status-pill ${student.scholarship_status === 'approved' ? 'published' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? 'inactive' : 'pending'}`} style={{
+                    background: student.scholarship_status === 'approved' ? '#dcfce7' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#fee2e2' : '#fef9c3',
+                    color: student.scholarship_status === 'approved' ? '#166534' : (student.scholarship_status === 'rejected' || student.scholarship_status === 'rejected_acknowledged') ? '#991b1b' : '#854d0e',
+                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontWeight: 'bold'
                   }}>
                     {student.scholarship_status === 'under_evaluation' ? 'Pending' : (student.scholarship_status === 'rejected_acknowledged' ? 'Rejected' : student.scholarship_status.charAt(0).toUpperCase() + student.scholarship_status.slice(1))}
                   </span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
+                    <button
                       onClick={() => setViewingAnswersStudent(student)}
                       style={{ padding: '0.5rem 1rem', background: '#F2921D', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                     >View Answers</button>
                     {student.scholarship_status === 'under_evaluation' && (
                       <>
-                        <button 
+                        <button
                           onClick={() => handleEvaluateScholarship(student.id, 'approved')}
                           style={{ padding: '0.5rem 1rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                         >Approve</button>
-                        <button 
+                        <button
                           onClick={() => handleEvaluateScholarship(student.id, 'rejected')}
                           style={{ padding: '0.5rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                         >Reject</button>
@@ -3525,8 +4136,8 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
                 let answers = {};
                 try {
                   answers = JSON.parse(viewingAnswersStudent.scholarship_answers_json || '{}');
-                } catch(e){}
-                
+                } catch (e) { }
+
                 if (Object.keys(answers).length === 0) {
                   return <p style={{ textAlign: 'center', color: '#64748b' }}>No answers recorded for this student.</p>;
                 }
@@ -3559,20 +4170,20 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
             <form onSubmit={handleScheduleSubmit} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div className="form-group">
                 <label>Start Date & Time</label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   value={scheduleForm.start}
-                  onChange={(e) => setScheduleForm({...scheduleForm, start: e.target.value})}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, start: e.target.value })}
                   required
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                 />
               </div>
               <div className="form-group">
                 <label>End Date & Time</label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   value={scheduleForm.end}
-                  onChange={(e) => setScheduleForm({...scheduleForm, end: e.target.value})}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, end: e.target.value })}
                   required
                   style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}
                 />
@@ -3595,8 +4206,10 @@ const FacultyDashboard = ({ user, onLogout, onUserUpdate }) => {
         return renderStudents();
       case 'Courses':
         return renderCourses();
-      case 'Tests':
-        return renderTests();
+      case 'Practice Test':
+        return renderTests(false);
+      case 'Mock Test':
+        return renderTests(true);
       case 'Live Classes':
         return renderLiveClasses();
       case 'Study Materials':

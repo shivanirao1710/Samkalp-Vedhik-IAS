@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Enum, Text, DateTime, Float, Boolean
+from sqlalchemy import Column, Integer, String, Enum, Text, DateTime, Float, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from database import Base
 import enum
 from datetime import datetime
@@ -28,6 +29,8 @@ class User(Base):
     scholarship_status = Column(String, default="pending") # pending, under_evaluation, approved, rejected
     scholarship_score = Column(Integer, nullable=True)
     scholarship_answers_json = Column(Text, nullable=True)
+    assigned_mentor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    batch_id = Column(Integer, ForeignKey("batches.id"), nullable=True)
 
 class Course(Base):
     __tablename__ = "courses"
@@ -35,11 +38,39 @@ class Course(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(String)
-    modules = Column(Integer, default=0)
-    lessons = Column(Integer, default=0)
+    modules_count = Column(Integer, default=0) # Keeping as count for quick display
+    lessons_count = Column(Integer, default=0) # Keeping as count for quick display
     image_url = Column(String)
     status = Column(String, default="not_started") # not_started, in_progress, completed
     progress = Column(Integer, default=0)
+
+    # Relationships
+    course_modules = relationship("Module", back_populates="course", cascade="all, delete-orphan")
+
+class Module(Base):
+    __tablename__ = "modules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id"))
+    title = Column(String, nullable=False)
+    order = Column(Integer, default=0)
+
+    # Relationships
+    course = relationship("Course", back_populates="course_modules")
+    lessons = relationship("Lesson", back_populates="module", cascade="all, delete-orphan")
+
+class Lesson(Base):
+    __tablename__ = "lessons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    module_id = Column(Integer, ForeignKey("modules.id"))
+    title = Column(String, nullable=False)
+    content_type = Column(String) # video, pdf, quiz, text
+    content_url = Column(String, nullable=True)
+    order = Column(Integer, default=0)
+
+    # Relationships
+    module = relationship("Module", back_populates="lessons")
 
 class Test(Base):
     __tablename__ = "tests"
@@ -50,6 +81,9 @@ class Test(Base):
     duration_mins = Column(Integer, default=60)
     total_questions = Column(Integer, default=0)
     status = Column(String, default="Published") # Published, Draft
+    is_mock = Column(Integer, default=0) # 0: Practice, 1: Mock
+    start_time = Column(String, nullable=True) # ISO format string for simplicity
+    end_time = Column(String, nullable=True)
 
 class Question(Base):
     __tablename__ = "questions"
@@ -123,6 +157,7 @@ class CourseEnrollment(Base):
     course_id = Column(Integer, index=True)
     status = Column(String, default="not_started")
     progress = Column(Integer, default=0)
+    completed_lessons = Column(Text, default="[]") # JSON list of lesson IDs
 
 class StudyMaterial(Base):
     __tablename__ = "study_materials"
@@ -208,3 +243,10 @@ class AppSetting(Base):
     id = Column(Integer, primary_key=True, index=True)
     setting_key = Column(String, unique=True, index=True, nullable=False)
     setting_value = Column(String, nullable=False)
+
+class Batch(Base):
+    __tablename__ = "batches"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
