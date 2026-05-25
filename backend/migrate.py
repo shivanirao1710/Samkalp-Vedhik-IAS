@@ -80,6 +80,16 @@ def migrate():
                 conn.execute(text("UPDATE course_enrollments SET completed_lessons = '[]' WHERE completed_lessons IS NULL;"))
                 conn.commit()
 
+            res5 = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='assigned_mentor_id';
+            """))
+            if not res5.fetchone():
+                print("Adding 'assigned_mentor_id' column to 'users'...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN assigned_mentor_id INTEGER REFERENCES users(id);"))
+                conn.commit()
+
             # Mock Test Columns Migration
             res_mock = conn.execute(text("""
                 SELECT column_name 

@@ -35,6 +35,10 @@ class UserResponse(BaseModel):
     scholarship_status: Optional[str] = "pending"
     scholarship_score: Optional[int] = None
     scholarship_answers_json: Optional[str] = None
+    assigned_mentor_id: Optional[int] = None
+    assigned_mentor_name: Optional[str] = None
+    batch_id: Optional[int] = None
+    batch_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -68,6 +72,8 @@ class UserAdminResponse(BaseModel):
     scholarship_status: Optional[str] = "pending"
     scholarship_score: Optional[int] = None
     scholarship_answers_json: Optional[str] = None
+    assigned_mentor_id: Optional[int] = None
+    batch_id: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -195,3 +201,23 @@ class ScholarshipSubmit(BaseModel):
 
 class ScholarshipEvaluate(BaseModel):
     status: str
+
+class AssignMentorRequest(BaseModel):
+    user_id: int
+    mentor_id: Optional[int] = None
+
+class BatchCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class BatchResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class AssignBatchRequest(BaseModel):
+    user_id: int
+    batch_id: Optional[int] = None
