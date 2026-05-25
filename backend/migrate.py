@@ -90,6 +90,16 @@ def migrate():
                 conn.execute(text("ALTER TABLE users ADD COLUMN assigned_mentor_id INTEGER REFERENCES users(id);"))
                 conn.commit()
 
+            res_batch = conn.execute(text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='batch_id';
+            """))
+            if not res_batch.fetchone():
+                print("Adding 'batch_id' column to 'users'...")
+                conn.execute(text("ALTER TABLE users ADD COLUMN batch_id INTEGER REFERENCES batches(id);"))
+                conn.commit()
+
             # Mock Test Columns Migration
             res_mock = conn.execute(text("""
                 SELECT column_name 
